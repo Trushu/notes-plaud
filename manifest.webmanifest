@@ -1,0 +1,31 @@
+{
+  "name": "Notes Plaud",
+  "short_name": "Notes Plaud",
+  "description": "Transcription et résumé de tes enregistrements Plaud avec Groq",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f5f1",
+  "theme_color": "#f6f5f1",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "share_target": {
+    "action": "./share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "files": [
+        {
+          "name": "audio",
+          "accept": ["audio/*", ".mp3", ".m4a", ".wav", ".ogg", ".opus", ".aac", ".flac", "application/octet-stream"]
+        }
+      ]
+    }
+  }
+}

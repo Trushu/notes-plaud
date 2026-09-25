@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Notes Plaud</title>
+<meta name="description" content="Transcription et résumé de tes enregistrements Plaud avec Groq">
+<meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16171a" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root {
+    --bg: #f6f5f1; --surface: #ffffff; --surface-2: #efede7; --text: #1d1d1f; --muted: #6b6a66;
+    --line: #e2dfd7; --accent: #c2410c; --accent-soft: #fbe6da; --ok: #15803d; --err: #b91c1c;
+    --radius: 14px; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.04);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16171a; --surface: #1f2024; --surface-2: #2a2b30; --text: #ecebe7; --muted: #a09e98;
+      --line: #34353b; --accent: #fb923c; --accent-soft: #3a2518; --ok: #4ade80; --err: #f87171;
+      --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased; min-height: 100vh;
+    padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 0 16px 96px; }
+  header {
+    position: sticky; top: 0; z-index: 5; background: var(--bg);
+    display: flex; align-items: center; gap: 8px; padding: 14px 0 12px;
+  }
+  header h1 { font-size: 20px; margin: 0; flex: 1; letter-spacing: -.01em; }
+  .iconbtn {
+    width: 40px; height: 40px; border-radius: 10px; border: 0; background: transparent;
+    display: grid; place-items: center; cursor: pointer; color: var(--text);
+  }
+  .iconbtn:active { background: var(--surface-2); }
+  .iconbtn svg { width: 22px; height: 22px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
+  .stack > * + * { margin-top: 12px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--line);
+    background: var(--surface); cursor: pointer; font-weight: 500; text-decoration: none; color: var(--text);
+  }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  @media (prefers-color-scheme: dark) { .btn.primary { color: #1a0e05; } }
+  .btn.block { width: 100%; }
+  .btn.danger { color: var(--err); }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .btn svg { width: 18px; height: 18px; flex: none; }
+  .pick { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 22px 16px; text-align: center; border-style: dashed; }
+  .pick svg { width: 32px; height: 32px; color: var(--accent); }
+  .pick strong { font-size: 17px; }
+  .muted { color: var(--muted); }
+  .small { font-size: 14px; }
+  h2 { font-size: 15px; font-weight: 600; margin: 24px 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  .list { display: flex; flex-direction: column; gap: 8px; }
+  .item { display: block; width: 100%; text-align: left; cursor: pointer; }
+  .item .t { font-weight: 600; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item .m { font-size: 14px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .badge { font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 99px; background: var(--surface-2); color: var(--muted); }
+  .badge.err { background: color-mix(in srgb, var(--err) 14%, transparent); color: var(--err); }
+  .badge.run { background: var(--accent-soft); color: var(--accent); }
+  .empty { text-align: center; padding: 24px 8px; }
+  .hidden { display: none !important; }
+
+  /* Traitement */
+  .steps { list-style: none; margin: 0; padding: 0; }
+  .steps li { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; color: var(--muted); }
+  .steps li .dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); flex: none; margin-top: 1px; display: grid; place-items: center; }
+  .steps li.active { color: var(--text); }
+  .steps li.active .dot { border-color: var(--accent); border-top-color: transparent; animation: spin 0.9s linear infinite; }
+  .steps li.done { color: var(--text); }
+  .steps li.done .dot { background: var(--ok); border-color: var(--ok); }
+  .steps li.done .dot::after { content: ""; width: 8px; height: 4px; border: 2px solid #fff; border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
+  .steps li.fail .dot { background: var(--err); border-color: var(--err); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .status { font-size: 14px; color: var(--muted); min-height: 21px; }
+  .bar { height: 6px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+  .bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .4s; }
+  .error-box { border-color: color-mix(in srgb, var(--err) 40%, var(--line)); }
+  .error-box p { margin: 0; color: var(--err); }
+
+  /* Note */
+  .note-head h1 { font-size: 22px; line-height: 1.25; margin: 0 0 4px; letter-spacing: -.01em; }
+  .tabs { display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 12px; }
+  .tabs button { flex: 1; min-height: 38px; border: 0; border-radius: 9px; background: transparent; cursor: pointer; font-weight: 500; color: var(--muted); }
+  .tabs button[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+  .md { overflow-wrap: anywhere; }
+  .md h1, .md h2, .md h3 { color: var(--text); text-transform: none; letter-spacing: 0; margin: 18px 0 6px; line-height: 1.3; }
+  .md h1 { font-size: 20px; } .md h2 { font-size: 17px; } .md h3 { font-size: 16px; }
+  .md > :first-child { margin-top: 0; }
+  .md p { margin: 6px 0; }
+  .md ul, .md ol { margin: 6px 0; padding-left: 22px; }
+  .md li { margin: 3px 0; }
+  .md li.task { list-style: none; margin-left: -22px; display: flex; gap: 8px; }
+  .md li.task input { margin-top: 5px; accent-color: var(--accent); }
+  .seg { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+  .seg:last-child { border-bottom: 0; }
+  .seg time { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); flex: none; padding-top: 2px; }
+  .actions { position: fixed; left: 0; right: 0; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); }
+  .actions .row { max-width: 680px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .actions .btn { padding: 0 8px; font-size: 15px; }
+
+  /* Réglages */
+  label.f { display: block; font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .f-help { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  input[type=text], input[type=password], select, textarea {
+    width: 100%; min-height: 44px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface);
+  }
+  textarea { min-height: 84px; resize: vertical; }
+  .keyrow { display: flex; gap: 8px; }
+  .keyrow input { flex: 1; min-width: 0; }
+  a { color: var(--accent); }
+  .toast {
+    position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%) translateY(20px); opacity: 0;
+    background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px;
+    transition: .25s; pointer-events: none; z-index: 20; max-width: calc(100% - 32px);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <button class="iconbtn hidden" id="backBtn" aria-label="Retour">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <h1 id="title">Notes Plaud</h1>
+    <button class="iconbtn" id="settingsBtn" aria-label="Réglages">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </header>
+
+  <!-- Accueil -->
+  <section id="v-home" class="stack">
+    <div id="onboard" class="card stack hidden">
+      <strong>Bienvenue 👋</strong>
+      <p class="muted small" style="margin:0">Pour commencer, colle ta clé API Groq (gratuite, sans carte bancaire). Elle reste sur ce téléphone.</p>
+      <button class="btn primary block" id="onboardBtn">Ajouter ma clé Groq</button>
+    </div>
+    <label class="card pick" for="fileInput">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
+      <strong>Choisir un fichier audio</strong>
+      <span class="muted small">Ou depuis l'app Plaud : Exporter → Audio → MP3 → Partager → Notes Plaud</span>
+    </label>
+    <input type="file" id="fileInput" accept="audio/*,.mp3,.m4a,.wav,.ogg,.opus,.aac,.flac" class="hidden">
+    <h2>Mes notes</h2>
+    <div class="list" id="notesList"></div>
+  </section>
+
+  <!-- Traitement -->
+  <section id="v-job" class="stack hidden">
+    <div class="card stack">
+      <div>
+        <strong id="jobName">—</strong>
+        <div class="muted small" id="jobSize"></div>
+      </div>
+      <ul class="steps">
+        <li id="st-up"><span class="dot"></span><span>Envoi et transcription<br><span class="small muted" id="st-up-d"></span></span></li>
+        <li id="st-sum"><span class="dot"></span><span>Résumé<br><span class="small muted" id="st-sum-d"></span></span></li>
+      </ul>
+      <div class="bar"><i id="jobBar"></i></div>
+      <div class="status" id="jobStatus"></div>
+      <p class="muted small" style="margin:0">Garde l'app ouverte pendant le traitement. L'écran reste allumé automatiquement.</p>
+    </div>
+    <div class="card error-box stack hidden" id="jobError">
+      <p id="jobErrorMsg"></p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap">
+        <button class="btn" id="jobRetry">Réessayer</button>
+        <button class="btn" id="jobHome">Retour</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Note -->
+  <section id="v-note" class="stack hidden">
+    <div class="note-head">
+      <h1 id="noteTitle"></h1>
+      <div class="muted small" id="noteMeta"></div>
+    </div>
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-tab="sum">Résumé</button>
+      <button role="tab" aria-selected="false" data-tab="tr">Transcription</button>
+    </div>
+    <div class="card md" id="noteSum"></div>
+    <div class="card hidden" id="noteTr"></div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap">
+      <button class="btn" id="resumAgain">Refaire le résumé</button>
+      <button class="btn danger" id="delNote">Supprimer</button>
+    </div>
+  </section>
+
+  <!-- Réglages -->
+  <section id="v-settings" class="stack hidden">
+    <div class="card stack">
+      <div>
+        <label class="f" for="sKey">Clé API Groq</label>
+        <div class="keyrow">
+          <input type="password" id="sKey" autocomplete="off" spellcheck="false" placeholder="gsk_…">
+          <button class="btn" id="sKeyShow" type="button">Voir</button>
+        </div>
+        <div class="f-help">Crée-la sur <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> (compte gratuit). Elle est stockée uniquement sur ce téléphone.</div>
+      </div>
+      <div>
+        <label class="f" for="sLang">Langue des enregistrements</label>
+        <select id="sLang">
+          <option value="fr">Français</option>
+          <option value="auto">Détection automatique</option>
+          <option value="en">Anglais</option>
+          <option value="es">Espagnol</option>
+          <option value="de">Allemand</option>
+          <option value="it">Italien</option>
+        </select>
+      </div>
+      <div>
+        <label class="f" for="sWhisper">Modèle de transcription</label>
+        <select id="sWhisper">
+          <option value="whisper-large-v3">whisper-large-v3 (le plus précis)</option>
+          <option value="whisper-large-v3-turbo">whisper-large-v3-turbo (plus rapide)</option>
+        </select>
+      </div>
+      <div>
+        <label class="f" for="sLlm">Modèles de résumé</label>
+        <input type="text" id="sLlm" spellcheck="false">
+        <div class="f-help">Séparés par des virgules. Le premier sert à la synthèse finale. Utiliser plusieurs modèles accélère les longs enregistrements, car chacun a sa propre limite gratuite.</div>
+      </div>
+      <div>
+        <label class="f" for="sCtx">Contexte (facultatif)</label>
+        <textarea id="sCtx" placeholder="Ex. : je suis étudiant en BTS, ce sont surtout des cours d'économie. Les noms fréquents : Mme Durand, M. Leroy."></textarea>
+        <div class="f-help">Ajouté aux consignes du résumé pour qu'il soit plus pertinent.</div>
+      </div>
+      <button class="btn primary block" id="sSave">Enregistrer</button>
+    </div>
+    <p class="muted small">Tes notes sont stockées dans ce navigateur, sur ce téléphone. L'audio est envoyé à Groq pour la transcription, puis supprimé de l'app une fois la note terminée.</p>
+  </section>
+</div>
+
+<div class="actions hidden" id="noteActions">
+  <div class="row">
+    <button class="btn" id="aCopy">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copier</button>
+    <button class="btn" id="aShare">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>Partager</button>
+    <button class="btn" id="aDl">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>.md</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+/* =================== Réglages et constantes =================== */
+const API = 'https://api.groq.com/openai/v1';
+// Modifiable pour les tests
+window.CONFIG = {
+  tpmBudget: 7000,          // l'offre gratuite de Groq : 8 000 tokens/min par modèle, on garde une marge
+  maxAudioChunk: 20 * 1024 * 1024, // limite Groq gratuite : 25 Mo par fichier
+  singleShotChars: 12000,   // en dessous, résumé en une seule requête
+  chunkChars: 11000,        // taille des morceaux pour les longs enregistrements
+};
+const DEFAULTS = {
+  key: '', lang: 'fr', whisper: 'whisper-large-v3',
+  llms: 'openai/gpt-oss-120b, openai/gpt-oss-20b', ctx: '',
+};
+function loadSettings() {
+  let s = {};
+  try { s = JSON.parse(localStorage.getItem('np-settings') || '{}'); } catch (e) {}
+  return { ...DEFAULTS, ...s };
+}
+function saveSettings(s) {
+  try { localStorage.setItem('np-settings', JSON.stringify(s)); return true; } catch (e) { return false; }
+}
+let settings = loadSettings();
+const llmList = () => settings.llms.split(',').map((x) => x.trim()).filter(Boolean);
+
+/* =================== IndexedDB =================== */
+function openDB() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('notes-plaud', 1);
+    r.onupgradeneeded = () => {
+      const db = r.result;
+      if (!db.objectStoreNames.contains('notes')) db.createObjectStore('notes', { keyPath: 'id' });
+      if (!db.objectStoreNames.contains('pending')) db.createObjectStore('pending');
+    };
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+async function dbRun(store, mode, fn) {
+  const db = await openDB();
+  return new Promise((res, rej) => {
+    const t = db.transaction(store, mode);
+    const req = fn(t.objectStore(store));
+    t.oncomplete = () => res(req ? req.result : undefined);
+    t.onerror = () => rej(t.error);
+    t.onabort = () => rej(t.error || new Error('Transaction annulée'));
+  });
+}
+const db = {
+  all: () => dbRun('notes', 'readonly', (s) => s.getAll()),
+  get: (id) => dbRun('notes', 'readonly', (s) => s.get(id)),
+  put: (n) => dbRun('notes', 'readwrite', (s) => s.put(n)),
+  del: (id) => dbRun('notes', 'readwrite', (s) => s.delete(id)),
+  takePending: async () => {
+    const v = await dbRun('pending', 'readonly', (s) => s.get('shared'));
+    if (v) await dbRun('pending', 'readwrite', (s) => s.delete('shared'));
+    return v;
+  },
+};
+
+/* =================== Utilitaires =================== */
+const $ = (id) => document.getElementById(id);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function hms(sec) {
+  sec = Math.max(0, Math.floor(sec || 0));
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(s).padStart(2, '0');
+}
+function dur(sec) {
+  sec = Math.round(sec || 0);
+  if (sec < 60) return `${sec} s`;
+  const h = Math.floor(sec / 3600), m = Math.round((sec % 3600) / 60);
+  return h ? `${h} h ${String(m).padStart(2, '0')}` : `${m} min`;
+}
+const mb = (b) => (b / 1024 / 1024).toFixed(1).replace('.', ',') + ' Mo';
+const fmtDate = (t) => new Date(t).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+function toast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2200);
+}
+function extFor(file) {
+  const m = /\.([a-z0-9]{2,5})$/i.exec(file.name || '');
+  if (m) return m[1].toLowerCase();
+  const map = { 'audio/mpeg': 'mp3', 'audio/mp3': 'mp3', 'audio/mp4': 'm4a', 'audio/x-m4a': 'm4a', 'audio/aac': 'aac',
+    'audio/wav': 'wav', 'audio/x-wav': 'wav', 'audio/wave': 'wav', 'audio/ogg': 'ogg', 'audio/opus': 'ogg', 'audio/flac': 'flac', 'audio/webm': 'webm' };
+  return map[file.type] || 'mp3';
+}
+const baseName = (n) => (n || 'Enregistrement').replace(/\.[a-z0-9]{2,5}$/i, '');
+
+// Mini rendu Markdown (titres, listes, cases à cocher, gras, italique)
+function md(src) {
+  const inline = (s) => esc(s)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[^*])\*(?!\s)(.+?)\*(?!\*)/g, '$1<em>$2</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+  const out = []; let list = null;
+  const close = () => { if (list) { out.push(`</${list}>`); list = null; } };
+  for (const raw of String(src || '').split('\n')) {
+    const line = raw.replace(/\s+$/, '');
+    let m;
+    if (!line.trim()) { close(); continue; }
+    if ((m = /^(#{1,4})\s+(.*)$/.exec(line))) { close(); const l = Math.min(3, m[1].length); out.push(`<h${l}>${inline(m[2])}</h${l}>`); continue; }
+    if (/^(-{3,}|\*{3,})$/.test(line.trim())) { close(); continue; }
+    if ((m = /^\s*[-*•]\s+\[( |x|X)\]\s+(.*)$/.exec(line))) {
+      if (list !== 'ul') { close(); out.push('<ul>'); list = 'ul'; }
+      out.push(`<li class="task"><input type="checkbox" ${m[1].trim() ? 'checked' : ''} disabled><span>${inline(m[2])}</span></li>`); continue;
+    }
+    if ((m = /^\s*[-*•]\s+(.*)$/.exec(line))) { if (list !== 'ul') { close(); out.push('<ul>'); list = 'ul'; } out.push(`<li>${inline(m[1])}</li>`); continue; }
+    if ((m = /^\s*\d+[.)]\s+(.*)$/.exec(line))) { if (list !== 'ol') { close(); out.push('<ol>'); list = 'ol'; } out.push(`<li>${inline(m[1])}</li>`); continue; }
+    close(); out.push(`<p>${inline(line)}</p>`);
+  }
+  close();
+  return out.join('');
+}
+
+/* =================== Maintien de l'écran allumé =================== */
+let wakeLock = null, wantWake = false;
+async function keepAwake(on) {
+  wantWake = on;
+  try {
+    if (on && 'wakeLock' in navigator && !wakeLock) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } else if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; }
+  } catch (e) {}
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantWake) keepAwake(true); });
+
+/* =================== Appels Groq =================== */
+class GroqError extends Error {}
+function parseWait(msg, retryAfter) {
+  const m = /try again in\s*(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:([\d.]+)s)?/i.exec(msg || '');
+  if (m && (m[1] || m[2] || m[3])) return (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (parseFloat(m[3]) || 0) + 1;
+  const ra = parseFloat(retryAfter);
+  return isFinite(ra) && ra > 0 ? ra + 1 : 20;
+}
+async function countdown(sec, label) {
+  const end = Date.now() + sec * 1000;
+  while (Date.now() < end) {
+    status(`${label} — reprise dans ${Math.ceil((end - Date.now()) / 1000)} s`);
+    await sleep(Math.min(1000, end - Date.now()));
+  }
+}
+async function groq(path, init, label) {
+  for (let attempt = 0; attempt < 8; attempt++) {
+    let r;
+    try {
+      r = await fetch(API + path, { ...init, headers: { Authorization: 'Bearer ' + settings.key, ...(init.headers || {}) } });
+    } catch (e) {
+      if (attempt < 2) { await countdown(5, 'Connexion perdue'); continue; }
+      throw new GroqError("Impossible de joindre Groq. Vérifie ta connexion Internet, puis réessaie.");
+    }
+    if (r.ok) return r.json();
+    let text = ''; try { text = await r.text(); } catch (e) {}
+    let msg = text; try { msg = JSON.parse(text).error.message || text; } catch (e) {}
+    if (r.status === 401) throw new GroqError('Clé API Groq refusée. Vérifie-la dans les réglages (icône en haut à droite).');
+    if (r.status === 413) throw new GroqError('Requête trop grosse pour l\'offre gratuite de Groq : ' + msg);
+    if (r.status === 429) {
+      const wait = parseWait(msg, r.headers.get('retry-after'));
+      if (wait > 15 * 60) throw new GroqError('Limite gratuite de Groq atteinte pour le moment. ' + msg);
+      await countdown(wait, 'Limite gratuite de Groq atteinte, pause');
+      continue;
+    }
+    if (r.status >= 500 && attempt < 4) { await countdown(5 * (attempt + 1), 'Groq ne répond pas bien'); continue; }
+    throw new GroqError(`Erreur Groq (${r.status}) : ${msg}`);
+  }
+  throw new GroqError('Groq n\'a pas répondu après plusieurs essais. Réessaie plus tard.');
+}
+
+// --- Transcription ---
+const HALLU = /amara\.org|sous-titr(es|age)\s+(réalisés\s+)?(par|st)|merci d'avoir regardé cette vidéo|abonnez-vous/i;
+async function transcribe(file, onPart) {
+  const ext = extFor(file);
+  const parts = [];
+  for (let off = 0; off < file.size; off += CONFIG.maxAudioChunk) parts.push(file.slice(off, off + CONFIG.maxAudioChunk, file.type));
+  const segments = []; let offset = 0, language = '';
+  for (let i = 0; i < parts.length; i++) {
+    onPart(i, parts.length);
+    const fd = new FormData();
+    fd.append('file', parts[i], `audio-${i + 1}.${ext}`);
+    fd.append('model', settings.whisper);
+    fd.append('response_format', 'verbose_json');
+    fd.append('temperature', '0');
+    if (settings.lang !== 'auto') fd.append('language', settings.lang);
+    const j = await groq('/audio/transcriptions', { method: 'POST', body: fd },
+      parts.length > 1 ? `Transcription (partie ${i + 1}/${parts.length})` : 'Transcription');
+    language = language || j.language || '';
+    const segs = Array.isArray(j.segments) && j.segments.length ? j.segments
+      : [{ start: 0, end: j.duration || 0, text: j.text || '' }];
+    for (const s of segs) {
+      const text = String(s.text || '').trim();
+      if (!text) continue;
+      if (HALLU.test(text) && (s.no_speech_prob == null || s.no_speech_prob > 0.3 || text.length < 90)) continue;
+      if (s.no_speech_prob > 0.85 && s.avg_logprob < -1) continue;
+      segments.push({ start: (s.start || 0) + offset, end: (s.end || 0) + offset, text });
+    }
+    const last = segs[segs.length - 1];
+    offset += j.duration || (last ? last.end : 0) || 0;
+  }
+  return { segments, duration: offset, language };
+}
+
+// --- Résumé (avec respect de la limite de tokens/minute par modèle) ---
+const usage = {}; // modèle -> [{t, tok}]
+function waitFor(model, tok) {
+  const now = Date.now();
+  const arr = (usage[model] || []).filter((u) => now - u.t < 61000);
+  usage[model] = arr;
+  const sum = arr.reduce((a, u) => a + u.tok, 0);
+  if (sum + tok <= CONFIG.tpmBudget) return 0;
+  let need = sum + tok - CONFIG.tpmBudget;
+  for (const u of arr) { need -= u.tok; if (need <= 0) return (u.t + 61000 - now) / 1000; }
+  return 61;
+}
+async function chat(prompt, maxOut, label, preferFirst) {
+  const models = llmList();
+  if (!models.length) throw new GroqError('Aucun modèle de résumé indiqué dans les réglages.');
+  const tok = Math.ceil(prompt.length / 3) + maxOut + 200;
+  let best = models[0], bw = waitFor(best, tok);
+  if (!preferFirst) for (const m of models.slice(1)) { const w = waitFor(m, tok); if (w < bw) { bw = w; best = m; } }
+  if (bw > 0) await countdown(Math.ceil(bw), label + ' — pause (limite gratuite)');
+  status(label + '…');
+  (usage[best] = usage[best] || []).push({ t: Date.now(), tok });
+  const body = {
+    model: best, messages: [{ role: 'user', content: prompt }],
+    temperature: 0.3, max_completion_tokens: maxOut,
+  };
+  if (/gpt-oss/.test(best)) { body.reasoning_effort = 'low'; body.include_reasoning = false; }
+  const j = await groq('/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }, label);
+  const c = j.choices && j.choices[0];
+  const out = c && c.message && (c.message.content || '').trim();
+  if (!out) throw new GroqError('Le modèle a renvoyé une réponse vide. Réessaie avec « Refaire le résumé ».');
+  return out.replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
+}
+
+const ctxLine = () => settings.ctx.trim() ? `\nContexte donné par l'utilisateur : ${settings.ctx.trim()}\n` : '';
+const P_FINAL = (text, fromParts) => `Tu rédiges des comptes rendus clairs et fidèles, en français.
+${fromParts ? "Voici les notes successives d'un long enregistrement audio (dans l'ordre chronologique)." : "Voici la transcription automatique d'un enregistrement audio (réunion, cours, appel ou note vocale). Elle peut contenir des erreurs de reconnaissance vocale : corrige-les d'après le contexte."}
+${ctxLine()}
+Réponds uniquement en Markdown, avec exactement cette structure :
+# (un titre court et précis, 8 mots maximum)
+## Résumé
+(5 à 10 lignes qui vont à l'essentiel)
+## Points clés
+(liste à puces)
+## Décisions
+(liste à puces, ou « Aucune »)
+## Actions à faire
+(liste « - [ ] Qui : quoi (échéance si mentionnée) », ou « Aucune »)
+
+N'invente rien qui ne soit pas dans le texte.
+
+Texte :
+"""
+${text}
+"""`;
+const P_PART = (text, i, n) => `Voici la partie ${i}/${n} de la transcription automatique d'un enregistrement audio (elle peut contenir des erreurs de reconnaissance vocale).
+${ctxLine()}
+Résume-la en français en 8 à 15 puces factuelles. Garde les noms, chiffres, dates, décisions et tâches. N'invente rien. Réponds seulement avec les puces.
+
+"""
+${text}
+"""`;
+
+function splitText(text, size) {
+  const chunks = []; let cur = '';
+  for (const line of text.split('\n')) {
+    if (cur && cur.length + line.length + 1 > size) { chunks.push(cur); cur = ''; }
+    if (line.length > size) { for (let i = 0; i < line.length; i += size) chunks.push(line.slice(i, i + size)); continue; }
+    cur += line + '\n';
+  }
+  if (cur.trim()) chunks.push(cur);
+  return chunks;
+}
+async function summarize(segments, onProgress) {
+  let text = segments.map((s) => s.text).join('\n');
+  if (text.length <= CONFIG.singleShotChars) {
+    onProgress('Rédaction du résumé', 0.5);
+    return chat(P_FINAL(text, false), 2500, 'Rédaction du résumé', true);
+  }
+  let round = 0;
+  while (text.length > CONFIG.singleShotChars && round < 3) {
+    const chunks = splitText(text, CONFIG.chunkChars);
+    const notes = [];
+    for (let i = 0; i < chunks.length; i++) {
+      const label = `Résumé de la partie ${i + 1}/${chunks.length}`;
+      onProgress(label, (i / (chunks.length + 1)));
+      notes.push(await chat(P_PART(chunks[i], i + 1, chunks.length), 1200, label));
+    }
+    text = notes.map((n, i) => `### Partie ${i + 1}\n${n}`).join('\n\n');
+    round++;
+  }
+  onProgress('Synthèse finale', 0.95);
+  return chat(P_FINAL(text.slice(0, CONFIG.singleShotChars + 4000), true), 2500, 'Synthèse finale', true);
+}
+function splitTitle(summary, fallback) {
+  const m = /^#\s+(.+)\n?/.exec(summary.trim());
+  if (m) return { title: m[1].replace(/[*_`]/g, '').trim(), body: summary.trim().slice(m[0].length).trim() };
+  return { title: fallback, body: summary.trim() };
+}
+
+/* =================== Traitement d'un fichier =================== */
+let busy = false;
+function status(t) { $('jobStatus').textContent = t || ''; }
+function step(id, state, detail) {
+  const li = $(id); li.className = state || '';
+  if (detail != null) $(id + '-d').textContent = detail;
+}
+function bar(p) { $('jobBar').style.width = Math.round(Math.max(0, Math.min(1, p)) * 100) + '%'; }
+
+async function startFile(file) {
+  if (busy) { toast('Un traitement est déjà en cours'); return; }
+  if (!file || !file.size) { toast('Aucun fichier audio reçu'); return; }
+  const note = {
+    id: 'n' + Date.now().toString(36), created: Date.now(), fileName: file.name || 'audio.' + extFor(file),
+    size: file.size, title: baseName(file.name), status: 'transcription', audio: file, segments: null, summary: '', duration: 0,
+  };
+  if (!settings.key) {
+    // on garde le fichier pour ne pas le perdre : il sera traité en ouvrant la note
+    Object.assign(note, { status: 'err', error: 'Clé Groq manquante. Ajoute-la dans les réglages, puis ouvre cette note pour lancer le traitement.' });
+    await db.put(note);
+    toast('Ajoute d\'abord ta clé Groq');
+    showSettings();
+    return;
+  }
+  await db.put(note);
+  run(note);
+}
+
+async function run(note) {
+  busy = true;
+  show('job');
+  $('jobName').textContent = note.fileName;
+  $('jobSize').textContent = mb(note.size);
+  $('jobError').classList.add('hidden');
+  step('st-up', note.segments ? 'done' : '', note.segments ? `${dur(note.duration)} d'audio` : '');
+  step('st-sum', '', '');
+  bar(note.segments ? 0.5 : 0.02);
+  keepAwake(true);
+  try {
+    if (!note.segments) {
+      if (!note.audio) throw new GroqError('L\'audio de cette note n\'est plus disponible. Partage de nouveau le fichier.');
+      step('st-up', 'active', 'Envoi de ' + mb(note.size) + ' à Groq…');
+      status('Transcription en cours…');
+      const tr = await transcribe(note.audio, (i, n) => {
+        step('st-up', 'active', n > 1 ? `Partie ${i + 1} sur ${n}` : 'Envoi de ' + mb(note.size) + ' à Groq…');
+        bar(0.05 + 0.4 * (i / n));
+      });
+      if (!tr.segments.length) throw new GroqError('Aucune parole détectée dans cet enregistrement.');
+      Object.assign(note, { segments: tr.segments, duration: tr.duration, language: tr.language, status: 'resume' });
+      await db.put(note);
+      step('st-up', 'done', `${dur(tr.duration)} d'audio`);
+    }
+    bar(0.5);
+    step('st-sum', 'active', '');
+    const raw = await summarize(note.segments, (label, p) => { step('st-sum', 'active', label); bar(0.5 + 0.48 * p); });
+    const { title, body } = splitTitle(raw, note.title);
+    Object.assign(note, { title, summary: body, status: 'ok' });
+    delete note.audio; // plus besoin de l'audio, on libère de la place
+    await db.put(note);
+    step('st-sum', 'done', '');
+    bar(1);
+    status('');
+    busy = false;
+    keepAwake(false);
+    openNote(note.id);
+  } catch (e) {
+    busy = false;
+    keepAwake(false);
+    note.status = note.segments ? 'resume-err' : 'err';
+    note.error = e.message;
+    await db.put(note).catch(() => {});
+    if ($('st-up').className === 'active') step('st-up', 'fail');
+    if ($('st-sum').className === 'active') step('st-sum', 'fail');
+    status('');
+    $('jobErrorMsg').textContent = e instanceof GroqError ? e.message : 'Erreur inattendue : ' + e.message;
+    $('jobError').classList.remove('hidden');
+    $('jobRetry').onclick = () => run(note);
+  }
+}
+
+/* =================== Vues =================== */
+let current = 'home', currentNote = null;
+function show(v) {
+  current = v;
+  for (const id of ['home', 'job', 'note', 'settings']) $('v-' + id).classList.toggle('hidden', id !== v);
+  $('backBtn').classList.toggle('hidden', v === 'home' || (v === 'job' && busy));
+  $('settingsBtn').classList.toggle('hidden', v === 'settings' || (v === 'job' && busy));
+  $('noteActions').classList.toggle('hidden', v !== 'note');
+  $('title').textContent = v === 'settings' ? 'Réglages' : v === 'job' ? 'Traitement' : v === 'note' ? 'Note' : 'Notes Plaud';
+  window.scrollTo(0, 0);
+  if (v === 'home') renderHome();
+}
+
+async function renderHome() {
+  $('onboard').classList.toggle('hidden', !!settings.key);
+  const notes = (await db.all()).sort((a, b) => b.created - a.created);
+  const list = $('notesList');
+  if (!notes.length) {
+    list.innerHTML = '<div class="empty muted small">Aucune note pour l\'instant.<br>Partage un enregistrement depuis l\'app Plaud pour commencer.</div>';
+    return;
+  }
+  const badge = (n) => n.status === 'ok' ? '' :
+    n.status === 'resume-err' ? '<span class="badge err">Résumé à refaire</span>' :
+    n.status === 'err' ? '<span class="badge err">Échec</span>' : '<span class="badge run">Interrompu</span>';
+  list.innerHTML = notes.map((n) => `
+    <button class="card item" data-id="${n.id}">
+      <span class="t">${esc(n.title)}</span>
+      <span class="m"><span>${fmtDate(n.created)}</span>${n.duration ? `<span>· ${dur(n.duration)}</span>` : ''}${badge(n)}</span>
+    </button>`).join('');
+  list.querySelectorAll('.item').forEach((b) => b.onclick = () => openNote(b.dataset.id));
+}
+
+function noteMarkdown(n) {
+  const tr = (n.segments || []).map((s) => `[${hms(s.start)}] ${s.text}`).join('\n\n');
+  return `# ${n.title}\n\n*${fmtDate(n.created)}${n.duration ? ' · ' + dur(n.duration) : ''} · ${n.fileName}*\n\n${n.summary || ''}\n\n---\n\n## Transcription\n\n${tr}\n`;
+}
+
+async function openNote(id) {
+  const n = await db.get(id);
+  if (!n) { show('home'); return; }
+  if ((n.status === 'transcription' || n.status === 'err') && !busy) {
+    // note inachevée : on relance le traitement si l'audio est encore là
+    if (n.audio) { run(n); return; }
+  }
+  currentNote = n;
+  $('noteTitle').textContent = n.title;
+  $('noteMeta').textContent = [fmtDate(n.created), n.duration ? dur(n.duration) : '', n.fileName].filter(Boolean).join(' · ');
+  $('noteSum').innerHTML = n.summary ? md(n.summary)
+    : `<p class="muted">${n.error ? esc(n.error) : 'Pas encore de résumé.'}</p>`;
+  $('noteTr').innerHTML = (n.segments || []).map((s) => `<div class="seg"><time>${hms(s.start)}</time><span>${esc(s.text)}</span></div>`).join('')
+    || '<p class="muted">Pas de transcription.</p>';
+  $('resumAgain').classList.toggle('hidden', !n.segments);
+  $('resumAgain').textContent = n.summary ? 'Refaire le résumé' : 'Générer le résumé';
+  setTab('sum');
+  show('note');
+}
+function setTab(t) {
+  document.querySelectorAll('.tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  $('noteSum').classList.toggle('hidden', t !== 'sum');
+  $('noteTr').classList.toggle('hidden', t !== 'tr');
+}
+
+function showSettings() {
+  $('sKey').value = settings.key; $('sLang').value = settings.lang; $('sWhisper').value = settings.whisper;
+  $('sLlm').value = settings.llms; $('sCtx').value = settings.ctx;
+  show('settings');
+}
+
+/* =================== Événements =================== */
+$('settingsBtn').onclick = showSettings;
+$('onboardBtn').onclick = showSettings;
+$('backBtn').onclick = () => show('home');
+$('jobHome').onclick = () => show('home');
+$('sKeyShow').onclick = () => { const i = $('sKey'); i.type = i.type === 'password' ? 'text' : 'password'; $('sKeyShow').textContent = i.type === 'password' ? 'Voir' : 'Cacher'; };
+$('sSave').onclick = () => {
+  settings = { key: $('sKey').value.trim(), lang: $('sLang').value, whisper: $('sWhisper').value,
+    llms: $('sLlm').value.trim() || DEFAULTS.llms, ctx: $('sCtx').value };
+  toast(saveSettings(settings) ? 'Réglages enregistrés' : 'Impossible d\'enregistrer (navigation privée ?)');
+  show('home');
+};
+$('fileInput').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) startFile(f); };
+document.querySelectorAll('.tabs button').forEach((b) => b.onclick = () => setTab(b.dataset.tab));
+
+$('aCopy').onclick = async () => {
+  const n = currentNote; if (!n) return;
+  const onTr = !$('noteTr').classList.contains('hidden');
+  const txt = onTr ? (n.segments || []).map((s) => `[${hms(s.start)}] ${s.text}`).join('\n') : `# ${n.title}\n\n${n.summary}`;
+  try { await navigator.clipboard.writeText(txt); toast(onTr ? 'Transcription copiée' : 'Résumé copié'); }
+  catch (e) { toast('Copie impossible'); }
+};
+$('aShare').onclick = async () => {
+  const n = currentNote; if (!n) return;
+  const text = `${n.title}\n\n${n.summary}`;
+  const file = new File([noteMarkdown(n)], `${baseName(n.title).replace(/[\\/:*?"<>|]/g, '')}.md`, { type: 'text/markdown' });
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [file] }) && confirm('Partager la note complète en fichier .md ?\n(Annuler = partager le résumé en texte)')) {
+      await navigator.share({ files: [file], title: n.title });
+    } else if (navigator.share) {
+      await navigator.share({ title: n.title, text });
+    } else { await navigator.clipboard.writeText(text); toast('Partage indisponible : résumé copié'); }
+  } catch (e) { if (e.name !== 'AbortError') toast('Partage impossible'); }
+};
+$('aDl').onclick = () => {
+  const n = currentNote; if (!n) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([noteMarkdown(n)], { type: 'text/markdown' }));
+  a.download = `${baseName(n.title).replace(/[\\/:*?"<>|]/g, '')}.md`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+};
+$('resumAgain').onclick = () => { const n = currentNote; if (n && !busy) { n.status = 'resume'; run(n); } };
+$('delNote').onclick = async () => {
+  if (!currentNote || !confirm('Supprimer cette note ?')) return;
+  await db.del(currentNote.id); currentNote = null; toast('Note supprimée'); show('home');
+};
+window.addEventListener('beforeunload', (e) => { if (busy) { e.preventDefault(); e.returnValue = ''; } });
+
+/* =================== Démarrage =================== */
+(async function init() {
+  if ('serviceWorker' in navigator) {
+    try { await navigator.serviceWorker.register('sw.js'); } catch (e) {}
+  }
+  const params = new URLSearchParams(location.search);
+  if (params.has('shared')) history.replaceState(null, '', location.pathname);
+  let pending = null;
+  try { pending = await db.takePending(); } catch (e) {}
+  if (pending && pending.file) { startFile(pending.file); return; }
+  if (params.has('shared')) toast('Aucun fichier audio reçu');
+  show('home');
+})();
+</script>
+</body>
+</html>

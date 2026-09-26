@@ -6,8 +6,8 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f6f5f1",
-  "theme_color": "#f6f5f1",
+  "background_color": "#f7f4ee",
+  "theme_color": "#f7f4ee",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
@@ -23,7 +23,7 @@
       "files": [
         {
           "name": "audio",
-          "accept": ["audio/*", ".mp3", ".m4a", ".wav", ".ogg", ".opus", ".aac", ".flac", "application/octet-stream"]
+          "accept": ["audio/*", "video/*", "application/octet-stream", "*/*", ".mp3", ".m4a", ".wav", ".ogg", ".opus", ".aac", ".flac", ".amr"]
         }
       ]
     }

@@ -2,7 +2,7 @@
 // - reçoit les fichiers partagés depuis Android (cible de partage)
 // - garde l'application en cache pour qu'elle s'ouvre même avec un mauvais réseau
 
-const CACHE = 'notes-plaud-v1';
+const CACHE = 'notes-plaud-v4';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 // --- IndexedDB minimal (même base que la page) ---
@@ -47,13 +47,23 @@ self.addEventListener('fetch', (e) => {
   // Fichier partagé depuis une autre app (Plaud -> Partager -> Notes Plaud)
   if (e.request.method === 'POST' && url.pathname.endsWith('/share')) {
     e.respondWith((async () => {
+      const info = { at: Date.now(), files: [], texts: [], error: '' };
+      let file = null;
       try {
         const fd = await e.request.formData();
-        const files = fd.getAll('audio').filter((f) => f && typeof f !== 'string');
-        if (files.length) await putPending({ file: files[0], at: Date.now() });
+        const files = [];
+        // on prend les fichiers quel que soit le nom du champ utilisé
+        for (const [k, v] of fd.entries()) {
+          if (typeof v === 'string') { if (v.trim()) info.texts.push(`${k} : ${v.slice(0, 300)}`); }
+          else if (v && v.size) files.push(v);
+        }
+        info.files = files.map((f) => ({ name: f.name, type: f.type, size: f.size }));
+        file = files.find((f) => /^(audio|video)\//.test(f.type) || /\.(mp3|m4a|wav|ogg|opus|aac|flac|amr|3gp|webm|mp4)$/i.test(f.name))
+          || files[0] || null;
       } catch (err) {
-        // on redirige quand même, la page affichera qu'aucun fichier n'a été reçu
+        info.error = String(err && err.message || err);
       }
+      try { await putPending({ file, info }); } catch (err) {}
       return Response.redirect(new URL('./?shared=1', self.registration.scope).href, 303);
     })());
     return;

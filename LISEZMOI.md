@@ -33,6 +33,16 @@ Le dépôt est public, mais il ne contient que le code de l'app. Ta clé Groq et
 
 L'app doit être *installée* pour apparaître dans le menu « Partager ». Un simple favori ne suffit pas.
 
+## Étape 4 (recommandée) : ajouter une clé Gemini pour des résumés plus rapides
+
+Groq reste utilisé pour la transcription. Pour le résumé, Gemini Flash est plus rapide sur les longs enregistrements et généralement meilleur en français.
+
+1. Va sur **https://aistudio.google.com/apikey** et connecte-toi avec ton compte Google.
+2. Touche **Create API key** (ou « Créer une clé API »), puis copie la clé (elle commence par `AIza…`).
+3. Dans l'app : roue dentée → **Clé API Gemini** → colle la clé → **Enregistrer**.
+
+Avec « Résumé avec : Auto », l'app utilise Gemini dès qu'une clé Gemini est enregistrée, et Groq sinon. Ton abonnement Gemini n'est pas utilisé ici : cette clé API est gratuite, et c'est un service séparé.
+
 ## Utilisation
 
 - **Depuis Plaud :** ouvre l'enregistrement, puis **Exporter → Audio → MP3 → Partager → Notes Plaud**.
@@ -45,20 +55,21 @@ L'app doit être *installée* pour apparaître dans le menu « Partager ». Un s
 | Durée de l'audio | Transcription | Résumé |
 |---|---|---|
 | 10 min | quelques secondes | quelques secondes |
-| 1 h | 10 à 30 s | 2 à 4 min |
+| 1 h | 10 à 30 s | quelques secondes avec Gemini, 2 à 4 min avec Groq |
 
-Pour les longs enregistrements, le résumé prend quelques minutes, car l'offre gratuite de Groq limite le volume de texte traité par minute. L'app découpe le texte et fait les pauses nécessaires toute seule : tu verras un compte à rebours.
+Si le résumé se fait avec Groq, les longs enregistrements prennent quelques minutes, car son offre gratuite limite le volume de texte traité par minute. L'app découpe le texte et fait les pauses nécessaires toute seule : tu verras un compte à rebours. Avec Gemini, tout se fait en une seule fois.
 
-## Limites de l'offre gratuite Groq (septembre 2026)
+## Limites des offres gratuites (septembre 2026)
 
 - **Transcription :** 2 h d'audio par heure, 8 h par jour, 25 Mo par envoi. L'app découpe automatiquement les fichiers plus gros.
-- **Résumé :** environ 8 000 tokens par minute et par modèle. L'app utilise deux modèles en alternance pour aller deux fois plus vite.
+- **Résumé avec Groq :** environ 8 000 tokens par minute et par modèle. L'app utilise deux modèles en alternance pour aller deux fois plus vite.
+- **Résumé avec Gemini Flash :** largement suffisant pour plusieurs résumés par jour, même d'enregistrements de plusieurs heures. Si le quota du jour est atteint, l'app essaie le modèle suivant de la liste.
 
-Ces limites peuvent changer. Si Groq retire un modèle, remplace-le dans **Réglages → Modèles de résumé**. La liste à jour est sur https://console.groq.com/docs/models.
+Ces limites peuvent changer. Si un modèle disparaît, remplace-le dans les **Réglages**. Les listes à jour sont sur https://console.groq.com/docs/models et https://ai.google.dev/gemini-api/docs/models.
 
 ## Confidentialité
 
-L'audio est envoyé à Groq pour être transcrit et résumé. Rien ne passe par un autre serveur, et l'app supprime sa copie de l'audio une fois la note terminée. Pour les conversations vraiment sensibles, utilise plutôt le script PC 100 % local (`plaud_local.py`).
+L'audio est envoyé uniquement à Groq, pour la transcription. L'app supprime sa copie de l'audio une fois la note terminée. Pour le résumé, seule la transcription écrite est envoyée, à Gemini ou à Groq selon ton réglage. Sur l'offre gratuite de Gemini, Google peut utiliser ces textes pour améliorer ses modèles. Pour les conversations vraiment sensibles, utilise plutôt le script PC 100 % local (`plaud_local.py`).
 
 Rappel : en France, enregistrer une conversation privée à l'insu des personnes est interdit. Préviens les participants.
 
@@ -67,6 +78,8 @@ Rappel : en France, enregistrer une conversation privée à l'insu des personnes
 | Problème | Solution |
 |---|---|
 | « Notes Plaud » absent du menu Partager | Vérifie que l'app est bien *installée* (étape 3). Si besoin, désinstalle-la puis réinstalle-la. |
+| « Clé API Gemini refusée » | Recrée une clé sur aistudio.google.com/apikey, puis colle-la dans les Réglages. |
+| « Aucun modèle Gemini utilisable » | Remplace le modèle dans Réglages → Modèles Gemini, ou choisis « Résumé avec : Groq ». |
 | « Clé API Groq refusée » | Recolle la clé dans les Réglages, sans espace avant ou après. |
 | « Impossible de joindre Groq » | Vérifie ta connexion Internet, puis touche **Réessayer**. |
 | Un modèle n'existe plus | Change-le dans Réglages → Modèles de résumé. |

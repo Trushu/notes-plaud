@@ -21,6 +21,7 @@
     --grad: linear-gradient(135deg, #f2803f 0%, #e0572b 55%, #cf3d3a 100%);
     --blue: #2f6bd8; --blue-soft: #e8effc; --violet: #7a55e8; --violet-soft: #efeafd;
     --green: #15895a; --green-soft: #e3f4ec; --err: #c8382b; --err-soft: #fbe9e7;
+    --teal: #0f7f86; --teal-soft: #e0f3f3; --amber: #b26a00; --amber-soft: #fdf0d9;
     --r-lg: 22px; --r: 16px; --r-sm: 12px;
     --shadow: 0 1px 2px rgba(40, 30, 15, .04), 0 6px 20px -6px rgba(40, 30, 15, .10);
     --shadow-lg: 0 18px 40px -16px rgba(207, 61, 58, .45);
@@ -35,6 +36,7 @@
       --accent: #ff8a5b; --accent-ink: #ffa37f; --accent-soft: #3a2218;
       --blue: #7ea6ff; --blue-soft: #1b2436; --violet: #ab93ff; --violet-soft: #251f38;
       --green: #4fd39a; --green-soft: #14291f; --err: #ff7a6b; --err-soft: #3a1c18;
+      --teal: #5fd4d9; --teal-soft: #13292a; --amber: #ffc164; --amber-soft: #2f2413;
       --shadow: 0 1px 0 rgba(255,255,255,.03) inset, 0 8px 24px -10px rgba(0,0,0,.6);
       --shadow-lg: 0 18px 40px -18px rgba(255, 110, 70, .35);
       color-scheme: dark;
@@ -214,6 +216,20 @@
   .sec.k-decisions { --k: var(--violet); --ks: var(--violet-soft); }
   .sec.k-actions { --k: var(--green); --ks: var(--green-soft); }
   .sec.k-other { --k: var(--ink-2); --ks: var(--surface-2); }
+  .sec.k-insist { --k: var(--violet); --ks: var(--violet-soft); }
+  .sec.k-exam { --k: var(--err); --ks: var(--err-soft); }
+  .sec.k-home { --k: var(--blue); --ks: var(--blue-soft); }
+  .sec.k-defs { --k: var(--teal); --ks: var(--teal-soft); }
+  .sec.k-examples { --k: var(--amber); --ks: var(--amber-soft); }
+  .sec.k-quiz { --k: var(--violet); --ks: var(--violet-soft); }
+  .md li.qa { list-style: none; margin-left: -20px; padding: 0; }
+  .md li.qa + li.qa { border-top: 1px solid var(--line); }
+  .md details { padding: 8px 0; }
+  .md summary { cursor: pointer; font-weight: 500; list-style: none; display: flex; gap: 10px; }
+  .md summary::-webkit-details-marker { display: none; }
+  .md summary::before { content: "?"; flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--ks); color: var(--k); font: 700 13px/22px var(--sans); text-align: center; margin-top: 1px; }
+  .md details[open] summary::before { content: "✓"; }
+  .md .ans { margin: 6px 0 0 32px; padding: 8px 12px; border-radius: 10px; background: var(--surface-2); color: var(--ink-2); }
   .sec h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--k); }
   .sec-ic { width: 30px; height: 30px; border-radius: 9px; background: var(--ks); display: grid; place-items: center; }
   .sec-ic svg { width: 17px; height: 17px; }
@@ -240,6 +256,11 @@
   .seg:last-child { border-bottom: 0; }
   .seg time { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--accent-ink); background: var(--accent-soft); border-radius: 7px; padding: 2px 7px; height: fit-content; flex: none; margin-top: 2px; }
   .seg span { color: var(--ink-2); }
+  .math { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .92em; }
+  .math.done { font-family: inherit; font-size: inherit; }
+  .katex { font-size: 1.08em; }
+  .math[data-display="1"] { display: block; margin: 10px 0; overflow-x: auto; overflow-y: hidden; padding: 2px 0; text-align: center; }
+  .katex-display { margin: 0; }
   .seg mark { background: color-mix(in srgb, var(--accent) 28%, transparent); color: var(--ink); border-radius: 3px; padding: 0 1px; }
   .enh { padding: 16px; margin-bottom: 12px; }
   .enh-intro { display: flex; gap: 12px; align-items: flex-start; }
@@ -259,6 +280,93 @@
   .enh-note { font-size: 12.5px; color: var(--muted); margin-top: 10px; line-height: 1.45; }
   .enh-err { margin: 12px 0 0; color: var(--err); font-size: 14px; font-weight: 500; }
   .seg.para span { color: var(--ink); line-height: 1.6; }
+  .run-banner { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; cursor: pointer; padding: 14px 16px; margin-bottom: 14px; font: inherit; color: inherit; }
+  .run-banner .spin { width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid var(--accent); border-right-color: transparent; animation: spin .9s linear infinite; flex: none; }
+  .run-banner b { display: block; font-weight: 600; font-size: 15px; }
+  .run-banner small { display: block; color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .run-banner > div { flex: 1; min-width: 0; }
+  .run-banner .pct2 { font-weight: 600; color: var(--accent-ink); font-variant-numeric: tabular-nums; font-size: 14px; }
+  .notif-row { display: flex; gap: 12px; align-items: center; }
+  .notif-row > div { flex: 1; }
+  .notif-row b { display: block; font-weight: 600; font-size: 15px; }
+  .notif-row small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .linkbtn { background: none; border: 0; padding: 0; color: var(--accent-ink); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
+  /* Tags */
+  .tag { --h: 20; display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 11px; border-radius: 99px; font-size: 13.5px; font-weight: 600;
+    background: hsl(var(--h) 75% 93%); color: hsl(var(--h) 55% 32%); border: 0; cursor: pointer; white-space: nowrap; font-family: var(--sans); }
+  .tag svg { width: 13px; height: 13px; }
+  .tag .n { font-weight: 500; opacity: .7; }
+  @media (prefers-color-scheme: dark) { .tag { background: hsl(var(--h) 35% 20%); color: hsl(var(--h) 70% 78%); } }
+  .tag .tn { display: inline-flex; align-items: center; gap: 4px; }
+  .tag .tx { display: inline-grid; place-items: center; width: 22px; height: 22px; margin-right: -6px; border-radius: 50%; opacity: .75; }
+  .tag .tx:active { background: rgba(0,0,0,.08); }
+  .tag.all { --h: 30; background: var(--surface-2); color: var(--ink-2); }
+  .tag.on { box-shadow: 0 0 0 2px var(--ink) inset; }
+  .tag.add { background: transparent; color: var(--muted); border: 1.5px dashed var(--line); }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+  .tagbar { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 4px; margin: 12px -2px 0; scrollbar-width: none; }
+  .tagbar::-webkit-scrollbar { display: none; }
+  .item .tags { margin-top: 8px; gap: 5px; }
+  .item .tags .tag { height: 24px; padding: 0 9px; font-size: 12px; cursor: inherit; }
+  /* Barre d'outils de l'accueil */
+  .toolbar { display: flex; align-items: center; gap: 8px; margin: 22px 0 0; }
+  .seg2 { display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 13px; }
+  .seg2 button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font-weight: 600; font-size: 14px; cursor: pointer; }
+  .seg2 button svg { width: 16px; height: 16px; }
+  .seg2 button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+  .toolbar .grow { flex: 1; }
+  .tbtn { min-height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); font-weight: 600; font-size: 14px; cursor: pointer; }
+  .tbtn.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .toolbar + .search { margin-top: 12px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .fchip { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 6px 0 12px; border-radius: 99px; background: var(--ink); color: var(--bg); font-size: 13px; font-weight: 600; border: 0; cursor: pointer; }
+  .fchip svg { width: 14px; height: 14px; }
+  /* Calendrier */
+  .cal { padding: 14px 12px 12px; margin-top: 12px; }
+  .cal-h { display: flex; align-items: center; justify-content: space-between; margin: 0 2px 10px; }
+  .cal-h b { font: 600 18px/1.2 var(--serif); text-transform: capitalize; }
+  .cal-h .iconbtn { width: 36px; height: 36px; }
+  .cal-g { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+  .cal-g .dow { font-size: 11.5px; font-weight: 600; color: var(--muted); padding: 2px 0 6px; text-transform: uppercase; }
+  .day { position: relative; aspect-ratio: 1 / 1.05; border: 0; background: transparent; border-radius: 12px; font: 500 15px/1 var(--sans); color: var(--ink); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-variant-numeric: tabular-nums; }
+  .day.out { color: var(--muted); opacity: .45; }
+  .day.today { box-shadow: 0 0 0 1.5px var(--accent) inset; }
+  .day.has { font-weight: 700; }
+  .day.sel { background: var(--grad); color: #fff; }
+  .day .dots { display: flex; gap: 3px; height: 5px; }
+  .day .dots i { width: 5px; height: 5px; border-radius: 50%; background: hsl(var(--h, 20) 70% 50%); }
+  .day.sel .dots i { background: #fff; }
+  .day:disabled { cursor: default; }
+  /* Sélection multiple */
+  .item { position: relative; }
+  .selmode .item { padding-left: 52px; }
+  .item .ck { display: none; position: absolute; left: 16px; top: 18px; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--surface-3); background: var(--surface); }
+  .selmode .item .ck { display: grid; place-items: center; }
+  .item.picked { border-color: var(--accent); box-shadow: 0 0 0 1.5px var(--accent) inset, var(--shadow); }
+  .item.picked .ck { background: var(--accent); border-color: var(--accent); }
+  .item.picked .ck::after { content: ""; width: 9px; height: 5px; border: 2.5px solid #fff; border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
+  .selbar .bar3 { grid-template-columns: 1fr 1fr 1fr; }
+  .selbar .count { grid-column: 1 / -1; text-align: center; font-size: 13.5px; font-weight: 600; color: var(--muted); margin-bottom: 2px; }
+  /* Feuille du bas */
+  .sheet-bg { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.35); opacity: 0; transition: opacity .2s; }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; background: var(--surface); border-radius: 22px 22px 0 0; padding: 10px 18px calc(18px + env(safe-area-inset-bottom));
+    max-width: 640px; margin: 0 auto; transform: translateY(100%); transition: transform .28s cubic-bezier(.2,.8,.2,1); box-shadow: 0 -10px 40px -10px rgba(0,0,0,.3); max-height: 80vh; overflow-y: auto; }
+  .sheet.open { transform: none; } .sheet-bg.open { opacity: 1; }
+  .sheet .grab { width: 40px; height: 4px; border-radius: 4px; background: var(--surface-3); margin: 0 auto 14px; }
+  .sheet h3 { font: 600 19px/1.25 var(--serif); margin: 0 0 4px; }
+  .sheet p.sub { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+  .sheet .opts { display: grid; gap: 8px; }
+  .sheet .opt { display: flex; gap: 12px; align-items: center; text-align: left; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--bg); cursor: pointer; font: inherit; color: inherit; }
+  .sheet .opt b { display: block; font-weight: 600; }
+  .sheet .opt small { color: var(--muted); font-size: 13px; }
+  .sheet .opt .sec-ic { flex: none; background: var(--accent-soft); color: var(--accent-ink); }
+  .sheet .tagin { display: flex; gap: 8px; margin: 4px 0 12px; }
+  .sheet .tagin input { flex: 1; min-width: 0; }
+  .tagrow { display: flex; align-items: center; gap: 8px; padding: 8px 0; }
+  .tagrow + .tagrow { border-top: 1px solid var(--line); }
+  .tagrow .grow { flex: 1; }
+  .tagrow .iconbtn { width: 36px; height: 36px; color: var(--muted); }
+  .tagrow .iconbtn svg { width: 18px; height: 18px; }
   .note-foot { display: flex; gap: 8px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
   .actions {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
@@ -350,6 +458,11 @@
       <button class="btn" id="shareDiagClose" style="margin-top:12px">Fermer</button>
     </div>
 
+    <button class="card run-banner hidden" id="runBanner">
+      <span class="spin"></span>
+      <div><b>Traitement en cours</b><small id="runBannerName"></small></div>
+      <span class="pct2" id="runBannerPct"></span>
+    </button>
     <label class="hero" for="fileInput">
       <div class="hero-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       <div class="hero-row">
@@ -359,9 +472,29 @@
     </label>
     <input type="file" id="fileInput" accept="audio/*,video/*,.mp3,.m4a,.wav,.ogg,.opus,.aac,.flac,.amr" class="hidden">
 
-    <div class="search hidden" id="searchWrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-      <input type="search" id="search" placeholder="Rechercher dans mes notes" autocomplete="off">
+    <div id="browse" class="hidden">
+      <div class="toolbar">
+        <div class="seg2" id="homeMode" role="tablist">
+          <button data-mode="list" aria-selected="true"></button>
+          <button data-mode="cal" aria-selected="false"></button>
+        </div>
+        <span class="grow"></span>
+        <button class="tbtn" id="selectBtn">Sélectionner</button>
+      </div>
+      <div class="card cal hidden" id="calWrap">
+        <div class="cal-h">
+          <button class="iconbtn" id="calPrev" aria-label="Mois précédent"></button>
+          <b id="calTitle"></b>
+          <button class="iconbtn" id="calNext" aria-label="Mois suivant"></button>
+        </div>
+        <div class="cal-g" id="calGrid"></div>
+      </div>
+      <div class="tagbar" id="tagBar"></div>
+      <div class="search" id="searchWrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="search" id="search" placeholder="Rechercher dans mes notes" autocomplete="off">
+      </div>
+      <div class="filters" id="filters"></div>
     </div>
     <div class="list" id="notesList"></div>
   </section>
@@ -383,7 +516,7 @@
       </ol>
       <div class="status" id="jobStatus"></div>
     </div>
-    <p class="hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M11 18.5h2"/></svg><span>Garde l'app ouverte pendant le traitement. L'écran reste allumé tout seul.</span></p>
+    <p class="hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M11 18.5h2"/></svg><span>Tu peux quitter cet écran et consulter tes notes pendant le traitement. Si tu réduis l'app, Android peut la mettre en pause : tout reprendra là où ça s'est arrêté quand tu la rouvriras.<span id="notifHint" class="hidden"> <button class="linkbtn" id="notifHintBtn">Me prévenir quand c'est prêt</button></span></span></p>
     <div class="card err-card hidden" id="jobError">
       <p id="jobErrorMsg"></p>
       <div class="row">
@@ -399,6 +532,7 @@
       <div class="eyebrow" id="noteDate"></div>
       <h1 id="noteTitle"></h1>
       <div class="chips" id="noteMeta"></div>
+      <div class="tags" id="noteTags"></div>
     </div>
     <div class="tabs-wrap">
       <div class="tabs" role="tablist">
@@ -513,9 +647,30 @@
     <div class="set-group">
       <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><div><b>Personnalisation</b><small>Pour des résumés plus pertinents</small></div></div>
       <div class="card pad">
+        <label class="f" for="sKind">Type d'enregistrement</label>
+        <select id="sKind">
+          <option value="auto">Automatique (détecté par l'IA)</option>
+          <option value="cours">Cours</option>
+          <option value="reunion">Réunion</option>
+          <option value="perso">Note personnelle</option>
+        </select>
+        <div class="f-help" style="margin-bottom:14px">Un cours donne des rubriques spéciales : ce sur quoi le prof a insisté, à retenir pour l'examen, à retravailler à la maison, définitions et formules, questions pour réviser…</div>
         <label class="f" for="sCtx">Contexte (facultatif)</label>
         <textarea id="sCtx" placeholder="Ex. : je suis étudiant en BTS, ce sont surtout des cours d'économie. Noms fréquents : Mme Durand, M. Leroy."></textarea>
         <div class="f-help">Ajouté aux consignes du résumé.</div>
+      </div>
+    </div>
+
+    <div class="set-group">
+      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12.5V4.5a1 1 0 0 1 1-1h8l8 8-9 9z"/><circle cx="8" cy="8" r="1.4" fill="currentColor"/></svg></span><div><b>Tags</b><small>Renommer ou supprimer</small></div></div>
+      <div class="card pad" id="tagAdmin"></div>
+    </div>
+
+    <div class="set-group">
+      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg></span><div><b>Notifications</b><small>Quand une note est prête</small></div></div>
+      <div class="card pad notif-row">
+        <div><b>Me prévenir quand une note est prête</b><small id="notifState"></small></div>
+        <button class="btn" id="notifBtn" type="button">Activer</button>
       </div>
     </div>
 
@@ -531,6 +686,16 @@
     <button class="btn" id="aDl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>.md</button>
   </div>
 </div>
+<div class="actions selbar hidden" id="selBar">
+  <div class="bar3">
+    <div class="count" id="selCount"></div>
+    <button class="btn" id="selCancel">Annuler</button>
+    <button class="btn" id="selTag">Taguer</button>
+    <button class="btn danger" id="selDel">Supprimer</button>
+  </div>
+</div>
+<div class="sheet-bg hidden" id="sheetBg"></div>
+<div class="sheet hidden" id="sheet" role="dialog" aria-modal="true"><div class="grab"></div><div id="sheetBody"></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -550,7 +715,7 @@ window.CONFIG = {
 };
 const DEFAULTS = {
   key: '', lang: 'fr', whisper: 'whisper-large-v3',
-  llms: 'openai/gpt-oss-120b, openai/gpt-oss-20b', ctx: '',
+  llms: 'openai/gpt-oss-120b, openai/gpt-oss-20b', ctx: '', kind: 'auto',
   provider: 'auto', gkey: '', gmodels: 'gemini-3.8-flash, gemini-flash-latest, gemini-3.5-flash',
 };
 function loadSettings() {
@@ -631,8 +796,51 @@ function extFor(file) {
 }
 const baseName = (n) => (n || 'Enregistrement').replace(/\.[a-z0-9]{2,5}$/i, '');
 
-// Mini rendu Markdown (titres, listes, cases à cocher, gras, italique)
+/* ---- Formules LaTeX ----
+   $…$ et \(…\) dans le texte, $$…$$ et \[…\] en bloc. On les met de côté avant le Markdown
+   (pour que « * » ou « _ » dans une formule ne deviennent pas de l'italique), puis KaTeX les dessine. */
+const MATH_MARK = (i) => `\u0000M${i}\u0000`;
+function protectMath(src, maths) {
+  return String(src || '')
+    .replace(/\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]/g, (m, a, b) => { maths.push({ tex: (a || b).trim(), display: true, raw: m }); return MATH_MARK(maths.length - 1); })
+    .replace(/\\\((.+?)\\\)|(^|[^\\\w$])\$(?![\s$])([^$\n]*?[^\s\\$])\$(?![\w$])/g, (m, a, pre, b) => {
+      maths.push({ tex: a || b, display: false, raw: a ? m : m.slice((pre || '').length) });
+      return (a ? '' : (pre || '')) + MATH_MARK(maths.length - 1);
+    });
+}
+function restoreMath(html, maths) {
+  return html.replace(/\u0000M(\d+)\u0000/g, (m, i) => {
+    const x = maths[+i];
+    return `<span class="math" data-display="${x.display ? 1 : 0}" data-tex="${esc(x.tex)}">${esc(x.raw)}</span>`;
+  });
+}
+const mathify = (text) => { const maths = []; return restoreMath(esc(protectMath(text, maths)), maths); };
+let katexLoad = null;
+function loadKatex() {
+  if (window.katex) return Promise.resolve();
+  if (!katexLoad) katexLoad = new Promise((res, rej) => {
+    const base = 'https://cdn.jsdelivr.net/npm/katex@0.16/dist/';
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = base + 'katex.min.css'; document.head.appendChild(l);
+    const sc = document.createElement('script'); sc.src = base + 'katex.min.js';
+    sc.onload = () => res(); sc.onerror = () => { katexLoad = null; rej(new Error('KaTeX indisponible')); };
+    document.head.appendChild(sc);
+  });
+  return katexLoad;
+}
+async function renderMath(root) {
+  const els = [...root.querySelectorAll('.math:not(.done)')];
+  if (!els.length) return;
+  try { await loadKatex(); } catch (e) { return; } // hors ligne : les formules restent lisibles en texte brut
+  for (const el of els) {
+    try { window.katex.render(el.dataset.tex, el, { displayMode: el.dataset.display === '1', throwOnError: false, strict: 'ignore', output: 'htmlAndMathml' }); el.classList.add('done'); }
+    catch (e) {}
+  }
+}
+
+// Mini rendu Markdown (titres, listes, cases à cocher, gras, italique, formules)
 function md(src, ctr = { i: 0 }) {
+  const maths = [];
+  src = protectMath(src, maths);
   const inline = (s) => esc(s)
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/(^|[^*])\*(?!\s)(.+?)\*(?!\*)/g, '$1<em>$2</em>')
@@ -654,7 +862,7 @@ function md(src, ctr = { i: 0 }) {
     close(); out.push(`<p>${inline(line)}</p>`);
   }
   close();
-  return out.join('');
+  return restoreMath(out.join(''), maths);
 }
 
 /* =================== Maintien de l'écran allumé =================== */
@@ -672,6 +880,13 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 
 /* =================== Appels Groq =================== */
 class ApiError extends Error {}
+// Quand Android met l'app en pause, les requêtes échouent : on attend son retour au premier plan pour réessayer
+const waitVisible = () => new Promise((res) => {
+  if (document.visibilityState === 'visible') return res();
+  const h = () => { if (document.visibilityState === 'visible') { document.removeEventListener('visibilitychange', h); res(); } };
+  document.addEventListener('visibilitychange', h);
+});
+class RateLimit extends ApiError { constructor(wait, msg) { super(msg); this.wait = wait; } }
 function parseWait(msg, retryAfter) {
   const m = /try again in\s*(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:([\d.]+)s)?/i.exec(msg || '');
   if (m && (m[1] || m[2] || m[3])) return (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (parseFloat(m[3]) || 0) + 1;
@@ -685,12 +900,13 @@ async function countdown(sec, label) {
     await sleep(Math.min(1000, end - Date.now()));
   }
 }
-async function groq(path, init, label) {
+async function groq(path, init, label, opts = {}) {
   for (let attempt = 0; attempt < 8; attempt++) {
     let r;
     try {
       r = await fetch(API + path, { ...init, headers: { Authorization: 'Bearer ' + settings.key, ...(init.headers || {}) } });
     } catch (e) {
+      if (document.visibilityState === 'hidden') { await waitVisible(); attempt--; continue; }
       if (attempt < 2) { await countdown(5, 'Connexion perdue'); continue; }
       throw new ApiError("Impossible de joindre Groq. Vérifie ta connexion Internet, puis réessaie.");
     }
@@ -701,6 +917,7 @@ async function groq(path, init, label) {
     if (r.status === 413) throw new ApiError('Requête trop grosse pour l\'offre gratuite de Groq : ' + msg);
     if (r.status === 429) {
       const wait = parseWait(msg, r.headers.get('retry-after'));
+      if (opts.maxWait != null && wait > opts.maxWait) throw new RateLimit(wait, msg);
       if (wait > 15 * 60) throw new ApiError('Limite gratuite de Groq atteinte pour le moment. ' + msg);
       await countdown(wait, 'Limite gratuite de Groq atteinte, pause');
       continue;
@@ -1000,20 +1217,53 @@ async function splitAudio(file, onPrep) {
   throw new ApiError(`Ce fichier .${ext} fait ${mb(file.size)}, au-delà de la limite de 25 Mo de Groq, et ce format ne peut pas être découpé dans le téléphone. Exporte l'enregistrement en MP3 depuis Plaud (1 h ≈ 12 Mo).`);
 }
 
-async function transcribe(file, onPart, onPrep) {
-  const parts = await splitAudio(file, onPrep);
-  const segments = []; let offset = 0, language = '';
-  for (let i = 0; i < parts.length; i++) {
-    onPart(i, parts.length);
+// Chaque modèle Whisper de Groq a son propre quota gratuit (2 h d'audio par heure, 8 h par jour) :
+// quand le modèle choisi est bloqué, on passe à l'autre au lieu d'attendre.
+const WHISPERS = ['whisper-large-v3', 'whisper-large-v3-turbo'];
+const limitedUntil = {};
+const WNAME = (m) => /turbo/.test(m) ? 'modèle rapide' : 'modèle précis';
+async function transcribePart(part, i, n, onModel) {
+  const order = [settings.whisper, ...WHISPERS.filter((m) => m !== settings.whisper)];
+  const label = n > 1 ? `Transcription (partie ${i + 1}/${n})` : 'Transcription';
+  for (;;) {
+    const now = Date.now();
+    const avail = order.filter((m) => !(limitedUntil[m] > now));
+    if (!avail.length) {
+      const wait = Math.ceil((Math.min(...order.map((m) => limitedUntil[m])) - now) / 1000) + 1;
+      if (wait > 15 * 60) {
+        throw new ApiError(`Limite gratuite de transcription atteinte sur les deux modèles Groq. Réessaie dans ${Math.max(1, Math.round(wait / 60))} min : la note reprendra là où elle s'est arrêtée.`);
+      }
+      await countdown(wait, 'Quota atteint sur les deux modèles, pause');
+      continue;
+    }
+    const model = avail[0];
+    onModel && onModel(model);
     const fd = new FormData();
-    const part = await parts[i]();
     fd.append('file', part.blob, part.name.replace('audio', 'audio-' + (i + 1)));
-    fd.append('model', settings.whisper);
+    fd.append('model', model);
     fd.append('response_format', 'verbose_json');
     fd.append('temperature', '0');
     if (settings.lang !== 'auto') fd.append('language', settings.lang);
-    const j = await groq('/audio/transcriptions', { method: 'POST', body: fd },
-      parts.length > 1 ? `Transcription (partie ${i + 1}/${parts.length})` : 'Transcription');
+    try {
+      return { j: await groq('/audio/transcriptions', { method: 'POST', body: fd }, label, { maxWait: 20 }), model };
+    } catch (e) {
+      if (e instanceof RateLimit) { limitedUntil[model] = Date.now() + e.wait * 1000; continue; }
+      throw e;
+    }
+  }
+}
+async function transcribe(file, onPart, onPrep, saved, onSave) {
+  const parts = await splitAudio(file, onPrep);
+  let segments = [], offset = 0, language = '', start = 0, models = [];
+  if (saved && saved.n === parts.length && saved.next > 0) {
+    ({ segments, offset, language } = saved); models = saved.models || []; start = saved.next;
+    segments = segments.slice();
+  }
+  for (let i = start; i < parts.length; i++) {
+    onPart(i, parts.length);
+    const part = await parts[i]();
+    const { j, model } = await transcribePart(part, i, parts.length, (m) => onPart(i, parts.length, m));
+    if (!models.includes(model)) models.push(model);
     language = language || j.language || '';
     const segs = Array.isArray(j.segments) && j.segments.length ? j.segments
       : [{ start: 0, end: j.duration || 0, text: j.text || '' }];
@@ -1026,8 +1276,9 @@ async function transcribe(file, onPart, onPrep) {
     }
     const last = segs[segs.length - 1];
     offset += part.duration || j.duration || (last ? last.end : 0) || 0;
+    if (onSave && i + 1 < parts.length) await onSave({ n: parts.length, next: i + 1, segments, offset, language, models });
   }
-  return { segments, duration: offset, language };
+  return { segments, duration: offset, language, models };
 }
 
 // --- Résumé (avec respect de la limite de tokens/minute par modèle) ---
@@ -1088,7 +1339,8 @@ async function gemini(prompt, maxOut, label) {
           method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': settings.gkey }, body: JSON.stringify(body),
         });
       } catch (e) {
-        if (attempt < 2) { await countdown(5, 'Connexion perdue'); continue; }
+        if (document.visibilityState === 'hidden') { await waitVisible(); attempt--; continue; }
+      if (attempt < 2) { await countdown(5, 'Connexion perdue'); continue; }
         throw new ApiError('Impossible de joindre Gemini. Vérifie ta connexion Internet, puis réessaie.');
       }
       let text = ''; try { text = await r.text(); } catch (e) {}
@@ -1128,12 +1380,27 @@ const llm = (prompt, maxOut, label, preferFirst) =>
   provider() === 'gemini' ? gemini(prompt, maxOut, label) : chat(prompt, maxOut, label, preferFirst);
 
 const ctxLine = () => settings.ctx.trim() ? `\nContexte donné par l'utilisateur : ${settings.ctx.trim()}\n` : '';
-const P_FINAL = (text, fromParts) => `Tu rédiges des comptes rendus clairs et fidèles, en français.
-${fromParts ? "Voici les notes successives d'un long enregistrement audio (dans l'ordre chronologique)." : "Voici la transcription automatique d'un enregistrement audio (réunion, cours, appel ou note vocale). Elle peut contenir des erreurs de reconnaissance vocale : corrige-les d'après le contexte."}
-${ctxLine()}
-Réponds uniquement en Markdown, avec exactement cette structure :
-# (un titre court et précis, 8 mots maximum)
-## Résumé
+const KINDS = { auto: 'Automatique', cours: 'Cours', reunion: 'Réunion', perso: 'Note personnelle' };
+const STRUCT = {
+  cours: `## Résumé
+(5 à 10 lignes : le sujet du cours et le fil de la séance)
+## Points clés
+(les notions essentielles, en puces)
+## Le professeur a insisté sur
+(ce qu'il a répété, souligné ou présenté comme important — « retenez bien », « c'est fondamental », « attention à »… ; « Rien de particulier » sinon)
+## À retenir pour l'examen
+(d'abord ce qui a été explicitement annoncé pour un examen, partiel ou contrôle, suivi de « (annoncé) » ; puis les notions les plus susceptibles d'être évaluées, suivies de « (probable) »)
+## Définitions et formules
+(« **Terme** : définition » ; formules en LaTeX ; « Aucune » sinon)
+## Exemples traités
+(exemples, exercices ou cas étudiés en cours, une ligne chacun ; « Aucun » sinon)
+## À retravailler à la maison
+(liste « - [ ] … » : exercices et lectures donnés, passages traités trop vite ou restés flous, notions difficiles à revoir)
+## Devoirs et échéances
+(liste « - [ ] quoi — pour quand » ; « Aucun » sinon)
+## Questions pour réviser
+(3 à 5 questions d'auto-évaluation, chacune sur une ligne : « - Question ? → Réponse courte »)`,
+  reunion: `## Résumé
 (5 à 10 lignes qui vont à l'essentiel)
 ## Points clés
 (liste à puces)
@@ -1141,8 +1408,43 @@ Réponds uniquement en Markdown, avec exactement cette structure :
 (liste à puces, ou « Aucune »)
 ## Actions à faire
 (liste « - [ ] Qui : quoi (échéance si mentionnée) », ou « Aucune »)
+## Questions en suspens
+(points non tranchés ou à clarifier, ou « Aucune »)`,
+  perso: `## Résumé
+(3 à 8 lignes)
+## Points clés
+(liste à puces)
+## Idées
+(idées, pistes ou réflexions exprimées, ou « Aucune »)
+## À faire
+(liste « - [ ] … », ou « Rien »)`,
+};
+const KIND_OUT = { cours: 'cours', reunion: 'réunion', perso: 'note' };
+const P_FINAL = (text, fromParts, kind = 'auto') => `Tu rédiges des comptes rendus clairs, fidèles et utiles, en français.
+${fromParts ? "Voici les notes successives d'un long enregistrement audio (dans l'ordre chronologique)." : "Voici la transcription automatique d'un enregistrement audio. Elle peut contenir des erreurs de reconnaissance vocale : corrige-les d'après le contexte."}
+${ctxLine()}
+${kind === 'auto'
+  ? `Détermine d'abord le type d'enregistrement : « cours » (un enseignant explique une matière), « réunion » (plusieurs personnes échangent et décident) ou « note » (note vocale personnelle, idées). Puis utilise la structure correspondante.
 
-N'invente rien qui ne soit pas dans le texte.
+Structure pour un COURS :
+${STRUCT.cours}
+
+Structure pour une RÉUNION :
+${STRUCT.reunion}
+
+Structure pour une NOTE :
+${STRUCT.perso}`
+  : `Il s'agit d'un enregistrement de type « ${KIND_OUT[kind]} ». Utilise exactement cette structure :
+${STRUCT[kind]}`}
+
+Règles :
+- Réponds uniquement en Markdown. Première ligne : « # » suivi d'un titre court et précis (8 mots maximum).
+- Garde les titres de rubriques exactement comme indiqué, dans cet ordre.
+- N'invente rien qui ne soit pas dans le texte.
+- Écris les formules mathématiques ou scientifiques en LaTeX : $…$ dans une phrase, $$…$$ pour une formule isolée.
+- À la toute fin, ajoute exactement ces deux lignes :
+Type : ${kind === 'auto' ? 'cours, réunion ou note' : KIND_OUT[kind]}
+Tags : 2 à 4 mots-clés courts en minuscules, séparés par des virgules (la matière ou le sujet principal en premier)
 
 Texte :
 """
@@ -1150,7 +1452,9 @@ ${text}
 """`;
 const P_PART = (text, i, n) => `Voici la partie ${i}/${n} de la transcription automatique d'un enregistrement audio (elle peut contenir des erreurs de reconnaissance vocale).
 ${ctxLine()}
-Résume-la en français en 8 à 15 puces factuelles. Garde les noms, chiffres, dates, décisions et tâches. N'invente rien. Réponds seulement avec les puces.
+Résume-la en français en 8 à 15 puces factuelles. Garde les noms, chiffres, dates, décisions et tâches.
+Signale aussi explicitement : ce sur quoi l'intervenant insiste (« [insiste] »), ce qui est annoncé pour un examen (« [examen] »), les exercices ou devoirs donnés (« [devoir] »), les définitions et formules (formules en LaTeX).
+N'invente rien. Réponds seulement avec les puces.
 
 """
 ${text}
@@ -1166,14 +1470,17 @@ function splitText(text, size) {
   if (cur.trim()) chunks.push(cur);
   return chunks;
 }
-async function summarize(segments, onProgress) {
+async function summarize(segments, onProgress, kind = settings.kind || 'auto') {
   let text = segments.map((s) => s.text).join('\n');
   const gem = provider() === 'gemini';
-  const single = gem ? CONFIG.gemSingleShotChars : CONFIG.singleShotChars;
+  const OUT = 3200;
+  // Groq : la requête (consignes + texte + réponse) doit tenir dans la limite de tokens par minute
+  const groqRoom = Math.max(4000, (CONFIG.tpmBudget - OUT - 200) * 3 - P_FINAL('', true, kind).length);
+  const single = gem ? CONFIG.gemSingleShotChars : Math.min(CONFIG.singleShotChars, groqRoom);
   const chunkSize = gem ? CONFIG.gemChunkChars : CONFIG.chunkChars;
   if (text.length <= single) {
     onProgress('Rédaction du résumé', 0.5);
-    return llm(P_FINAL(text, false), 2500, 'Rédaction du résumé', true);
+    return llm(P_FINAL(text, false, kind), OUT, 'Rédaction du résumé', true);
   }
   let round = 0;
   while (text.length > single && round < 3) {
@@ -1188,8 +1495,21 @@ async function summarize(segments, onProgress) {
     round++;
   }
   onProgress('Synthèse finale', 0.95);
-  return llm(P_FINAL(text.slice(0, single + 4000), true), 2500, 'Synthèse finale', true);
+  return llm(P_FINAL(text.slice(0, single), true, kind), OUT, 'Synthèse finale', true);
 }
+// Lignes « Type : … » et « Tags : … » ajoutées par l'IA à la fin du résumé
+function splitMeta(body) {
+  let kind = null, tags = [];
+  const lines = body.split('\n').filter((l) => {
+    let m = /^\s*\**\s*type\s*\**\s*:\s*\**\s*(.+?)\**\s*$/i.exec(l);
+    if (m) { const v = norm(m[1]); kind = /cours/.test(v) ? 'cours' : /reunion/.test(v) ? 'reunion' : /note|perso/.test(v) ? 'perso' : null; return false; }
+    m = /^\s*\**\s*tags?\s*\**\s*:\s*\**\s*(.+?)\**\s*$/i.exec(l);
+    if (m) { tags = m[1].split(/[,;]/).map(cleanTag).filter(Boolean).slice(0, 4); return false; }
+    return true;
+  });
+  return { body: lines.join('\n').replace(/\n+$/, '').trim(), kind, tags };
+}
+const cleanTag = (t) => String(t || '').replace(/^[\s#]+|[\s.]+$/g, '').replace(/\s+/g, ' ').toLowerCase().slice(0, 30);
 function splitTitle(summary, fallback) {
   const m = /^#\s+(.+)\n?/.exec(summary.trim());
   if (m) return { title: m[1].replace(/[*_`]/g, '').trim(), body: summary.trim().slice(m[0].length).trim() };
@@ -1212,9 +1532,27 @@ const ICONS = {
   refresh: I('<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>'),
   alert: I('<circle cx="12" cy="12" r="8.5"/><path d="M12 8v5M12 16h.01"/>'),
   arrow: I('<path d="M9 6l6 6-6 6"/>'),
+  insist: I('<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>'),
+  exam: I('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/>'),
+  home: I('<path d="M4 11l8-6.5 8 6.5"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/>'),
+  defs: I('<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5"/>'),
+  examples: I('<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>'),
+  quiz: I('<circle cx="12" cy="12" r="8.5"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.4M12 16.5h.01"/>'),
+  tag: I('<path d="M3.5 12.5V4.5a1 1 0 0 1 1-1h8l8 8-9 9z"/><circle cx="8" cy="8" r="1.4" fill="currentColor"/>'),
+  x: I('<path d="M6 6l12 12M18 6L6 18"/>', 2.4),
+  plus: I('<path d="M12 5v14M5 12h14"/>', 2.4),
+  cal: I('<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'),
+  list: I('<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>', 2.4),
+  trash: I('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'),
+  left: I('<path d="M15 18l-6-6 6-6"/>', 2.2),
+  right: I('<path d="M9 6l6 6-6 6"/>', 2.2),
 };
-const kindOf = (t) => /résum|resum|synth/i.test(t) ? 'resume' : /point|clé|cle|essentiel/i.test(t) ? 'points'
-  : /décision|decision/i.test(t) ? 'decisions' : /action|tâche|tache|à faire|todo/i.test(t) ? 'actions' : 'other';
+const kindOf = (t) => /insist/i.test(t) ? 'insist' : /examen|partiel|contr[ôo]le/i.test(t) ? 'exam'
+  : /maison|retravailler|revoir/i.test(t) ? 'home' : /d[ée]finition|formule/i.test(t) ? 'defs'
+  : /exemple/i.test(t) ? 'examples' : /question/i.test(t) ? 'quiz' : /devoir|[ée]ch[ée]ance/i.test(t) ? 'actions'
+  : /résum|resum|synth/i.test(t) ? 'resume' : /point|clé|cle|essentiel/i.test(t) ? 'points'
+  : /décision|decision/i.test(t) ? 'decisions' : /action|tâche|tache|à faire|todo/i.test(t) ? 'actions'
+  : /id[ée]e/i.test(t) ? 'examples' : 'other';
 
 /* =================== Traitement d'un fichier =================== */
 let busy = false;
@@ -1227,6 +1565,7 @@ function step(id, state, detail) {
 }
 function bar(p) {
   p = Math.max(0, Math.min(1, p));
+  $('runBannerPct').textContent = Math.round(p * 100) + ' %';
   $('jobBar').style.strokeDashoffset = String(RING * (1 - p));
   $('jobPct').textContent = Math.round(p * 100) + ' %';
 }
@@ -1250,10 +1589,32 @@ async function startFile(file) {
   run(note);
 }
 
-async function run(note) {
+let runningId = null;
+async function notify(title, body, id) {
+  try {
+    if (!('Notification' in window) || Notification.permission !== 'granted' || document.visibilityState === 'visible') return;
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (reg) await reg.showNotification(title, { body, icon: 'icon-192.png', badge: 'icon-192.png', tag: id, data: { id } });
+  } catch (e) {}
+}
+function renderNotif() {
+  const has = 'Notification' in window, perm = has ? Notification.permission : 'denied';
+  $('notifState').textContent = !has ? 'Non pris en charge par ce navigateur.' : perm === 'granted' ? 'Activées.' : perm === 'denied' ? 'Bloquées : autorise-les dans les réglages Android de l\'app.' : 'Désactivées.';
+  $('notifBtn').classList.toggle('hidden', !has || perm !== 'default');
+  $('notifHint').classList.toggle('hidden', !has || perm !== 'default');
+}
+async function askNotif() {
+  try { await Notification.requestPermission(); } catch (e) {}
+  renderNotif();
+  if (Notification.permission === 'granted') toast('Notifications activées');
+}
+async function run(note, opts = {}) {
   if (enhancing) { toast('Attends la fin de l\'amélioration en cours'); return; }
-  busy = true;
-  show('job');
+  if (busy) { toast('Un traitement est déjà en cours'); return; }
+  busy = true; runningId = note.id;
+  $('runBannerName').textContent = baseName(note.title || note.fileName);
+  renderNotif();
+  if (!opts.background) show('job'); else if (current === 'home') renderHome();
   $('jobName').textContent = baseName(note.fileName);
   $('jobSize').textContent = [mb(note.size), note.duration ? dur(note.duration) : ''].filter(Boolean).join(' · ');
   $('jobError').classList.add('hidden');
@@ -1267,23 +1628,28 @@ async function run(note) {
       if (!note.audio) throw new ApiError('L\'audio de cette note n\'est plus disponible. Partage de nouveau le fichier.');
       step('st-up', 'active', 'Envoi à Groq…');
       status('');
-      const tr = await transcribe(note.audio, (i, n) => {
-        step('st-up', 'active', n > 1 ? `Partie ${i + 1} sur ${n}` : 'Envoi à Groq…');
+      const tr = await transcribe(note.audio, (i, n, model) => {
+        const where = n > 1 ? `Partie ${i + 1} sur ${n}` : 'Envoi à Groq…';
+        const alt = model && model !== settings.whisper ? ` · ${WNAME(model)} (quota du ${WNAME(settings.whisper)} atteint)` : '';
+        step('st-up', 'active', where + alt);
         bar(0.2 + 0.25 * (i / n));
       }, (p) => {
         step('st-up', 'active', `Préparation du fichier… ${Math.round(p * 100)} %`);
         bar(0.03 + 0.17 * p);
-      });
+      }, note.partial, async (state) => { note.partial = state; await db.put(note); });
       if (!tr.segments.length) throw new ApiError('Aucune parole détectée dans cet enregistrement.');
-      Object.assign(note, { segments: tr.segments, duration: tr.duration, language: tr.language, status: 'resume' });
+      Object.assign(note, { segments: tr.segments, duration: tr.duration, language: tr.language, status: 'resume', whisperUsed: tr.models });
+      delete note.partial;
       await db.put(note);
       step('st-up', 'done', `${dur(tr.duration)} d'audio`);
     }
     bar(0.5);
     step('st-sum', 'active', provider() === 'gemini' ? 'Avec Gemini' : 'Avec Groq');
-    const raw = await summarize(note.segments, (label, p) => { step('st-sum', 'active', label); bar(0.5 + 0.48 * p); });
-    const { title, body } = splitTitle(raw, note.title);
-    Object.assign(note, { title, summary: body, status: 'ok', summaryBy: lastModel });
+    const raw = await summarize(note.segments, (label, p) => { step('st-sum', 'active', label); bar(0.5 + 0.48 * p); }, opts.kind || settings.kind || 'auto');
+    const t = splitTitle(raw, note.title);
+    const meta = splitMeta(t.body);
+    const tags = [...new Set([...(note.tags || []), ...(note.tags && note.tags.length ? [] : meta.tags)])];
+    Object.assign(note, { title: t.title, summary: meta.body, status: 'ok', summaryBy: lastModel, kind: meta.kind || (opts.kind !== 'auto' && opts.kind) || note.kind || null, tags });
     delete note.audio; // plus besoin de l'audio, on libère de la place
     delete note.error;
     await db.put(note);
@@ -1291,12 +1657,13 @@ async function run(note) {
     bar(1);
     status('');
     $('jobVis').classList.add('stopped');
-    busy = false;
+    busy = false; runningId = null;
     keepAwake(false);
-    await sleep(350);
-    openNote(note.id);
+    notify('Note prête', note.title, note.id);
+    if (current === 'job') { await sleep(350); openNote(note.id); }
+    else { toast('Note prête : ' + note.title); if (current === 'home') renderHome(); }
   } catch (e) {
-    busy = false;
+    busy = false; runningId = null;
     keepAwake(false);
     note.status = note.segments ? 'resume-err' : 'err';
     note.error = e.message;
@@ -1307,7 +1674,9 @@ async function run(note) {
     $('jobErrorMsg').textContent = e instanceof ApiError ? e.message : 'Erreur inattendue : ' + e.message;
     $('jobError').classList.remove('hidden');
     $('jobRetry').onclick = () => run(note);
-    show('job', true);
+    notify('Échec du traitement', $('jobErrorMsg').textContent, note.id);
+    if (current === 'job') show('job', true);
+    else { toast('Échec du traitement : ouvre la note pour voir le détail'); if (current === 'home') renderHome(); }
   }
 }
 
@@ -1322,14 +1691,16 @@ function show(v, keepScroll) {
     el.classList.toggle('hidden', id !== v);
     if (id === v && changed) { el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); }
   }
-  const lockBack = v === 'job' && busy;
-  $('backBtn').classList.toggle('hidden', v === 'home' || lockBack);
+  const lockBack = false;
+  $('backBtn').classList.toggle('hidden', v === 'home');
   $('brand').classList.toggle('hidden', v !== 'home');
   $('title').classList.toggle('hidden', v === 'home');
   $('title').textContent = TITLES[v] || '';
   $('settingsBtn').classList.toggle('hidden', v !== 'home');
   $('spacer').classList.toggle('hidden', v === 'home' || lockBack);
   $('noteActions').classList.toggle('hidden', v !== 'note');
+  if (v !== 'home' && ui.sel) setSel(false);
+  $('selBar').classList.toggle('hidden', !(v === 'home' && ui.sel));
   if (!keepScroll) window.scrollTo(0, 0);
   if (v === 'home') renderHome();
 }
@@ -1350,13 +1721,14 @@ function shortTime(t) {
     : new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 }
 function excerpt(n) {
-  if (!n.summary) return n.error || (n.status === 'transcription' ? 'Traitement interrompu.' : '');
+  if (!n.summary) return n.id === runningId ? 'Transcription et résumé en cours…' : n.error || (n.status === 'transcription' ? 'Traitement interrompu.' : '');
   const m = /##\s*[^\n]*r[ée]sum[ée][^\n]*\n+([\s\S]*?)(?=\n##|$)/i.exec(n.summary);
   return (m ? m[1] : n.summary).replace(/^#+.*$/gm, '').replace(/[*_`>#]|\[[ xX]\]/g, '').replace(/^\s*[-•]\s+/gm, '').replace(/\s+/g, ' ').trim();
 }
 const openTasks = (n) => ((n.summary || '').match(/^\s*[-*•]\s+\[ \]/gm) || []).length;
 
 async function renderHome() {
+  $('runBanner').classList.toggle('hidden', !runningId);
   $('onboard').classList.toggle('hidden', !!settings.key);
   $('greet').textContent = greeting();
   allNotes = (await db.all()).sort((a, b) => b.created - a.created);
@@ -1365,7 +1737,7 @@ async function renderHome() {
   $('stats').textContent = allNotes.length
     ? [`${allNotes.length} note${allNotes.length > 1 ? 's' : ''}`, total ? `${dur(total)} transcrites` : '', todo ? `${todo} action${todo > 1 ? 's' : ''} à faire` : ''].filter(Boolean).join(' · ')
     : 'Prêt pour ton premier enregistrement.';
-  $('searchWrap').classList.toggle('hidden', allNotes.length < 2);
+  renderBrowse();
   renderList();
 }
 
@@ -1380,29 +1752,201 @@ const EMPTY = `
     <div class="flow"><span>Exporter</span>${ICONS.arrow}<span>MP3</span>${ICONS.arrow}<span>Partager</span>${ICONS.arrow}<span>Notes Plaud</span></div>
   </div>`;
 
+/* =================== Tags, filtres, calendrier, sélection =================== */
+const lsGet = (k, d) => { try { return localStorage.getItem(k) || d; } catch (e) { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+const monthStart = (t) => { const d = new Date(t); return new Date(d.getFullYear(), d.getMonth(), 1).getTime(); };
+const ui = { mode: lsGet('np-mode', 'list'), tag: null, day: null, month: monthStart(Date.now()), sel: false, picked: new Set() };
+const tagHue = (t) => { let h = 0; for (const c of t) h = (h * 31 + c.charCodeAt(0)) % 360; return (h * 7 + 20) % 360; };
+const tagHtml = (t, extra = '', cls = '') => `<span class="tag ${cls}" style="--h:${tagHue(t)}">${ICONS.tag}${esc(t)}${extra}</span>`;
+function tagCounts() {
+  const m = new Map();
+  for (const n of allNotes) for (const t of n.tags || []) m.set(t, (m.get(t) || 0) + 1);
+  return [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+}
+function filtered(ignoreDay) {
+  let notes = allNotes;
+  if (ui.tag) notes = notes.filter((n) => (n.tags || []).includes(ui.tag));
+  if (!ignoreDay) {
+    if (ui.day != null) notes = notes.filter((n) => dayStart(n.created) === ui.day);
+    else if (ui.mode === 'cal') notes = notes.filter((n) => monthStart(n.created) === ui.month);
+  }
+  const q = norm($('search').value.trim());
+  if (q) notes = notes.filter((n) => norm(`${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''} ${(n.segments || []).map((s) => s.text).join(' ')} ${(n.clean || []).map((s) => s.text).join(' ')}`).includes(q));
+  return notes;
+}
+function renderBrowse() {
+  $('browse').classList.toggle('hidden', !allNotes.length);
+  $('homeMode').querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === ui.mode)));
+  $('calWrap').classList.toggle('hidden', ui.mode !== 'cal');
+  $('selectBtn').classList.toggle('on', ui.sel);
+  $('selectBtn').textContent = ui.sel ? 'Terminer' : 'Sélectionner';
+  const tags = tagCounts();
+  $('tagBar').classList.toggle('hidden', !tags.length);
+  $('tagBar').innerHTML = `<button class="tag all${ui.tag ? '' : ' on'}" data-t="">Toutes</button>` +
+    tags.map(([t, c]) => `<button class="tag${ui.tag === t ? ' on' : ''}" style="--h:${tagHue(t)}" data-t="${esc(t)}">${esc(t)} <span class="n">${c}</span></button>`).join('');
+  $('tagBar').querySelectorAll('button').forEach((b) => b.onclick = () => { ui.tag = b.dataset.t && ui.tag !== b.dataset.t ? b.dataset.t : null; renderBrowse(); renderList(); });
+  $('filters').innerHTML = ui.day != null
+    ? `<button class="fchip" id="clearDay">${new Date(ui.day).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}${ICONS.x}</button>` : '';
+  if (ui.day != null) $('clearDay').onclick = () => { ui.day = null; renderBrowse(); renderList(); };
+  if (ui.mode === 'cal') renderCal();
+}
+function renderCal() {
+  const m = new Date(ui.month), y = m.getFullYear(), mo = m.getMonth();
+  $('calTitle').textContent = m.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  const byDay = new Map();
+  for (const n of filtered(true)) { const d = dayStart(n.created); if (!byDay.has(d)) byDay.set(d, []); byDay.get(d).push(n); }
+  const offset = (new Date(y, mo, 1).getDay() + 6) % 7, days = new Date(y, mo + 1, 0).getDate();
+  const cells = Math.ceil((offset + days) / 7) * 7, today = dayStart(Date.now());
+  let html = ['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim'].map((d) => `<div class="dow">${d}</div>`).join('');
+  for (let i = 0; i < cells; i++) {
+    const d = new Date(y, mo, 1 - offset + i).getTime(), dn = new Date(d);
+    const list = byDay.get(d) || [];
+    const cls = ['day', dn.getMonth() !== mo ? 'out' : '', d === today ? 'today' : '', list.length ? 'has' : '', ui.day === d ? 'sel' : ''].join(' ');
+    const dots = list.slice(0, 3).map((n) => `<i style="--h:${n.tags && n.tags[0] ? tagHue(n.tags[0]) : 20}"></i>`).join('');
+    html += `<button class="${cls}" data-d="${d}" aria-label="${dn.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}, ${list.length} note(s)">${dn.getDate()}<span class="dots">${dots}</span></button>`;
+  }
+  $('calGrid').innerHTML = html;
+  $('calGrid').querySelectorAll('.day').forEach((b) => b.onclick = () => {
+    const d = +b.dataset.d;
+    if (monthStart(d) !== ui.month) ui.month = monthStart(d);
+    ui.day = ui.day === d ? null : d;
+    renderBrowse(); renderList();
+  });
+}
+function setSel(on) {
+  ui.sel = on; ui.picked.clear();
+  $('notesList').classList.toggle('selmode', on);
+  $('selBar').classList.toggle('hidden', !on);
+  updSel();
+  if (current === 'home') { renderBrowse(); renderList(); }
+}
+function updSel() {
+  const n = ui.picked.size;
+  $('selCount').textContent = n ? `${n} note${n > 1 ? 's' : ''} sélectionnée${n > 1 ? 's' : ''}` : 'Touche les notes à sélectionner';
+  $('selTag').disabled = $('selDel').disabled = !n;
+}
+
 function renderList() {
   const list = $('notesList');
+  list.classList.toggle('selmode', ui.sel);
   if (!allNotes.length) { list.innerHTML = EMPTY; return; }
-  const q = norm($('search').value.trim());
-  const notes = q ? allNotes.filter((n) => norm(`${n.title} ${n.summary || ''} ${(n.segments || []).map((s) => s.text).join(' ')} ${(n.clean || []).map((s) => s.text).join(' ')}`).includes(q)) : allNotes;
-  if (!notes.length) { list.innerHTML = `<div class="empty-s">Aucune note ne contient « ${esc($('search').value.trim())} ».</div>`; return; }
+  const notes = filtered(false);
+  if (!notes.length) {
+    const q = $('search').value.trim();
+    list.innerHTML = `<div class="empty-s">${q ? `Aucune note ne contient « ${esc(q)} ».` : ui.day != null ? 'Aucune note ce jour-là.' : ui.mode === 'cal' ? 'Aucune note ce mois-ci.' : 'Aucune note avec ce tag.'}</div>`;
+    return;
+  }
   let html = '', g = '';
   for (const n of notes) {
-    const gg = groupOf(n.created);
+    const gg = ui.day != null ? '' : groupOf(n.created);
     if (gg !== g) { html += `<div class="group">${gg}</div>`; g = gg; }
     const tasks = openTasks(n);
-    const badge = n.status === 'ok' ? '' :
+    const badge = n.id === runningId ? `<span class="pill run">${ICONS.clock}En cours…</span>` : n.status === 'ok' ? '' :
       n.status === 'resume-err' ? `<span class="pill err">${ICONS.alert}Résumé à refaire</span>` :
       n.status === 'err' ? `<span class="pill err">${ICONS.alert}Échec</span>` : `<span class="pill run">${ICONS.alert}Interrompu</span>`;
+    const tags = (n.tags || []).slice(0, 3).map((t) => tagHtml(t)).join('');
     html += `
-      <button class="item" data-id="${n.id}">
+      <button class="item${ui.picked.has(n.id) ? ' picked' : ''}" data-id="${n.id}">
+        <span class="ck"></span>
         <span class="item-top"><span class="t">${esc(n.title)}</span><span class="time">${shortTime(n.created)}</span></span>
         ${excerpt(n) ? `<span class="ex">${esc(excerpt(n))}</span>` : ''}
         <span class="m">${n.duration ? `<span class="pill">${ICONS.clock}${dur(n.duration)}</span>` : ''}${tasks ? `<span class="pill task">${ICONS.check}${tasks} à faire</span>` : ''}${badge}</span>
+        ${tags ? `<span class="tags">${tags}</span>` : ''}
       </button>`;
   }
   list.innerHTML = html;
-  list.querySelectorAll('.item').forEach((b) => b.onclick = () => openNote(b.dataset.id));
+  list.querySelectorAll('.item').forEach((b) => b.onclick = () => {
+    const id = b.dataset.id;
+    if (!ui.sel) return openNote(id);
+    if (ui.picked.has(id)) ui.picked.delete(id); else ui.picked.add(id);
+    b.classList.toggle('picked', ui.picked.has(id)); updSel();
+  });
+}
+
+/* ---- Feuille du bas ---- */
+function openSheet(html, mount) {
+  $('sheetBody').innerHTML = html;
+  $('sheet').classList.remove('hidden'); $('sheetBg').classList.remove('hidden');
+  requestAnimationFrame(() => requestAnimationFrame(() => { $('sheet').classList.add('open'); $('sheetBg').classList.add('open'); }));
+  if (mount) mount($('sheetBody'));
+}
+function closeSheet() {
+  $('sheet').classList.remove('open'); $('sheetBg').classList.remove('open');
+  setTimeout(() => { $('sheet').classList.add('hidden'); $('sheetBg').classList.add('hidden'); }, 260);
+}
+// Ajouter / retirer des tags sur une ou plusieurs notes
+async function openTagSheet(ids) {
+  const notes = (await Promise.all(ids.map((id) => db.get(id)))).filter(Boolean);
+  if (!notes.length) return;
+  allNotes = (await db.all()).sort((a, b) => b.created - a.created);
+  const all = tagCounts().map(([t]) => t);
+  const has = (t) => notes.every((n) => (n.tags || []).includes(t));
+  const draw = (body) => {
+    body.querySelector('#tagChoices').innerHTML = all.length
+      ? all.map((t) => `<button class="tag${has(t) ? ' on' : ''}" style="--h:${tagHue(t)}" data-t="${esc(t)}">${esc(t)}</button>`).join('')
+      : '<span class="muted" style="font-size:14px">Aucun tag pour l\'instant.</span>';
+    body.querySelectorAll('#tagChoices .tag').forEach((b) => b.onclick = () => toggle(b.dataset.t, body));
+  };
+  const save = async () => { for (const n of notes) await db.put(n); if (currentNote) { const c = notes.find((n) => n.id === currentNote.id); if (c) { currentNote.tags = c.tags; renderNoteTags(); } } };
+  const toggle = async (t, body) => {
+    const on = has(t);
+    for (const n of notes) { n.tags = (n.tags || []).filter((x) => x !== t); if (!on) n.tags.push(t); }
+    await save(); draw(body);
+  };
+  openSheet(`<h3>${notes.length > 1 ? `Tags de ${notes.length} notes` : 'Tags de la note'}</h3>
+    <p class="sub">Touche un tag pour l'ajouter ou le retirer.</p>
+    <div class="tagin"><input type="text" id="newTag" placeholder="Nouveau tag (ex. algorithmique)" maxlength="30" autocomplete="off"><button class="btn primary" id="addTag">Ajouter</button></div>
+    <div class="tags" id="tagChoices" style="margin-bottom:16px"></div>
+    <button class="btn block" id="sheetOk">Terminé</button>`, (body) => {
+    draw(body);
+    const add = async () => {
+      const t = cleanTag(body.querySelector('#newTag').value); if (!t) return;
+      if (!all.includes(t)) all.unshift(t);
+      for (const n of notes) { n.tags = n.tags || []; if (!n.tags.includes(t)) n.tags.push(t); }
+      body.querySelector('#newTag').value = '';
+      await save(); draw(body);
+    };
+    body.querySelector('#addTag').onclick = add;
+    body.querySelector('#newTag').onkeydown = (e) => { if (e.key === 'Enter') add(); };
+    body.querySelector('#sheetOk').onclick = () => { closeSheet(); if (current === 'home') { if (ui.sel) setSel(false); else renderHome(); } };
+  });
+}
+function renderNoteTags() {
+  const n = currentNote; if (!n) return;
+  $('noteTags').innerHTML = (n.tags || []).map((t) => `<span class="tag" style="--h:${tagHue(t)}"><span class="tn" data-t="${esc(t)}" role="button">${ICONS.tag}${esc(t)}</span><span class="tx" data-rm="${esc(t)}" role="button" aria-label="Retirer">${ICONS.x}</span></span>`).join('')
+    + `<button class="tag add" id="addNoteTag">${ICONS.plus}Tag</button>`;
+  $('noteTags').querySelectorAll('[data-rm]').forEach((x) => x.onclick = async () => { n.tags = n.tags.filter((t) => t !== x.dataset.rm); await db.put(n); renderNoteTags(); });
+  $('noteTags').querySelectorAll('[data-t]').forEach((x) => x.onclick = () => { ui.tag = x.dataset.t; ui.day = null; show('home'); });
+  $('addNoteTag').onclick = () => openTagSheet([n.id]);
+}
+function kindSheet(n) {
+  const opts = [['auto', 'Automatique', "L'IA choisit la structure"], ['cours', 'Cours', 'Insistance du prof, examen, à retravailler, définitions, questions…'],
+    ['reunion', 'Réunion', 'Décisions, actions, questions en suspens'], ['perso', 'Note personnelle', 'Idées et choses à faire']];
+  openSheet(`<h3>${n.summary ? 'Refaire le résumé' : 'Générer le résumé'}</h3><p class="sub">Quel type d'enregistrement ?${n.kind ? ` Détecté : ${KINDS[n.kind].toLowerCase()}.` : ''}</p>
+    <div class="opts">${opts.map(([k, t, d]) => `<button class="opt" data-k="${k}"><span class="sec-ic">${ICONS[{ auto: 'spark', cours: 'defs', reunion: 'decisions', perso: 'examples' }[k]]}</span><span><b>${t}</b><small>${d}</small></span></button>`).join('')}</div>`,
+    (body) => body.querySelectorAll('.opt').forEach((b) => b.onclick = () => { closeSheet(); if (!busy) { n.status = 'resume'; run(n, { kind: b.dataset.k }); } }));
+}
+async function renderTagAdmin() {
+  allNotes = (await db.all()).sort((a, b) => b.created - a.created);
+  const tags = tagCounts();
+  $('tagAdmin').innerHTML = tags.length ? tags.map(([t, c]) => `<div class="tagrow">${tagHtml(t)}<span class="grow muted" style="font-size:13px">${c} note${c > 1 ? 's' : ''}</span>
+      <button class="iconbtn" data-ren="${esc(t)}" aria-label="Renommer">${I('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>')}</button>
+      <button class="iconbtn" data-del="${esc(t)}" aria-label="Supprimer">${ICONS.trash}</button></div>`).join('')
+    : '<span class="muted" style="font-size:14px">Aucun tag pour l\'instant. Les résumés en proposent automatiquement, et tu peux en ajouter depuis une note.</span>';
+  const apply = async (fn) => { for (const n of allNotes) { const before = JSON.stringify(n.tags || []); fn(n); if (JSON.stringify(n.tags || []) !== before) await db.put(n); } renderTagAdmin(); };
+  $('tagAdmin').querySelectorAll('[data-ren]').forEach((b) => b.onclick = () => {
+    const old = b.dataset.ren, nv = cleanTag(prompt('Nouveau nom du tag :', old) || '');
+    if (!nv || nv === old) return;
+    if (ui.tag === old) ui.tag = nv;
+    apply((n) => { if ((n.tags || []).includes(old)) n.tags = [...new Set(n.tags.map((t) => t === old ? nv : t))]; });
+  });
+  $('tagAdmin').querySelectorAll('[data-del]').forEach((b) => b.onclick = () => {
+    const t = b.dataset.del;
+    if (!confirm(`Supprimer le tag « ${t} » de toutes les notes ? Les notes elles-mêmes sont conservées.`)) return;
+    if (ui.tag === t) ui.tag = null;
+    apply((n) => { n.tags = (n.tags || []).filter((x) => x !== t); });
+  });
 }
 
 function noteMarkdown(n) {
@@ -1426,7 +1970,11 @@ function renderSummary(n) {
     const title = (nl < 0 ? p : p.slice(0, nl)).replace(/[*_`]/g, '').trim();
     const body = nl < 0 ? '' : p.slice(nl + 1);
     const k = kindOf(title);
-    html += `<section class="sec k-${k}"><h3><span class="sec-ic">${ICONS[k]}</span>${esc(title)}</h3><div class="md">${md(body, ctr)}</div></section>`;
+    let inner = md(body, ctr);
+    // Questions de révision : la réponse se dévoile au toucher
+    if (k === 'quiz') inner = inner.replace(/<li>([\s\S]*?)\s*(?:→|-&gt;|=&gt;)\s*([\s\S]*?)<\/li>/g,
+      '<li class="qa"><details><summary>$1</summary><div class="ans">$2</div></details></li>');
+    html += `<section class="sec k-${k}"><h3><span class="sec-ic">${ICONS[k]}</span>${esc(title)}</h3><div class="md">${inner}</div></section>`;
   }
   return html;
 }
@@ -1441,10 +1989,11 @@ function renderTranscript() {
   const para = trMode === 'clean' && hasClean(n);
   const segs = curSegs(n).filter((s) => !re || s.text.match(re));
   $('noteTr').innerHTML = segs.map((s) => {
-    let t = esc(s.text);
+    let t = re ? esc(s.text) : mathify(s.text);
     if (re) t = t.replace(new RegExp(esc(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), (m) => `<mark>${m}</mark>`);
     return `<div class="seg${para ? ' para' : ''}"><time>${hms(s.start)}</time><span>${t}</span></div>`;
   }).join('') || `<p class="muted" style="padding:10px 0">${n.segments ? 'Aucun passage ne correspond.' : 'Pas de transcription.'}</p>`;
+  renderMath($('noteTr'));
 }
 
 function renderEnh() {
@@ -1477,7 +2026,8 @@ Réécris cet extrait en ${LANGS[settings.lang] || "respectant la langue de l'ex
 - rétablis la ponctuation et reformule les phrases maladroites ou mal construites, sans en changer le sens ;
 - ne résume pas : conserve toutes les idées, informations, exemples, chiffres et noms ;
 - n'invente rien et n'ajoute aucun commentaire ;
-- regroupe les phrases en paragraphes cohérents de 2 à 6 phrases.
+- regroupe les phrases en paragraphes cohérents de 2 à 6 phrases ;
+- écris les formules mathématiques ou scientifiques dictées à l'oral en LaTeX : $…$ dans une phrase, $$…$$ pour une formule isolée (ex. « T de n moins un » devient $T(n-1)$).
 
 Format de réponse obligatoire : un paragraphe par ligne, chaque ligne commençant par l'horodatage entre crochets de la première phrase du paragraphe, recopié tel quel depuis l'extrait (exemple : « [12:34] Texte du paragraphe… »). Aucune autre ligne : pas de titre, pas d'introduction, pas de conclusion.
 ${prev ? `\nPour la continuité, voici la fin du passage précédent déjà réécrit (ne la répète pas) : « ${prev} »\n` : ''}
@@ -1554,6 +2104,7 @@ async function enhance() {
 }
 
 async function openNote(id) {
+  if (id === runningId) { show('job'); return; }
   const n = await db.get(id);
   if (!n) { show('home'); return; }
   if ((n.status === 'transcription' || n.status === 'err') && !busy && n.audio) { run(n); return; }
@@ -1565,7 +2116,9 @@ async function openNote(id) {
     `<span class="pill">${ICONS.file}${esc(n.fileName)}</span>`,
     n.summaryBy ? `<span class="pill">${ICONS.spark}résumé : ${esc(n.summaryBy.replace(/^openai\//, ''))}</span>` : '',
   ].join('');
+  renderNoteTags();
   $('noteSum').innerHTML = renderSummary(n);
+  renderMath($('noteSum'));
   $('trSearch').value = '';
   trMode = 'clean';
   $('enhErr').classList.add('hidden');
@@ -1577,7 +2130,7 @@ async function openNote(id) {
   show('note');
 }
 function setTab(t) {
-  document.querySelectorAll('.tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  document.querySelectorAll('.tabs-wrap .tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
   $('noteSum').classList.toggle('hidden', t !== 'sum');
   $('noteTrWrap').classList.toggle('hidden', t !== 'tr');
 }
@@ -1594,6 +2147,9 @@ $('noteSum').addEventListener('change', async (e) => {
 });
 
 function showSettings() {
+  $('sKind').value = settings.kind || 'auto';
+  renderTagAdmin();
+  renderNotif();
   $('sKey').value = settings.key; $('sLang').value = settings.lang; $('sWhisper').value = settings.whisper;
   $('sLlm').value = settings.llms; $('sCtx').value = settings.ctx;
   $('sProv').value = settings.provider; $('sGKey').value = settings.gkey; $('sGModel').value = settings.gmodels;
@@ -1608,6 +2164,24 @@ $('onboardBtn').onclick = showSettings;
 $('backBtn').onclick = () => show('home');
 $('jobHome').onclick = () => show('home');
 $('search').oninput = renderList;
+$('homeMode').querySelectorAll('button').forEach((b) => {
+  b.innerHTML = (b.dataset.mode === 'cal' ? ICONS.cal + 'Calendrier' : ICONS.list + 'Liste');
+  b.onclick = () => { ui.mode = b.dataset.mode; lsSet('np-mode', ui.mode); ui.day = null; ui.month = monthStart(Date.now()); renderBrowse(); renderList(); };
+});
+$('calPrev').innerHTML = ICONS.left; $('calNext').innerHTML = ICONS.right;
+$('calPrev').onclick = () => { const d = new Date(ui.month); ui.month = new Date(d.getFullYear(), d.getMonth() - 1, 1).getTime(); ui.day = null; renderBrowse(); renderList(); };
+$('calNext').onclick = () => { const d = new Date(ui.month); ui.month = new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime(); ui.day = null; renderBrowse(); renderList(); };
+$('selectBtn').onclick = () => setSel(!ui.sel);
+$('selCancel').onclick = () => setSel(false);
+$('selTag').onclick = () => { if (ui.picked.size) openTagSheet([...ui.picked]); };
+$('selDel').onclick = async () => {
+  const ids = [...ui.picked].filter((id) => id !== runningId);
+  if (!ids.length || !confirm(`Supprimer définitivement ${ids.length} note${ids.length > 1 ? 's' : ''} ?`)) return;
+  for (const id of ids) await db.del(id);
+  toast(`${ids.length} note${ids.length > 1 ? 's' : ''} supprimée${ids.length > 1 ? 's' : ''}`);
+  setSel(false); renderHome();
+};
+$('sheetBg').onclick = closeSheet;
 $('trSearch').oninput = renderTranscript;
 function provBoxes() {
   const v = $('sProv').value;
@@ -1621,12 +2195,12 @@ $('sKeyShow').onclick = toggleKey('sKey', 'sKeyShow');
 $('sSave').onclick = () => {
   settings = { key: $('sKey').value.trim(), lang: $('sLang').value, whisper: $('sWhisper').value,
     llms: $('sLlm').value.trim() || DEFAULTS.llms, ctx: $('sCtx').value,
-    provider: $('sProv').value, gkey: $('sGKey').value.trim(), gmodels: $('sGModel').value.trim() || DEFAULTS.gmodels };
+    provider: $('sProv').value, gkey: $('sGKey').value.trim(), gmodels: $('sGModel').value.trim() || DEFAULTS.gmodels, kind: $('sKind').value };
   toast(saveSettings(settings) ? 'Réglages enregistrés' : 'Impossible d\'enregistrer (navigation privée ?)');
   show('home');
 };
 $('fileInput').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) startFile(f); };
-document.querySelectorAll('.tabs button').forEach((b) => b.onclick = () => setTab(b.dataset.tab));
+document.querySelectorAll('.tabs-wrap .tabs button').forEach((b) => b.onclick = () => setTab(b.dataset.tab));
 
 $('aCopy').onclick = async () => {
   const n = currentNote; if (!n) return;
@@ -1655,7 +2229,7 @@ $('aDl').onclick = () => {
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 };
-$('resumAgain').onclick = () => { const n = currentNote; if (n && !busy) { n.status = 'resume'; run(n); } };
+$('resumAgain').onclick = () => { const n = currentNote; if (n && !busy) kindSheet(n); };
 $('delNote').onclick = async () => {
   if (!currentNote || !confirm('Supprimer cette note ?')) return;
   await db.del(currentNote.id); currentNote = null; toast('Note supprimée'); show('home');
@@ -1665,6 +2239,18 @@ $('enhBtn').onclick = () => {
   enhance();
 };
 document.querySelectorAll('#trMode button').forEach((b) => b.onclick = () => { trMode = b.dataset.mode; renderEnh(); renderTranscript(); });
+$('runBanner').onclick = () => show('job');
+$('notifBtn').onclick = askNotif;
+$('notifHintBtn').onclick = askNotif;
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.open) openNote(e.data.open); });
+// Reprend automatiquement un traitement interrompu (app fermée ou mise en pause par Android)
+async function resumeInterrupted() {
+  if (busy || enhancing) return;
+  let notes = [];
+  try { notes = (await db.all()).sort((a, b) => b.created - a.created); } catch (e) { return; }
+  const n = notes.find((x) => (x.status === 'transcription' && x.audio) || (x.status === 'resume' && x.segments));
+  if (n) { toast('Reprise du traitement : ' + baseName(n.title || n.fileName)); run(n, { background: current !== 'job' }); }
+}
 window.addEventListener('beforeunload', (e) => { if (busy || enhancing) { e.preventDefault(); e.returnValue = ''; } });
 
 /* =================== Démarrage =================== */
@@ -1673,12 +2259,15 @@ window.addEventListener('beforeunload', (e) => { if (busy || enhancing) { e.prev
     try { await navigator.serviceWorker.register('sw.js'); } catch (e) {}
   }
   const params = new URLSearchParams(location.search);
-  if (params.has('shared')) history.replaceState(null, '', location.pathname);
+  if (params.has('shared')) history.replaceState(null, '', location.pathname.replace(/\?.*$/, ''));
   let pending = null;
   try { pending = await db.takePending(); } catch (e) {}
   if (pending && pending.file) { startFile(pending.file); return; }
   current = '';
   show('home');
+  renderNotif();
+  if (params.has('note')) { const id = params.get('note'); history.replaceState(null, '', location.pathname); openNote(id); }
+  resumeInterrupted();
   if (params.has('shared') || pending) {
     const i = (pending && pending.info) || {};
     const lines = [];

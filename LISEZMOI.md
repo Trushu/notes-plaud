@@ -51,6 +51,13 @@ Avec « Résumé avec : Auto », l'app utilise Gemini dès qu'une clé Gemini es
 - **Sur une note :** **Copier**, **Partager** (vers Keep, Gmail, WhatsApp, Drive…) ou **.md** (téléchargement).
 - **Améliorer la transcription :** dans l'onglet Transcription, touche **Améliorer avec l'IA**. L'IA corrige les mots mal reconnus d'après le contexte, enlève les hésitations et reformule en phrases claires, sans rien résumer. Tu peux passer de la version **Améliorée** à la version **Brute** à tout moment. Avec Gemini, ça prend quelques secondes ; avec Groq, compte quelques minutes pour 1 h d'audio.
 
+### Organiser ses notes
+
+- **Type de résumé :** l'IA reconnaît s'il s'agit d'un cours, d'une réunion ou d'une note perso. Pour un cours, le résumé contient : points sur lesquels le prof a insisté, à retenir pour l'examen, à retravailler à la maison, définitions et formules, exemples, devoirs, et des questions pour réviser (touche une question pour voir la réponse). Tu peux fixer le type par défaut dans les Réglages, ou le choisir avec « Refaire le résumé ».
+- **Tags :** l'IA en propose 2 à 4 par note. Sur une note, touche « + Tag » pour en ajouter, la croix pour en retirer. Sur l'accueil, la barre de tags filtre la liste. Renommer ou supprimer un tag : Réglages → Tags.
+- **Calendrier :** sur l'accueil, bascule « Liste / Calendrier », puis touche un jour pour voir ses notes.
+- **Sélection :** « Sélectionner » sur l'accueil permet de taguer ou supprimer plusieurs notes d'un coup. Une note seule se supprime aussi depuis son écran (bouton « Supprimer » en bas).
+
 ### Temps de traitement (à peu près)
 
 | Durée de l'audio | Transcription | Résumé |

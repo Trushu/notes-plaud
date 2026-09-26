@@ -2,7 +2,8 @@
 // - reçoit les fichiers partagés depuis Android (cible de partage)
 // - garde l'application en cache pour qu'elle s'ouvre même avec un mauvais réseau
 
-const CACHE = 'notes-plaud-v7';
+const CACHE = 'notes-plaud-v11';
+const KATEX_CACHE = 'katex-v1';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 // --- IndexedDB minimal (même base que la page) ---
@@ -35,14 +36,22 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== KATEX_CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
-  if (url.origin !== self.location.origin) return; // on ne touche pas aux appels vers Groq
+  // KaTeX (rendu des formules) : gardé en cache pour fonctionner hors ligne
+  if (url.hostname === 'cdn.jsdelivr.net' && url.pathname.startsWith('/npm/katex')) {
+    e.respondWith(caches.open(KATEX_CACHE).then((c) => c.match(e.request).then((hit) => hit || fetch(e.request).then((resp) => {
+      if (resp.ok) c.put(e.request, resp.clone());
+      return resp;
+    }))));
+    return;
+  }
+  if (url.origin !== self.location.origin) return; // on ne touche pas aux appels vers Groq et Gemini
 
   // Fichier partagé depuis une autre app (Plaud -> Partager -> Notes Plaud)
   if (e.request.method === 'POST' && url.pathname.endsWith('/share')) {
@@ -83,4 +92,15 @@ self.addEventListener('fetch', (e) => {
         .catch(() => caches.match(e.request, { ignoreSearch: true }).then((r) => r || caches.match('./index.html')))
     );
   }
+});
+
+// Touche sur une notification « Note prête » : on ouvre l'app sur la note
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const id = e.notification.data && e.notification.data.id;
+  e.waitUntil((async () => {
+    const list = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const c of list) { c.postMessage({ open: id }); return c.focus(); }
+    return self.clients.openWindow(new URL('./?note=' + encodeURIComponent(id || ''), self.registration.scope).href);
+  })());
 });

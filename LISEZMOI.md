@@ -55,6 +55,7 @@ Avec « Résumé avec : Auto », l'app utilise Gemini dès qu'une clé Gemini es
 
 - **Type de résumé :** l'IA reconnaît s'il s'agit d'un cours, d'une réunion ou d'une note perso. Pour un cours, le résumé contient : points sur lesquels le prof a insisté, à retenir pour l'examen, à retravailler à la maison, définitions et formules, exemples, devoirs, et des questions pour réviser (touche une question pour voir la réponse). Tu peux fixer le type par défaut dans les Réglages, ou le choisir avec « Refaire le résumé ».
 - **Tags :** l'IA en propose 2 à 4 par note. Sur une note, touche « + Tag » pour en ajouter, la croix pour en retirer. Sur l'accueil, la barre de tags filtre la liste. Renommer ou supprimer un tag : Réglages → Tags.
+- **Date :** si le nom du fichier contient une date (« 2025-03-12 14-30.mp3 », « 20250312_143005.m4a », « 12-03-2025 »…), la note la reprend. Sinon c'est la date du jour. Pour la changer, touche la date en haut de la note.
 - **Calendrier :** sur l'accueil, bascule « Liste / Calendrier », puis touche un jour pour voir ses notes.
 - **Sélection :** « Sélectionner » sur l'accueil permet de taguer ou supprimer plusieurs notes d'un coup. Une note seule se supprime aussi depuis son écran (bouton « Supprimer » en bas).
 

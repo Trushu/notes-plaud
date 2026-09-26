@@ -203,6 +203,12 @@
 
   /* ---------- Note ---------- */
   .note-head { padding: 6px 2px 18px; }
+  .eyebrow.edit { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 4px 8px; margin: -4px -8px 4px; border-radius: 8px; cursor: pointer; font-family: var(--sans); }
+  .eyebrow.edit svg { width: 14px; height: 14px; opacity: .8; }
+  .eyebrow.edit:active { background: var(--accent-soft); }
+  .quick { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 16px; }
+  .quick .tag { --h: 25; }
+  input[type=datetime-local] { width: 100%; min-height: 50px; padding: 10px 13px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); font-size: 17px; }
   .eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--accent-ink); margin-bottom: 8px; }
   .note-head h1 { font: 600 28px/1.15 var(--serif); letter-spacing: -.02em; margin: 0 0 12px; overflow-wrap: anywhere; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -529,7 +535,7 @@
   <!-- ===== Note ===== -->
   <section id="v-note" class="view hidden">
     <div class="note-head">
-      <div class="eyebrow" id="noteDate"></div>
+      <button class="eyebrow edit" id="noteDate" aria-label="Modifier la date"></button>
       <h1 id="noteTitle"></h1>
       <div class="chips" id="noteMeta"></div>
       <div class="tags" id="noteTags"></div>
@@ -1570,11 +1576,56 @@ function bar(p) {
   $('jobPct').textContent = Math.round(p * 100) + ' %';
 }
 
+/* ---- Date d'un enregistrement ----
+   Les exports portent souvent la date dans leur nom (« 2025-03-12 14-30-05.mp3 », « 20250312_143005.m4a »,
+   « 12-03-2025 … ») : on la reprend, sinon on prend la date du jour. Elle reste modifiable sur la note. */
+function dateFromName(name) {
+  const s = String(name || '');
+  const mk = (y, mo, d, h, mi, se) => {
+    const t = new Date(y, mo - 1, d, h != null ? +h : 12, mi != null ? +mi : 0, se != null ? +se : 0);
+    if (t.getMonth() !== mo - 1 || t.getDate() !== +d) return null;
+    return t.getTime() > Date.now() + 86400000 || y < 2010 ? null : t.getTime();
+  };
+  let m = /(?:^|\D)(20\d{2})[-_. /]?(0[1-9]|1[0-2])[-_. /]?(0[1-9]|[12]\d|3[01])(?:[ T_.-]{0,3}([01]\d|2[0-3])[-:h_. ]?([0-5]\d)(?:[-:_. ]?([0-5]\d))?)?(?!\d)/.exec(s);
+  if (m) return mk(+m[1], +m[2], +m[3], m[4], m[5], m[6]);
+  m = /(?:^|\D)(0[1-9]|[12]\d|3[01])[-_. /](0[1-9]|1[0-2])[-_. /](20\d{2})(?:[ T_.-]{1,3}([01]\d|2[0-3])[-:h_. ]?([0-5]\d))?(?!\d)/.exec(s);
+  if (m) return mk(+m[3], +m[2], +m[1], m[4], m[5]);
+  return null;
+}
+const toLocalInput = (t) => { const d = new Date(t), p = (x) => String(x).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
+function dateSheet(n) {
+  const fromName = dateFromName(n.fileName);
+  const day = (off) => { const d = new Date(n.created); const t = new Date(); t.setDate(t.getDate() - off); t.setHours(d.getHours(), d.getMinutes(), 0, 0); return t.getTime(); };
+  const quick = [['Aujourd\'hui', day(0)], ['Hier', day(1)], ['Avant-hier', day(2)]];
+  if (fromName) quick.push(['Date du nom du fichier', fromName]);
+  if (n.addedAt && Math.abs(n.addedAt - n.created) > 60000) quick.push(['Date d\'ajout', n.addedAt]);
+  openSheet(`<h3>Date de l'enregistrement</h3><p class="sub">Elle sert au tri, aux groupes et au calendrier.</p>
+    <input type="datetime-local" id="dateIn" value="${toLocalInput(n.created)}" max="${toLocalInput(Date.now() + 86400000)}">
+    <div class="quick">${quick.map(([l, t], i) => `<button class="tag" data-i="${i}">${l}</button>`).join('')}</div>
+    <button class="btn primary block" id="dateOk">Enregistrer</button>`, (body) => {
+    body.querySelectorAll('.quick .tag').forEach((b) => b.onclick = () => { body.querySelector('#dateIn').value = toLocalInput(quick[+b.dataset.i][1]); });
+    body.querySelector('#dateOk').onclick = async () => {
+      const v = body.querySelector('#dateIn').value;
+      const t = v ? new Date(v).getTime() : NaN;
+      if (!isFinite(t)) { toast('Date invalide'); return; }
+      n.created = t; await db.put(n);
+      if (currentNote && currentNote.id === n.id) { currentNote.created = t; renderNoteDate(); }
+      closeSheet(); toast('Date modifiée');
+    };
+  });
+}
+function renderNoteDate() {
+  const n = currentNote; if (!n) return;
+  $('noteDate').innerHTML = esc(new Date(n.created).toLocaleString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: new Date(n.created).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined, hour: '2-digit', minute: '2-digit' }))
+    + I('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>');
+}
+
 async function startFile(file) {
   if (busy || enhancing) { toast('Un traitement est déjà en cours'); return; }
   if (!file || !file.size) { toast('Aucun fichier audio reçu'); return; }
+  const now = Date.now();
   const note = {
-    id: 'n' + Date.now().toString(36), created: Date.now(), fileName: file.name || 'audio.' + extFor(file),
+    id: 'n' + now.toString(36), created: dateFromName(file.name) || now, addedAt: now, fileName: file.name || 'audio.' + extFor(file),
     size: file.size, title: baseName(file.name), status: 'transcription', audio: file, segments: null, summary: '', duration: 0,
   };
   if (!settings.key) {
@@ -1586,6 +1637,7 @@ async function startFile(file) {
     return;
   }
   await db.put(note);
+  if (note.created !== note.addedAt) toast('Date reprise du nom du fichier : ' + new Date(note.created).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }));
   run(note);
 }
 
@@ -2109,7 +2161,7 @@ async function openNote(id) {
   if (!n) { show('home'); return; }
   if ((n.status === 'transcription' || n.status === 'err') && !busy && n.audio) { run(n); return; }
   currentNote = n;
-  $('noteDate').textContent = new Date(n.created).toLocaleString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+  renderNoteDate();
   $('noteTitle').textContent = n.title;
   $('noteMeta').innerHTML = [
     n.duration ? `<span class="pill">${ICONS.clock}${dur(n.duration)}</span>` : '',
@@ -2182,6 +2234,7 @@ $('selDel').onclick = async () => {
   setSel(false); renderHome();
 };
 $('sheetBg').onclick = closeSheet;
+$('noteDate').onclick = () => { if (currentNote) dateSheet(currentNote); };
 $('trSearch').oninput = renderTranscript;
 function provBoxes() {
   const v = $('sProv').value;

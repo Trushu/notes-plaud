@@ -373,6 +373,61 @@
   .tagrow .grow { flex: 1; }
   .tagrow .iconbtn { width: 36px; height: 36px; color: var(--muted); }
   .tagrow .iconbtn svg { width: 18px; height: 18px; }
+  /* ----- Onglets du bas ----- */
+  .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 9; display: flex; justify-content: center; gap: 6px;
+    padding: 6px 18px calc(6px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter: saturate(1.4) blur(16px); -webkit-backdrop-filter: saturate(1.4) blur(16px); border-top: 1px solid var(--line); }
+  .tabbar button { position: relative; flex: 1; max-width: 200px; display: flex; flex-direction: column; align-items: center; gap: 2px; border: 0; background: none;
+    color: var(--muted); font: 600 12px/1.2 var(--sans); padding: 6px 0 4px; border-radius: 12px; cursor: pointer; }
+  .tabbar button svg { width: 24px; height: 24px; }
+  .tabbar button[aria-selected="true"] { color: var(--accent-ink); }
+  .tabbar .badge { position: absolute; top: 1px; left: calc(50% + 7px); min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--err); color: #fff; font-size: 11px; line-height: 18px; }
+  .fab { position: fixed; right: 18px; bottom: calc(78px + env(safe-area-inset-bottom)); z-index: 9; width: 58px; height: 58px; border-radius: 20px; border: 0;
+    background: var(--grad); color: #fff; display: grid; place-items: center; box-shadow: var(--shadow-lg); cursor: pointer; }
+  .fab svg { width: 26px; height: 26px; }
+  .fab:active { transform: scale(.95); }
+  /* ----- Tâches ----- */
+  .tstats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .tstat { text-align: left; padding: 12px 12px 10px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); cursor: pointer; font: inherit; color: inherit; }
+  .tstat b { display: block; font: 600 26px/1.1 var(--serif); }
+  .tstat span { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+  .tstat.late b { color: var(--err); } .tstat.today b { color: var(--accent-ink); } .tstat.week b { color: var(--blue); }
+  .tstat.on { box-shadow: 0 0 0 2px var(--ink) inset; }
+  .tstat.zero b { color: var(--muted); opacity: .6; }
+  .titem { display: flex; gap: 12px; align-items: flex-start; padding: 13px 14px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); transition: opacity .3s; }
+  .titem.p2 { box-shadow: inset 3px 0 0 var(--err), var(--shadow); }
+  .titem.done { opacity: .6; }
+  .titem.done .tt { text-decoration: line-through; color: var(--muted); }
+  .tck { appearance: none; -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--surface-3); flex: none; margin: 0; display: grid; place-items: center; cursor: pointer; background: var(--surface); transition: all .15s; }
+  .tck:checked { background: var(--green); border-color: var(--green); }
+  .tck:checked::after { content: ""; width: 10px; height: 5px; border: 2.5px solid #fff; border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
+  .tbody { flex: 1; min-width: 0; cursor: pointer; }
+  .tt { font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
+  .tmeta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+  .tm { display: inline-flex; align-items: center; gap: 4px; height: 23px; padding: 0 8px; border-radius: 99px; background: var(--surface-2); color: var(--ink-2); font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .tm svg { width: 12px; height: 12px; }
+  .tm.late { background: var(--err-soft); color: var(--err); } .tm.today { background: var(--accent-soft); color: var(--accent-ink); }
+  .tm.prio { background: var(--err-soft); color: var(--err); }
+  .tm.src { background: transparent; color: var(--muted); padding: 0 2px; font-weight: 500; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  .tm.tagm { --h: 20; background: hsl(var(--h) 75% 93%); color: hsl(var(--h) 55% 32%); }
+  @media (prefers-color-scheme: dark) { .tm.tagm { background: hsl(var(--h) 35% 20%); color: hsl(var(--h) 70% 78%); } }
+  .md .tmeta { margin-top: 5px; }
+  .md li.task { display: flex; align-items: flex-start; gap: 2px; }
+  .md li.task label { flex: 1; }
+  .tedit { flex: none; width: 32px; height: 28px; border: 0; background: none; color: var(--muted); border-radius: 8px; display: grid; place-items: center; cursor: pointer; }
+  .tedit svg { width: 18px; height: 18px; }
+  .tedit:active { background: var(--surface-2); }
+  .donebtn { display: block; margin: 16px auto 0; }
+  .group .tag { text-transform: none; letter-spacing: 0; vertical-align: middle; }
+  #tMode button { padding: 0 10px; white-space: nowrap; }
+  .seg2 button { white-space: nowrap; }
+  .tsheet label.f { margin-top: 14px; }
+  .tsheet textarea { min-height: 64px; font-size: 16px; }
+  .tsheet input[type=date], .tsheet input[type=datetime-local] { width: 100%; min-height: 48px; padding: 10px 13px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); font-size: 16px; }
+  .tsheet .quick { margin: 8px 0 0; }
+  .tsheet .tag.lock { opacity: .75; cursor: default; }
+  .tsheet .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .tsheet .seg2 { display: grid; grid-template-columns: repeat(3, 1fr); }
   .note-foot { display: flex; gap: 8px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
   .actions {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
@@ -445,7 +500,7 @@
   <section id="v-home" class="view">
     <div class="hello">
       <h1 id="greet">Bonjour</h1>
-      <p id="stats"></p>
+      <p id="stats" role="button" style="cursor:pointer"></p>
     </div>
 
     <div id="onboard" class="card setup hidden">
@@ -582,6 +637,35 @@
     </div>
   </section>
 
+  <!-- ===== Tâches ===== -->
+  <section id="v-tasks" class="view hidden">
+    <div class="hello">
+      <h1>Tâches</h1>
+      <p id="tStats"></p>
+    </div>
+    <div class="tstats" id="tTiles"></div>
+    <div class="toolbar">
+      <div class="seg2" id="tMode" role="tablist">
+        <button data-mode="due" aria-selected="true">Échéance</button>
+        <button data-mode="tag" aria-selected="false">Par tag</button>
+        <button data-mode="cal" aria-selected="false">Calendrier</button>
+      </div>
+      <span class="grow"></span>
+      <button class="iconbtn" id="tMore" aria-label="Plus d'options"></button>
+    </div>
+    <div class="card cal hidden" id="tCalWrap">
+      <div class="cal-h">
+        <button class="iconbtn" id="tCalPrev" aria-label="Mois précédent"></button>
+        <b id="tCalTitle"></b>
+        <button class="iconbtn" id="tCalNext" aria-label="Mois suivant"></button>
+      </div>
+      <div class="cal-g" id="tCalGrid"></div>
+    </div>
+    <div class="tagbar" id="tTagBar"></div>
+    <div class="filters" id="tFilters"></div>
+    <div class="list" id="taskList"></div>
+  </section>
+
   <!-- ===== Réglages ===== -->
   <section id="v-settings" class="view hidden">
     <div class="set-group">
@@ -678,9 +762,22 @@
         <div><b>Me prévenir quand une note est prête</b><small id="notifState"></small></div>
         <button class="btn" id="notifBtn" type="button">Activer</button>
       </div>
+      <div class="card pad" style="margin-top:10px">
+        <label class="f" for="sRemind">Rappel automatique des tâches avec échéance</label>
+        <select id="sRemind">
+          <option value="eve">La veille à 18 h</option>
+          <option value="morning">Le jour même à 8 h</option>
+          <option value="none">Aucun</option>
+        </select>
+        <div class="f-help">Les rappels s'affichent quand l'app est ouverte, ou peu après si Android l'autorise. Pour un rappel garanti même téléphone éteint, utilise « Google Agenda » sur la tâche.</div>
+      </div>
     </div>
 
     <div class="save-bar"><button class="btn primary block" id="sSave">Enregistrer</button></div>
+    <div class="card pad notif-row" style="margin-top:18px">
+      <div><b>Version <span id="appVersion"></span></b><small id="updState">L'app se met à jour toute seule quand tu la rouvres.</small></div>
+      <button class="btn" id="updBtn" type="button">Vérifier</button>
+    </div>
     <p class="privacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span>Tes clés et tes notes restent dans ce téléphone. L'audio est envoyé à Groq pour la transcription, puis supprimé de l'app une fois la note terminée. Seule la transcription écrite est envoyée pour le résumé.</span></p>
   </section>
 </div>
@@ -692,6 +789,11 @@
     <button class="btn" id="aDl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>.md</button>
   </div>
 </div>
+<button class="fab hidden" id="fab" aria-label="Nouvelle tâche"></button>
+<nav class="tabbar hidden" id="tabbar">
+  <button data-v="home" aria-selected="true"></button>
+  <button data-v="tasks" aria-selected="false"></button>
+</nav>
 <div class="actions selbar hidden" id="selBar">
   <div class="bar3">
     <div class="count" id="selCount"></div>
@@ -706,6 +808,7 @@
 
 <script>
 'use strict';
+const APP_VERSION = '14 · 26 sept. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -722,7 +825,7 @@ window.CONFIG = {
 const DEFAULTS = {
   key: '', lang: 'fr', whisper: 'whisper-large-v3',
   llms: 'openai/gpt-oss-120b, openai/gpt-oss-20b', ctx: '', kind: 'auto',
-  provider: 'auto', gkey: '', gmodels: 'gemini-3.8-flash, gemini-flash-latest, gemini-3.5-flash',
+  autoRemind: 'eve', provider: 'auto', gkey: '', gmodels: 'gemini-3.8-flash, gemini-flash-latest, gemini-3.5-flash',
 };
 function loadSettings() {
   let s = {};
@@ -861,7 +964,8 @@ function md(src, ctr = { i: 0 }) {
     if (/^(-{3,}|\*{3,})$/.test(line.trim())) { close(); continue; }
     if ((m = /^\s*[-*•]\s+\[( |x|X)\]\s+(.*)$/.exec(line))) {
       if (list !== 'ul') { close(); out.push('<ul>'); list = 'ul'; }
-      out.push(`<li class="task"><label><input type="checkbox" data-task="${ctr.i++}" ${m[1].trim() ? 'checked' : ''}><span>${inline(m[2])}</span></label></li>`); continue;
+      const tp = parseTask(m[2]), ti = ctr.i++;
+      out.push(`<li class="task"><label><input type="checkbox" data-task="${ti}" ${m[1].trim() ? 'checked' : ''}><span>${inline(tp.text)}${taskMeta(tp, m[1].trim())}</span></label>${ctr.noEdit ? '' : `<button class="tedit" data-edit="${ti}" aria-label="Modifier la tâche">${ICONS.more}</button>`}</li>`); continue;
     }
     if ((m = /^\s*[-*•]\s+(.*)$/.exec(line))) { if (list !== 'ul') { close(); out.push('<ul>'); list = 'ul'; } out.push(`<li>${inline(m[1])}</li>`); continue; }
     if ((m = /^\s*\d+[.)]\s+(.*)$/.exec(line))) { if (list !== 'ol') { close(); out.push('<ol>'); list = 'ol'; } out.push(`<li>${inline(m[1])}</li>`); continue; }
@@ -1426,7 +1530,8 @@ const STRUCT = {
 (liste « - [ ] … », ou « Rien »)`,
 };
 const KIND_OUT = { cours: 'cours', reunion: 'réunion', perso: 'note' };
-const P_FINAL = (text, fromParts, kind = 'auto') => `Tu rédiges des comptes rendus clairs, fidèles et utiles, en français.
+const P_FINAL = (text, fromParts, kind = 'auto', recDate = Date.now()) => `Tu rédiges des comptes rendus clairs, fidèles et utiles, en français.
+Date de l'enregistrement : ${new Date(recDate).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} (${toISODate(recDate)}).
 ${fromParts ? "Voici les notes successives d'un long enregistrement audio (dans l'ordre chronologique)." : "Voici la transcription automatique d'un enregistrement audio. Elle peut contenir des erreurs de reconnaissance vocale : corrige-les d'après le contexte."}
 ${ctxLine()}
 ${kind === 'auto'
@@ -1448,6 +1553,18 @@ Règles :
 - Garde les titres de rubriques exactement comme indiqué, dans cet ordre.
 - N'invente rien qui ne soit pas dans le texte.
 - Écris les formules mathématiques ou scientifiques en LaTeX : $…$ dans une phrase, $$…$$ pour une formule isolée.
+
+Tâches — TRÈS IMPORTANT, les lignes « - [ ] » alimentent directement la liste de tâches de l'utilisateur :
+- ne mets en « - [ ] » que des tâches concrètes, utiles et réalisables, qui commencent par un verbe à l'infinitif (« Refaire l'exercice 3 du TD 2 », « Relire le chapitre 4 sur les récurrences », « Envoyer le devis à Marie ») ;
+- sois précis : dis quoi exactement (numéro d'exercice, chapitre, notion, document, personne) ; pas de tâche vague comme « Réviser le cours » ;
+- n'oublie aucune tâche réellement mentionnée ou clairement nécessaire (devoirs, exercices, lectures, rendus, points à revoir, actions décidées, choses promises) ;
+- pas de doublon : une même tâche n'apparaît qu'une seule fois dans tout le résumé ;
+- réunion : commence par la personne responsable (« Marie : envoyer le devis ») ;
+- échéance : si une date limite est donnée ou se déduit (« pour lundi », « avant le partiel du 15 »), termine la ligne par « 📅 AAAA-MM-JJ », date absolue calculée à partir de la date de l'enregistrement ; sinon ne mets rien ;
+- priorité : ajoute « ⏫ » avant la date aux tâches importantes ou urgentes (annoncées pour l'examen, notées, échéance proche) ;
+- n'invente aucune tâche : s'il n'y en a pas, écris « Aucune ».
+Exemple de ligne : « - [ ] Rendre le DM 2 sur les récurrences ⏫ 📅 2026-10-05 »
+
 - À la toute fin, ajoute exactement ces deux lignes :
 Type : ${kind === 'auto' ? 'cours, réunion ou note' : KIND_OUT[kind]}
 Tags : 2 à 4 mots-clés courts en minuscules, séparés par des virgules (la matière ou le sujet principal en premier)
@@ -1459,7 +1576,7 @@ ${text}
 const P_PART = (text, i, n) => `Voici la partie ${i}/${n} de la transcription automatique d'un enregistrement audio (elle peut contenir des erreurs de reconnaissance vocale).
 ${ctxLine()}
 Résume-la en français en 8 à 15 puces factuelles. Garde les noms, chiffres, dates, décisions et tâches.
-Signale aussi explicitement : ce sur quoi l'intervenant insiste (« [insiste] »), ce qui est annoncé pour un examen (« [examen] »), les exercices ou devoirs donnés (« [devoir] »), les définitions et formules (formules en LaTeX).
+Signale aussi explicitement : ce sur quoi l'intervenant insiste (« [insiste] »), ce qui est annoncé pour un examen (« [examen] »), les exercices, devoirs, lectures et actions à faire (« [tâche] », avec l'échéance exacte si elle est dite), les définitions et formules (formules en LaTeX).
 N'invente rien. Réponds seulement avec les puces.
 
 """
@@ -1476,17 +1593,17 @@ function splitText(text, size) {
   if (cur.trim()) chunks.push(cur);
   return chunks;
 }
-async function summarize(segments, onProgress, kind = settings.kind || 'auto') {
+async function summarize(segments, onProgress, kind = settings.kind || 'auto', recDate = Date.now()) {
   let text = segments.map((s) => s.text).join('\n');
   const gem = provider() === 'gemini';
   const OUT = 3200;
   // Groq : la requête (consignes + texte + réponse) doit tenir dans la limite de tokens par minute
-  const groqRoom = Math.max(4000, (CONFIG.tpmBudget - OUT - 200) * 3 - P_FINAL('', true, kind).length);
+  const groqRoom = Math.max(4000, (CONFIG.tpmBudget - OUT - 200) * 3 - P_FINAL('', true, kind, recDate).length);
   const single = gem ? CONFIG.gemSingleShotChars : Math.min(CONFIG.singleShotChars, groqRoom);
   const chunkSize = gem ? CONFIG.gemChunkChars : CONFIG.chunkChars;
   if (text.length <= single) {
     onProgress('Rédaction du résumé', 0.5);
-    return llm(P_FINAL(text, false, kind), OUT, 'Rédaction du résumé', true);
+    return llm(P_FINAL(text, false, kind, recDate), OUT, 'Rédaction du résumé', true);
   }
   let round = 0;
   while (text.length > single && round < 3) {
@@ -1501,8 +1618,98 @@ async function summarize(segments, onProgress, kind = settings.kind || 'auto') {
     round++;
   }
   onProgress('Synthèse finale', 0.95);
-  return llm(P_FINAL(text.slice(0, single), true, kind), OUT, 'Synthèse finale', true);
+  return llm(P_FINAL(text.slice(0, single), true, kind, recDate), OUT, 'Synthèse finale', true);
 }
+/* =================== Tâches =================== */
+/* Les tâches vivent dans le Markdown des résumés (lignes « - [ ] »), au format du plugin Obsidian Tasks :
+   📅 échéance, ⏰ rappel, ⏫/🔼/🔽 priorité, ✅ date de fin, #tag. Une seule source de vérité, donc
+   cocher dans la note ou dans l'onglet Tâches revient au même, et l'export .md garde tout. */
+const INBOX = '__tasks__';
+const TASK_RE = /^(\s*[-*•]\s+)\[( |x|X)\]\s+(.*)$/;
+const toISODate = (t) => { const d = new Date(t), p = (x) => String(x).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
+const isoDay = (iso) => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d).getTime(); };
+function parseTask(raw) {
+  let t = String(raw), due = null, remind = null, prio = 0, doneAt = null;
+  const tags = [];
+  t = t.replace(/📅\s*(\d{4}-\d{2}-\d{2})/gu, (_, d) => { due = d; return ' '; });
+  t = t.replace(/⏰\s*(\d{4}-\d{2}-\d{2})(?:[ T](\d{1,2}:\d{2}))?/gu, (_, d, h) => { remind = d + 'T' + (h ? h.padStart(5, '0') : '09:00'); return ' '; });
+  t = t.replace(/✅\s*(\d{4}-\d{2}-\d{2})/gu, (_, d) => { doneAt = d; return ' '; });
+  if (/⏫|🔺/u.test(t)) prio = 2; else if (/🔼/u.test(t)) prio = 1; else if (/🔽/u.test(t)) prio = -1;
+  t = t.replace(/⏫|🔺|🔼|🔽/gu, ' ');
+  t = t.replace(/(^|\s)#(\p{L}[\p{L}\p{N}_-]*)/gu, (_, sp, tag) => { tags.push(tag.toLowerCase().replace(/-/g, ' ')); return sp; });
+  return { text: t.replace(/\s+/g, ' ').trim(), due, remind, prio, doneAt, tags };
+}
+function buildTask(o) {
+  let s = o.text.trim();
+  for (const t of o.tags || []) s += ' #' + t.replace(/\s+/g, '-');
+  if (o.prio === 2) s += ' ⏫'; else if (o.prio === 1) s += ' 🔼'; else if (o.prio === -1) s += ' 🔽';
+  if (o.remind) s += ' ⏰ ' + o.remind.replace('T', ' ');
+  if (o.due) s += ' 📅 ' + o.due;
+  if (o.doneAt) s += ' ✅ ' + o.doneAt;
+  return s;
+}
+function tasksOf(n) {
+  const out = []; if (!n || !n.summary) return out;
+  let section = '', idx = -1;
+  for (const line of n.summary.split('\n')) {
+    const h = /^##\s+(.*)/.exec(line);
+    if (h) { section = h[1].replace(/[*_`]/g, '').trim(); continue; }
+    const m = TASK_RE.exec(line); if (!m) continue;
+    idx++;
+    const p = parseTask(m[3]); if (!p.text) continue;
+    out.push({ ...p, id: n.id + ':' + idx, noteId: n.id, idx, done: m[2] !== ' ', section, noteTitle: n.id === INBOX ? '' : n.title,
+      noteCreated: n.created, allTags: [...new Set([...(n.tags || []), ...p.tags])] });
+  }
+  return out;
+}
+// Modifie (ou supprime si fn renvoie null) la idx-ième tâche d'une note
+async function updateTask(noteId, idx, fn) {
+  const n = await db.get(noteId); if (!n || !n.summary) return null;
+  const lines = n.summary.split('\n'); let k = -1;
+  for (let i = 0; i < lines.length; i++) {
+    const m = TASK_RE.exec(lines[i]); if (!m) continue;
+    if (++k !== idx) continue;
+    const nx = fn({ ...parseTask(m[3]), done: m[2] !== ' ' });
+    if (nx === null) lines.splice(i, 1);
+    else {
+      if (nx.done && !nx.doneAt) nx.doneAt = toISODate(Date.now());
+      if (!nx.done) nx.doneAt = null;
+      lines[i] = `${m[1]}[${nx.done ? 'x' : ' '}] ${buildTask(nx)}`;
+    }
+    break;
+  }
+  n.summary = lines.join('\n');
+  await db.put(n);
+  if (currentNote && currentNote.id === noteId) currentNote.summary = n.summary;
+  scheduleReminders();
+  return n;
+}
+async function addTask(o) {
+  let n = await db.get(INBOX);
+  if (!n) n = { id: INBOX, created: 0, title: 'Mes tâches', fileName: '', status: 'tasks', summary: '## Mes tâches', tags: [], segments: null, duration: 0 };
+  n.summary = n.summary.replace(/\s+$/, '') + '\n- [ ] ' + buildTask(o);
+  await db.put(n);
+  scheduleReminders();
+}
+async function loadNotes() { return (await db.all()).filter((n) => n.id !== INBOX).sort((a, b) => b.created - a.created); }
+async function allTasks() { return (await db.all()).flatMap(tasksOf); }
+// Rappel automatique pour les tâches avec échéance (réglage)
+function remindFor(due) {
+  if (!due || settings.autoRemind === 'none') return null;
+  const d = new Date(isoDay(due));
+  if ((settings.autoRemind || 'eve') === 'eve') { d.setDate(d.getDate() - 1); d.setHours(18, 0, 0, 0); } else d.setHours(8, 0, 0, 0);
+  if (d.getTime() < Date.now()) { const d2 = new Date(isoDay(due)); d2.setHours(8, 0, 0, 0); if (d2.getTime() < Date.now()) return null; return toLocalInput(d2.getTime()); }
+  return toLocalInput(d.getTime());
+}
+function autoRemind(md) {
+  return md.split('\n').map((line) => {
+    const m = TASK_RE.exec(line); if (!m || m[2] !== ' ') return line;
+    const p = parseTask(m[3]); if (!p.due || p.remind) return line;
+    p.remind = remindFor(p.due);
+    return p.remind ? `${m[1]}[ ] ${buildTask(p)}` : line;
+  }).join('\n');
+}
+
 // Lignes « Type : … » et « Tags : … » ajoutées par l'IA à la fin du résumé
 function splitMeta(body) {
   let kind = null, tags = [];
@@ -1546,6 +1753,14 @@ const ICONS = {
   quiz: I('<circle cx="12" cy="12" r="8.5"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.4M12 16.5h.01"/>'),
   tag: I('<path d="M3.5 12.5V4.5a1 1 0 0 1 1-1h8l8 8-9 9z"/><circle cx="8" cy="8" r="1.4" fill="currentColor"/>'),
   x: I('<path d="M6 6l12 12M18 6L6 18"/>', 2.4),
+  more: I('<circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/>'),
+  flag: I('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>', 2.4),
+  bell: I('<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>'),
+  notes: I('<path d="M6 3.5h8l4 4V20a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 6 20z"/><path d="M14 3.5V8h4M9 12h6M9 16h4"/>', 1.9),
+  todo: I('<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M8 12l3 3 5-6"/>', 1.9),
+  share: I('<path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>'),
+  download: I('<path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/>'),
+  eye: I('<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>'),
   plus: I('<path d="M12 5v14M5 12h14"/>', 2.4),
   cal: I('<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'),
   list: I('<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>', 2.4),
@@ -1697,9 +1912,10 @@ async function run(note, opts = {}) {
     }
     bar(0.5);
     step('st-sum', 'active', provider() === 'gemini' ? 'Avec Gemini' : 'Avec Groq');
-    const raw = await summarize(note.segments, (label, p) => { step('st-sum', 'active', label); bar(0.5 + 0.48 * p); }, opts.kind || settings.kind || 'auto');
+    const raw = await summarize(note.segments, (label, p) => { step('st-sum', 'active', label); bar(0.5 + 0.48 * p); }, opts.kind || settings.kind || 'auto', note.created);
     const t = splitTitle(raw, note.title);
     const meta = splitMeta(t.body);
+    meta.body = autoRemind(meta.body);
     const tags = [...new Set([...(note.tags || []), ...(note.tags && note.tags.length ? [] : meta.tags)])];
     Object.assign(note, { title: t.title, summary: meta.body, status: 'ok', summaryBy: lastModel, kind: meta.kind || (opts.kind !== 'auto' && opts.kind) || note.kind || null, tags });
     delete note.audio; // plus besoin de l'audio, on libère de la place
@@ -1712,6 +1928,7 @@ async function run(note, opts = {}) {
     busy = false; runningId = null;
     keepAwake(false);
     notify('Note prête', note.title, note.id);
+    scheduleReminders(); updateBadge();
     if (current === 'job') { await sleep(350); openNote(note.id); }
     else { toast('Note prête : ' + note.title); if (current === 'home') renderHome(); }
   } catch (e) {
@@ -1738,24 +1955,31 @@ const TITLES = { job: 'Traitement', note: '', settings: 'Réglages' };
 function show(v, keepScroll) {
   const changed = v !== current;
   current = v;
-  for (const id of ['home', 'job', 'note', 'settings']) {
+  for (const id of ['home', 'tasks', 'job', 'note', 'settings']) {
     const el = $('v-' + id);
     el.classList.toggle('hidden', id !== v);
     if (id === v && changed) { el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); }
   }
   const lockBack = false;
-  $('backBtn').classList.toggle('hidden', v === 'home');
-  $('brand').classList.toggle('hidden', v !== 'home');
-  $('title').classList.toggle('hidden', v === 'home');
+  const tab = v === 'home' || v === 'tasks';
+  $('backBtn').classList.toggle('hidden', tab);
+  $('brand').classList.toggle('hidden', !tab);
+  $('title').classList.toggle('hidden', tab);
   $('title').textContent = TITLES[v] || '';
-  $('settingsBtn').classList.toggle('hidden', v !== 'home');
-  $('spacer').classList.toggle('hidden', v === 'home' || lockBack);
+  $('settingsBtn').classList.toggle('hidden', !tab);
+  $('spacer').classList.toggle('hidden', tab || lockBack);
+  $('tabbar').classList.toggle('hidden', !tab || ui.sel);
+  $('tabbar').querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.v === v)));
+  $('fab').classList.toggle('hidden', v !== 'tasks');
+  if (tab) lastTab = v;
   $('noteActions').classList.toggle('hidden', v !== 'note');
   if (v !== 'home' && ui.sel) setSel(false);
   $('selBar').classList.toggle('hidden', !(v === 'home' && ui.sel));
   if (!keepScroll) window.scrollTo(0, 0);
   if (v === 'home') renderHome();
+  if (v === 'tasks') renderTasks();
 }
+let lastTab = 'home';
 
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 function greeting() {
@@ -1783,11 +2007,11 @@ async function renderHome() {
   $('runBanner').classList.toggle('hidden', !runningId);
   $('onboard').classList.toggle('hidden', !!settings.key);
   $('greet').textContent = greeting();
-  allNotes = (await db.all()).sort((a, b) => b.created - a.created);
+  allNotes = await loadNotes();
   const total = allNotes.reduce((a, n) => a + (n.duration || 0), 0);
   const todo = allNotes.reduce((a, n) => a + openTasks(n), 0);
   $('stats').textContent = allNotes.length
-    ? [`${allNotes.length} note${allNotes.length > 1 ? 's' : ''}`, total ? `${dur(total)} transcrites` : '', todo ? `${todo} action${todo > 1 ? 's' : ''} à faire` : ''].filter(Boolean).join(' · ')
+    ? [`${allNotes.length} note${allNotes.length > 1 ? 's' : ''}`, total ? `${dur(total)} transcrites` : '', todo ? `${todo} tâche${todo > 1 ? 's' : ''} à faire` : ''].filter(Boolean).join(' · ')
     : 'Prêt pour ton premier enregistrement.';
   renderBrowse();
   renderList();
@@ -1870,6 +2094,7 @@ function setSel(on) {
   ui.sel = on; ui.picked.clear();
   $('notesList').classList.toggle('selmode', on);
   $('selBar').classList.toggle('hidden', !on);
+  $('tabbar').classList.toggle('hidden', on || current !== 'home');
   updSel();
   if (current === 'home') { renderBrowse(); renderList(); }
 }
@@ -1931,7 +2156,7 @@ function closeSheet() {
 async function openTagSheet(ids) {
   const notes = (await Promise.all(ids.map((id) => db.get(id)))).filter(Boolean);
   if (!notes.length) return;
-  allNotes = (await db.all()).sort((a, b) => b.created - a.created);
+  allNotes = await loadNotes();
   const all = tagCounts().map(([t]) => t);
   const has = (t) => notes.every((n) => (n.tags || []).includes(t));
   const draw = (body) => {
@@ -1980,7 +2205,7 @@ function kindSheet(n) {
     (body) => body.querySelectorAll('.opt').forEach((b) => b.onclick = () => { closeSheet(); if (!busy) { n.status = 'resume'; run(n, { kind: b.dataset.k }); } }));
 }
 async function renderTagAdmin() {
-  allNotes = (await db.all()).sort((a, b) => b.created - a.created);
+  allNotes = await loadNotes();
   const tags = tagCounts();
   $('tagAdmin').innerHTML = tags.length ? tags.map(([t, c]) => `<div class="tagrow">${tagHtml(t)}<span class="grow muted" style="font-size:13px">${c} note${c > 1 ? 's' : ''}</span>
       <button class="iconbtn" data-ren="${esc(t)}" aria-label="Renommer">${I('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>')}</button>
@@ -2190,16 +2415,334 @@ function setTab(t) {
 $('noteSum').addEventListener('change', async (e) => {
   const box = e.target.closest('input[data-task]'); const n = currentNote;
   if (!box || !n) return;
-  const idx = +box.dataset.task; let k = -1;
-  n.summary = n.summary.split('\n').map((line) => {
-    if (/^\s*[-*•]\s+\[( |x|X)\]\s+/.test(line) && ++k === idx) return line.replace(/\[( |x|X)\]/, box.checked ? '[x]' : '[ ]');
-    return line;
-  }).join('\n');
-  await db.put(n);
+  await updateTask(n.id, +box.dataset.task, (t) => ({ ...t, done: box.checked }));
 });
+$('noteSum').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-edit]'); if (!b || !currentNote) return;
+  const t = tasksOf(currentNote).find((x) => x.idx === +b.dataset.edit);
+  if (t) taskSheet(t);
+});
+
+/* =================== Onglet Tâches =================== */
+const tui = { mode: lsGet('np-tmode', 'due'), tag: null, stat: null, showDone: false, day: null, month: monthStart(Date.now()) };
+let taskCache = [];
+const DAY = 86400000;
+const inlineMd = (t) => md(t, { i: 0, noEdit: true }).replace(/^<p>|<\/p>$/g, '');
+function dueLabel(iso) {
+  const d = isoDay(iso), diff = Math.round((d - dayStart(Date.now())) / DAY);
+  if (diff === 0) return 'Aujourd\'hui'; if (diff === 1) return 'Demain'; if (diff === -1) return 'Hier';
+  if (diff > 1 && diff < 7) return new Date(d).toLocaleDateString('fr-FR', { weekday: 'long' });
+  return new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: new Date(d).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined });
+}
+const remindLabel = (r) => `${dueLabel(r.slice(0, 10))} ${r.slice(11, 16).replace(':', ' h ')}`;
+function taskMeta(p, done, extra = '') {
+  const out = [];
+  if (p.prio === 2) out.push(`<span class="tm prio">${ICONS.flag}Important</span>`);
+  if (p.due) {
+    const diff = isoDay(p.due) - dayStart(Date.now());
+    out.push(`<span class="tm due${!done && diff < 0 ? ' late' : !done && diff === 0 ? ' today' : ''}">${ICONS.cal}${dueLabel(p.due)}${!done && diff < 0 ? ' · en retard' : ''}</span>`);
+  }
+  if (p.remind && !done) out.push(`<span class="tm">${ICONS.bell}${remindLabel(p.remind)}</span>`);
+  for (const t of p.showTags || p.tags || []) out.push(`<span class="tm tagm" style="--h:${tagHue(t)}">${esc(t)}</span>`);
+  if (extra) out.push(extra);
+  return out.length ? `<span class="tmeta">${out.join('')}</span>` : '';
+}
+function sortTasks(a, b) {
+  return (a.done - b.done) || (b.prio - a.prio) || ((a.due ? isoDay(a.due) : Infinity) - (b.due ? isoDay(b.due) : Infinity)) || (b.noteCreated - a.noteCreated);
+}
+const DUE_ORDER = ['En retard', 'Aujourd\'hui', 'Demain', 'Cette semaine', 'Plus tard', 'Sans échéance', 'Terminées'];
+function dueGroup(t) {
+  if (t.done) return 'Terminées';
+  if (!t.due) return 'Sans échéance';
+  const diff = Math.round((isoDay(t.due) - dayStart(Date.now())) / DAY);
+  return diff < 0 ? 'En retard' : diff === 0 ? 'Aujourd\'hui' : diff === 1 ? 'Demain' : diff < 7 ? 'Cette semaine' : 'Plus tard';
+}
+function taskItem(t) {
+  const src = t.noteTitle ? `<span class="tm src">${ICONS.resume}${esc(t.noteTitle)}</span>` : '';
+  return `<div class="titem${t.prio === 2 && !t.done ? ' p2' : ''}${t.done ? ' done' : ''}" data-id="${t.id}">
+    <input type="checkbox" class="tck" data-id="${t.id}" ${t.done ? 'checked' : ''} aria-label="Terminée">
+    <div class="tbody" data-open="${t.id}"><div class="tt">${inlineMd(t.text)}</div>${taskMeta({ ...t, showTags: t.allTags }, t.done, src)}</div>
+  </div>`;
+}
+async function updateBadge() {
+  let n = 0;
+  try { const today = dayStart(Date.now()); n = (await allTasks()).filter((t) => !t.done && t.due && isoDay(t.due) <= today).length; } catch (e) {}
+  const b = $('tabbar').querySelector('[data-v=tasks] .badge');
+  if (b) { b.textContent = n; b.classList.toggle('hidden', !n); }
+}
+async function renderTasks() {
+  const all = await allTasks();
+  taskCache = all;
+  const today = dayStart(Date.now()), open = all.filter((t) => !t.done);
+  const isLate = (t) => !t.done && t.due && isoDay(t.due) < today;
+  const isToday = (t) => !t.done && t.due && isoDay(t.due) === today;
+  const isWeek = (t) => !t.done && t.due && isoDay(t.due) >= today && isoDay(t.due) < today + 7 * DAY;
+  const tiles = [['late', 'En retard', all.filter(isLate).length], ['today', 'Aujourd\'hui', all.filter(isToday).length], ['week', 'Sous 7 jours', all.filter(isWeek).length]];
+  $('tTiles').innerHTML = tiles.map(([k, l, c]) => `<button class="tstat ${k}${c ? '' : ' zero'}${tui.stat === k ? ' on' : ''}" data-k="${k}"><b>${c}</b><span>${l}</span></button>`).join('');
+  $('tTiles').querySelectorAll('.tstat').forEach((b) => b.onclick = () => { tui.stat = tui.stat === b.dataset.k ? null : b.dataset.k; renderTasks(); });
+  $('tStats').textContent = all.length ? (open.length ? `${open.length} à faire · ${all.length - open.length} terminée${all.length - open.length > 1 ? 's' : ''}` : 'Tout est fait, bravo !') : '';
+  $('tMode').querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === tui.mode)));
+  $('tCalWrap').classList.toggle('hidden', tui.mode !== 'cal');
+  // tags
+  const counts = new Map();
+  for (const t of open) for (const g of t.allTags) counts.set(g, (counts.get(g) || 0) + 1);
+  const tags = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  if (tui.tag && !counts.has(tui.tag)) tui.tag = null;
+  $('tTagBar').classList.toggle('hidden', !tags.length);
+  $('tTagBar').innerHTML = `<button class="tag all${tui.tag ? '' : ' on'}" data-t="">Tous</button>` +
+    tags.map(([t, c]) => `<button class="tag${tui.tag === t ? ' on' : ''}" style="--h:${tagHue(t)}" data-t="${esc(t)}">${esc(t)} <span class="n">${c}</span></button>`).join('');
+  $('tTagBar').querySelectorAll('button').forEach((b) => b.onclick = () => { tui.tag = b.dataset.t && tui.tag !== b.dataset.t ? b.dataset.t : null; renderTasks(); });
+  // filtres
+  let list = all;
+  if (tui.tag) list = list.filter((t) => t.allTags.includes(tui.tag));
+  if (tui.stat) list = list.filter(tui.stat === 'late' ? isLate : tui.stat === 'today' ? isToday : isWeek);
+  if (tui.mode === 'cal') {
+    drawTaskCal(list);
+    list = tui.day != null ? list.filter((t) => t.due && isoDay(t.due) === tui.day) : list.filter((t) => t.due && monthStart(isoDay(t.due)) === tui.month);
+  }
+  $('tFilters').innerHTML = tui.mode === 'cal' && tui.day != null ? `<button class="fchip" id="tClearDay">${new Date(tui.day).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}${ICONS.x}</button>` : '';
+  if ($('tClearDay')) $('tClearDay').onclick = () => { tui.day = null; renderTasks(); };
+  const doneCount = list.filter((t) => t.done).length;
+  if (!tui.showDone) list = list.filter((t) => !t.done);
+  list.sort(sortTasks);
+  // rendu
+  const box = $('taskList');
+  if (!all.length) {
+    box.innerHTML = `<div class="empty"><svg class="empty-art" viewBox="0 0 120 90" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="30" y="10" width="60" height="70" rx="12" fill="currentColor" fill-opacity=".08" stroke-opacity=".35"/><path d="M44 34l5 5 9-10M44 56l5 5 9-10M66 36h12M66 58h12" stroke-opacity=".9"/></svg>
+      <h3>Aucune tâche pour l'instant</h3><p>Les tâches trouvées dans tes résumés (devoirs, exercices, actions…) apparaîtront ici. Tu peux aussi en ajouter avec le bouton +.</p></div>`;
+    return;
+  }
+  let html = '';
+  if (!list.length) html = `<div class="empty-s">${tui.stat || tui.tag || tui.mode === 'cal' ? 'Aucune tâche ici.' : 'Rien à faire, tout est coché !'}</div>`;
+  else if (tui.mode === 'due') {
+    const groups = new Map(); for (const t of list) { const g = dueGroup(t); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(t); }
+    for (const g of DUE_ORDER) if (groups.has(g)) html += `<div class="group">${g} · ${groups.get(g).length}</div>` + groups.get(g).map(taskItem).join('');
+  } else if (tui.mode === 'tag') {
+    const groups = new Map(); for (const t of list) { const g = tui.tag || t.allTags[0] || 'Sans tag'; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(t); }
+    const keys = [...groups.keys()].sort((a, b) => (a === 'Sans tag') - (b === 'Sans tag') || groups.get(b).length - groups.get(a).length || a.localeCompare(b));
+    for (const g of keys) html += `<div class="group">${g === 'Sans tag' ? g : `<span class="tag" style="--h:${tagHue(g)};height:24px;font-size:12px">${ICONS.tag}${esc(g)}</span>`} · ${groups.get(g).length}</div>` + groups.get(g).map(taskItem).join('');
+  } else html += list.map(taskItem).join('');
+  if (!tui.showDone && doneCount) html += `<button class="btn ghost donebtn" id="showDone">${ICONS.eye}Voir les ${doneCount} tâche${doneCount > 1 ? 's' : ''} terminée${doneCount > 1 ? 's' : ''}</button>`;
+  else if (tui.showDone && doneCount) html += `<button class="btn ghost donebtn" id="showDone">Masquer les tâches terminées</button>`;
+  box.innerHTML = html;
+  if ($('showDone')) $('showDone').onclick = () => { tui.showDone = !tui.showDone; renderTasks(); };
+  renderMath(box);
+  updateBadge();
+}
+function drawTaskCal(list) {
+  const m = new Date(tui.month), y = m.getFullYear(), mo = m.getMonth();
+  $('tCalTitle').textContent = m.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  const byDay = new Map();
+  for (const t of list) if (t.due && (!t.done || tui.showDone)) { const d = isoDay(t.due); if (!byDay.has(d)) byDay.set(d, []); byDay.get(d).push(t); }
+  const offset = (new Date(y, mo, 1).getDay() + 6) % 7, days = new Date(y, mo + 1, 0).getDate();
+  const cells = Math.ceil((offset + days) / 7) * 7, today = dayStart(Date.now());
+  let html = ['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim'].map((d) => `<div class="dow">${d}</div>`).join('');
+  for (let i = 0; i < cells; i++) {
+    const d = new Date(y, mo, 1 - offset + i).getTime(), dn = new Date(d), ts = byDay.get(d) || [];
+    const cls = ['day', dn.getMonth() !== mo ? 'out' : '', d === today ? 'today' : '', ts.length ? 'has' : '', tui.day === d ? 'sel' : ''].join(' ');
+    const dots = ts.slice(0, 3).map((t) => `<i style="--h:${t.done ? 140 : d < today ? 5 : t.allTags[0] ? tagHue(t.allTags[0]) : 20}"></i>`).join('');
+    html += `<button class="${cls}" data-d="${d}">${dn.getDate()}<span class="dots">${dots}</span></button>`;
+  }
+  $('tCalGrid').innerHTML = html;
+  $('tCalGrid').querySelectorAll('.day').forEach((b) => b.onclick = () => {
+    const d = +b.dataset.d;
+    if (monthStart(d) !== tui.month) tui.month = monthStart(d);
+    tui.day = tui.day === d ? null : d; renderTasks();
+  });
+}
+function refreshTasksUI() {
+  if (current === 'tasks') renderTasks();
+  else if (current === 'note' && currentNote) { $('noteSum').innerHTML = renderSummary(currentNote); renderMath($('noteSum')); }
+  else if (current === 'home') renderHome();
+  updateBadge();
+}
+// Cocher / ouvrir une tâche depuis l'onglet
+$('taskList').addEventListener('change', async (e) => {
+  const c = e.target.closest('.tck'); if (!c) return;
+  const t = taskCache.find((x) => x.id === c.dataset.id); if (!t) return;
+  c.closest('.titem').classList.toggle('done', c.checked);
+  await updateTask(t.noteId, t.idx, (x) => ({ ...x, done: c.checked }));
+  if (c.checked) toast('Tâche terminée');
+  setTimeout(() => { if (current === 'tasks') renderTasks(); }, c.checked && !tui.showDone ? 450 : 0);
+});
+$('taskList').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-open]'); if (!b) return;
+  const t = taskCache.find((x) => x.id === b.dataset.open); if (t) taskSheet(t);
+});
+
+/* ---- Fiche d'une tâche (création / modification) ---- */
+function gcalUrl(text, due, remind, details) {
+  const p = (x) => String(x).padStart(2, '0');
+  const stamp = (d) => `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}T${p(d.getHours())}${p(d.getMinutes())}00`;
+  let dates;
+  if (remind) { const a = new Date(remind); dates = `${stamp(a)}/${stamp(new Date(a.getTime() + 30 * 60000))}`; }
+  else { const a = new Date(isoDay(due || toISODate(Date.now()))), b = new Date(a.getTime() + DAY + 3600000); dates = `${toISODate(a).replace(/-/g, '')}/${toISODate(b).replace(/-/g, '')}`; }
+  const tz = (Intl.DateTimeFormat().resolvedOptions().timeZone) || 'Europe/Paris';
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(text)}&dates=${dates}&details=${encodeURIComponent(details || '')}&ctz=${encodeURIComponent(tz)}`;
+}
+async function taskSheet(t) {
+  const isNew = !t;
+  t = t || { text: '', due: null, remind: null, prio: 0, tags: [], allTags: [], noteId: INBOX, noteTitle: '', done: false };
+  const noteTags = (t.allTags || []).filter((g) => !(t.tags || []).includes(g));
+  const known = [...new Set([...(await loadNotes()).flatMap((n) => n.tags || []), ...(await allTasks()).flatMap((x) => x.tags)])].filter((g) => !noteTags.includes(g));
+  const st = { due: t.due, remind: t.remind, prio: t.prio || 0, tags: [...(t.tags || [])] };
+  openSheet(`<div class="tsheet">
+    <h3>${isNew ? 'Nouvelle tâche' : 'Tâche'}</h3>
+    ${t.noteTitle ? `<p class="sub">Issue de « ${esc(t.noteTitle)} »${t.section ? ' · ' + esc(t.section) : ''}</p>` : '<p class="sub">Commence par un verbe : « Réviser le chapitre 3 », « Envoyer le mail à… »</p>'}
+    <textarea id="tText" placeholder="Que faut-il faire ?">${esc(t.text)}</textarea>
+    <label class="f" for="tDue">Échéance</label>
+    <input type="date" id="tDue" value="${st.due || ''}">
+    <div class="quick" id="qDue"></div>
+    <label class="f" for="tRem">Rappel</label>
+    <input type="datetime-local" id="tRem" value="${st.remind || ''}">
+    <div class="quick" id="qRem"></div>
+    <label class="f">Priorité</label>
+    <div class="seg2" id="tPrio"><button data-p="-1">Basse</button><button data-p="0">Normale</button><button data-p="2">Haute</button></div>
+    <label class="f">Tags</label>
+    <div class="tags" id="tTags" style="margin-top:0"></div>
+    <div class="tagin" style="margin-top:8px"><input type="text" id="tNewTag" placeholder="Nouveau tag" maxlength="30" autocomplete="off"><button class="btn" id="tAddTag">Ajouter</button></div>
+    <button class="btn primary block" id="tSave" style="margin-top:16px">${isNew ? 'Ajouter la tâche' : 'Enregistrer'}</button>
+    <div class="row2">
+      <button class="btn" id="tGcal">${ICONS.cal}Google Agenda</button>
+      ${isNew ? '<span></span>' : t.noteId !== INBOX ? `<button class="btn" id="tOpen">${ICONS.resume}Voir la note</button>` : '<span></span>'}
+    </div>
+    ${isNew ? '' : `<button class="btn ghost danger block" id="tDel" style="margin-top:6px">${ICONS.trash}Supprimer la tâche</button>`}
+  </div>`, (body) => {
+    const q = (sel) => body.querySelector(sel);
+    const dayIso = (off) => { const d = new Date(); d.setDate(d.getDate() + off); return toISODate(d.getTime()); };
+    const drawQuick = () => {
+      const due = q('#tDue').value;
+      const dq = [['Aujourd\'hui', dayIso(0)], ['Demain', dayIso(1)], ['Dans 1 semaine', dayIso(7)], ['Aucune', '']];
+      q('#qDue').innerHTML = dq.map(([l, v]) => `<button class="tag" data-v="${v}">${l}</button>`).join('');
+      q('#qDue').querySelectorAll('.tag').forEach((b) => b.onclick = () => { q('#tDue').value = b.dataset.v; drawQuick(); });
+      const rq = [];
+      if (due) {
+        const eve = new Date(isoDay(due)); eve.setDate(eve.getDate() - 1); eve.setHours(18, 0, 0, 0);
+        const morn = new Date(isoDay(due)); morn.setHours(8, 0, 0, 0);
+        if (eve.getTime() > Date.now()) rq.push(['La veille 18 h', toLocalInput(eve.getTime())]);
+        if (morn.getTime() > Date.now()) rq.push(['Le jour même 8 h', toLocalInput(morn.getTime())]);
+      }
+      const tom = new Date(); tom.setDate(tom.getDate() + 1); tom.setHours(8, 0, 0, 0);
+      rq.push(['Dans 1 h', toLocalInput(Date.now() + 3600000)], ['Demain 8 h', toLocalInput(tom.getTime())], ['Aucun', '']);
+      q('#qRem').innerHTML = rq.map(([l, v]) => `<button class="tag" data-v="${v}">${l}</button>`).join('');
+      q('#qRem').querySelectorAll('.tag').forEach((b) => b.onclick = () => { q('#tRem').value = b.dataset.v; });
+    };
+    q('#tDue').onchange = drawQuick; drawQuick();
+    const drawPrio = () => q('#tPrio').querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(+b.dataset.p === st.prio || (st.prio === 1 && b.dataset.p === '0'))));
+    q('#tPrio').querySelectorAll('button').forEach((b) => b.onclick = () => { st.prio = +b.dataset.p; drawPrio(); }); drawPrio();
+    const drawTags = () => {
+      q('#tTags').innerHTML = noteTags.map((g) => `<span class="tag lock on" style="--h:${tagHue(g)}" title="Tag de la note">${ICONS.tag}${esc(g)}</span>`).join('')
+        + [...new Set([...st.tags, ...known])].map((g) => `<button class="tag${st.tags.includes(g) ? ' on' : ''}" style="--h:${tagHue(g)}" data-t="${esc(g)}">${esc(g)}</button>`).join('')
+        || '<span class="muted" style="font-size:14px">Aucun tag.</span>';
+      q('#tTags').querySelectorAll('button[data-t]').forEach((b) => b.onclick = () => { const g = b.dataset.t; st.tags = st.tags.includes(g) ? st.tags.filter((x) => x !== g) : [...st.tags, g]; drawTags(); });
+    };
+    drawTags();
+    const addTag = () => { const g = cleanTag(q('#tNewTag').value); if (g && !st.tags.includes(g) && !noteTags.includes(g)) st.tags.push(g); q('#tNewTag').value = ''; drawTags(); };
+    q('#tAddTag').onclick = addTag; q('#tNewTag').onkeydown = (e) => { if (e.key === 'Enter') addTag(); };
+    const values = () => ({ text: q('#tText').value.replace(/\s+/g, ' ').trim(), due: q('#tDue').value || null, remind: q('#tRem').value || null, prio: st.prio, tags: st.tags });
+    q('#tSave').onclick = async () => {
+      const v = values();
+      if (!v.text) { toast('Écris la tâche'); q('#tText').focus(); return; }
+      if (v.remind && 'Notification' in window && Notification.permission === 'default') { try { await Notification.requestPermission(); } catch (e) {} }
+      if (isNew) await addTask({ ...v, done: false });
+      else await updateTask(t.noteId, t.idx, (cur) => ({ ...cur, ...v }));
+      closeSheet(); toast(isNew ? 'Tâche ajoutée' : 'Tâche modifiée'); refreshTasksUI();
+    };
+    q('#tGcal').onclick = () => {
+      const v = values(); if (!v.text) { toast('Écris la tâche'); return; }
+      window.open(gcalUrl(v.text, v.due, v.remind, t.noteTitle ? `Tâche issue de la note « ${t.noteTitle} » (Notes Plaud)` : 'Tâche (Notes Plaud)'), '_blank', 'noopener');
+    };
+    if (q('#tOpen')) q('#tOpen').onclick = () => { closeSheet(); openNote(t.noteId); };
+    if (q('#tDel')) q('#tDel').onclick = async () => {
+      if (!confirm('Supprimer cette tâche ?')) return;
+      await updateTask(t.noteId, t.idx, () => null); closeSheet(); toast('Tâche supprimée'); refreshTasksUI();
+    };
+  });
+}
+// Menu « ⋯ » : terminées, partage, export agenda
+function tasksMenu() {
+  openSheet(`<h3>Tâches</h3><p class="sub">Options d'affichage et d'export.</p><div class="opts">
+    <button class="opt" data-a="done"><span class="sec-ic">${ICONS.eye}</span><span><b>${tui.showDone ? 'Masquer' : 'Afficher'} les tâches terminées</b></span></button>
+    <button class="opt" data-a="share"><span class="sec-ic">${ICONS.share}</span><span><b>Partager la liste</b><small>En texte, vers Keep, WhatsApp, e-mail…</small></span></button>
+    <button class="opt" data-a="ics"><span class="sec-ic">${ICONS.download}</span><span><b>Exporter vers un agenda (.ics)</b><small>Les tâches avec échéance, avec leurs rappels</small></span></button>
+  </div>`, (body) => body.querySelectorAll('.opt').forEach((b) => b.onclick = async () => {
+    closeSheet();
+    const open = (await allTasks()).filter((t) => !t.done).sort(sortTasks);
+    if (b.dataset.a === 'done') { tui.showDone = !tui.showDone; renderTasks(); }
+    else if (b.dataset.a === 'share') {
+      const groups = new Map(); for (const t of open) { const g = dueGroup(t); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(t); }
+      const text = DUE_ORDER.filter((g) => groups.has(g)).map((g) => `${g}\n` + groups.get(g).map((t) => `☐ ${t.text}${t.due ? ' (' + dueLabel(t.due) + ')' : ''}`).join('\n')).join('\n\n');
+      try { if (navigator.share) await navigator.share({ title: 'Mes tâches', text }); else { await navigator.clipboard.writeText(text); toast('Liste copiée'); } }
+      catch (e) { if (e.name !== 'AbortError') toast('Partage impossible'); }
+    } else {
+      const withDate = open.filter((t) => t.due);
+      if (!withDate.length) { toast('Aucune tâche avec échéance'); return; }
+      const e = (x) => String(x).replace(/\\/g, '\\\\').replace(/[,;]/g, (c) => '\\' + c).replace(/\n/g, '\\n');
+      const utc = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+      const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Notes Plaud//FR', 'CALSCALE:GREGORIAN'];
+      for (const t of withDate) {
+        const d = toISODate(isoDay(t.due)).replace(/-/g, ''), d2 = toISODate(isoDay(t.due) + DAY + 3600000).replace(/-/g, '');
+        lines.push('BEGIN:VEVENT', `UID:${t.id.replace(/[^\w-]/g, '')}-${d}@notes-plaud`, `DTSTAMP:${utc(new Date())}`, `DTSTART;VALUE=DATE:${d}`, `DTEND;VALUE=DATE:${d2}`,
+          `SUMMARY:${e(t.text)}`, `DESCRIPTION:${e(t.noteTitle ? 'Note : ' + t.noteTitle : 'Tâche Notes Plaud')}`);
+        if (t.remind) lines.push('BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${e(t.text)}`, `TRIGGER;VALUE=DATE-TIME:${utc(new Date(t.remind))}`, 'END:VALARM');
+        lines.push('END:VEVENT');
+      }
+      lines.push('END:VCALENDAR');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([lines.join('\r\n')], { type: 'text/calendar' }));
+      a.download = 'taches-notes-plaud.ics'; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      toast(`${withDate.length} tâche${withDate.length > 1 ? 's' : ''} exportée${withDate.length > 1 ? 's' : ''}`);
+    }
+  }));
+}
+
+/* ---- Rappels ----
+   Une app web ne peut pas programmer une notification quand elle est fermée. On combine donc :
+   minuteries tant que l'app tourne, vérification à chaque ouverture, vérification périodique Android
+   (service worker, si le système l'autorise) et, pour une garantie totale, l'ajout à Google Agenda. */
+let remTimers = [];
+const remKey = (t) => `${t.noteId}|${t.text}|${t.remind}`;
+async function getReminded() { try { return (await dbRun('pending', 'readonly', (s) => s.get('reminded'))) || []; } catch (e) { return []; } }
+async function setReminded(list) { try { await dbRun('pending', 'readwrite', (s) => s.put(list.slice(-400), 'reminded')); } catch (e) {} }
+async function scheduleReminders() {
+  remTimers.forEach(clearTimeout); remTimers = [];
+  let tasks = []; try { tasks = await allTasks(); } catch (e) { return; }
+  const now = Date.now();
+  for (const t of tasks) {
+    if (t.done || !t.remind) continue;
+    const at = new Date(t.remind).getTime();
+    if (at > now && at - now < 20 * DAY) remTimers.push(setTimeout(fireReminders, at - now + 300));
+  }
+}
+async function fireReminders() {
+  let tasks = []; try { tasks = await allTasks(); } catch (e) { return; }
+  const now = Date.now(), seen = await getReminded();
+  const due = tasks.filter((t) => !t.done && t.remind && new Date(t.remind).getTime() <= now && new Date(t.remind).getTime() > now - 3 * DAY && !seen.includes(remKey(t)));
+  if (!due.length) return;
+  await setReminded([...seen, ...due.map(remKey)]);
+  let reg = null; try { reg = await navigator.serviceWorker.getRegistration(); } catch (e) {}
+  for (const t of due) {
+    if (reg && 'Notification' in window && Notification.permission === 'granted') {
+      try { await reg.showNotification('⏰ ' + t.text, { body: t.due ? `Échéance : ${dueLabel(t.due)}` + (t.noteTitle ? ` · ${t.noteTitle}` : '') : (t.noteTitle || 'Rappel de tâche'), icon: 'icon-192.png', badge: 'icon-192.png', tag: 'rem-' + t.id, data: { id: ':tasks' } }); } catch (e) {}
+    }
+  }
+  if (document.visibilityState === 'visible') toast(due.length > 1 ? `⏰ ${due.length} rappels : ${due[0].text}…` : `⏰ Rappel : ${due[0].text}`);
+  updateBadge();
+}
+async function setupPeriodicCheck() {
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    if (!('periodicSync' in reg)) return;
+    const st = await navigator.permissions.query({ name: 'periodic-background-sync' });
+    if (st.state === 'granted') await reg.periodicSync.register('reminders', { minInterval: 60 * 60 * 1000 });
+  } catch (e) {}
+}
 
 function showSettings() {
   $('sKind').value = settings.kind || 'auto';
+  $('sRemind').value = settings.autoRemind || 'eve';
   renderTagAdmin();
   renderNotif();
   $('sKey').value = settings.key; $('sLang').value = settings.lang; $('sWhisper').value = settings.whisper;
@@ -2210,10 +2753,11 @@ function showSettings() {
 }
 
 /* =================== Événements =================== */
+$('stats').onclick = () => { if (/tâche/.test($('stats').textContent)) show('tasks'); };
 $('shareDiagClose').onclick = () => $('shareDiag').classList.add('hidden');
 $('settingsBtn').onclick = showSettings;
 $('onboardBtn').onclick = showSettings;
-$('backBtn').onclick = () => show('home');
+$('backBtn').onclick = () => show(lastTab);
 $('jobHome').onclick = () => show('home');
 $('search').oninput = renderList;
 $('homeMode').querySelectorAll('button').forEach((b) => {
@@ -2234,6 +2778,47 @@ $('selDel').onclick = async () => {
   setSel(false); renderHome();
 };
 $('sheetBg').onclick = closeSheet;
+$('tabbar').querySelector('[data-v=home]').innerHTML = ICONS.notes + 'Notes';
+$('tabbar').querySelector('[data-v=tasks]').innerHTML = ICONS.todo + 'Tâches<span class="badge hidden"></span>';
+$('tabbar').querySelectorAll('button').forEach((b) => b.onclick = () => { if (current !== b.dataset.v) show(b.dataset.v); });
+$('fab').innerHTML = ICONS.plus; $('fab').onclick = () => taskSheet(null);
+$('tMore').innerHTML = ICONS.more; $('tMore').onclick = tasksMenu;
+$('tMode').querySelectorAll('button').forEach((b) => b.onclick = () => { tui.mode = b.dataset.mode; lsSet('np-tmode', tui.mode); tui.day = null; tui.month = monthStart(Date.now()); renderTasks(); });
+$('tCalPrev').innerHTML = ICONS.left; $('tCalNext').innerHTML = ICONS.right;
+$('tCalPrev').onclick = () => { const d = new Date(tui.month); tui.month = new Date(d.getFullYear(), d.getMonth() - 1, 1).getTime(); tui.day = null; renderTasks(); };
+$('tCalNext').onclick = () => { const d = new Date(tui.month); tui.month = new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime(); tui.day = null; renderTasks(); };
+/* ---- Mises à jour ----
+   Quand une nouvelle version est publiée sur GitHub, le service worker la télécharge ; dès qu'elle est active,
+   on recharge la page (sauf pendant un traitement, pour ne rien couper). */
+const hadController = 'serviceWorker' in navigator && !!navigator.serviceWorker.controller;
+let reloading = false, updatePending = false;
+function applyUpdate() {
+  if (reloading) return;
+  if (busy || enhancing) { updatePending = true; return; }
+  reloading = true; location.reload();
+}
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) applyUpdate(); });
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState !== 'visible') return;
+    fireReminders(); scheduleReminders(); updateBadge();
+    if (current === 'tasks') renderTasks();
+    if (updatePending && !busy && !enhancing) return applyUpdate();
+    try { const reg = await navigator.serviceWorker.getRegistration(); if (reg) reg.update(); } catch (e) {}
+  });
+}
+$('appVersion').textContent = APP_VERSION;
+$('updBtn').onclick = async () => {
+  $('updState').textContent = 'Recherche d\'une mise à jour…';
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) throw new Error();
+    await reg.update();
+    await sleep(1500);
+    if (reg.installing || reg.waiting || updatePending) { $('updState').textContent = 'Nouvelle version trouvée, installation…'; if (reg.waiting) reg.waiting.postMessage('skip'); setTimeout(applyUpdate, 1500); }
+    else $('updState').textContent = 'Tu as la dernière version.';
+  } catch (e) { $('updState').textContent = 'Vérification impossible (hors ligne ?).'; }
+};
 $('noteDate').onclick = () => { if (currentNote) dateSheet(currentNote); };
 $('trSearch').oninput = renderTranscript;
 function provBoxes() {
@@ -2248,7 +2833,7 @@ $('sKeyShow').onclick = toggleKey('sKey', 'sKeyShow');
 $('sSave').onclick = () => {
   settings = { key: $('sKey').value.trim(), lang: $('sLang').value, whisper: $('sWhisper').value,
     llms: $('sLlm').value.trim() || DEFAULTS.llms, ctx: $('sCtx').value,
-    provider: $('sProv').value, gkey: $('sGKey').value.trim(), gmodels: $('sGModel').value.trim() || DEFAULTS.gmodels, kind: $('sKind').value };
+    provider: $('sProv').value, gkey: $('sGKey').value.trim(), gmodels: $('sGModel').value.trim() || DEFAULTS.gmodels, kind: $('sKind').value, autoRemind: $('sRemind').value };
   toast(saveSettings(settings) ? 'Réglages enregistrés' : 'Impossible d\'enregistrer (navigation privée ?)');
   show('home');
 };
@@ -2295,7 +2880,7 @@ document.querySelectorAll('#trMode button').forEach((b) => b.onclick = () => { t
 $('runBanner').onclick = () => show('job');
 $('notifBtn').onclick = askNotif;
 $('notifHintBtn').onclick = askNotif;
-if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.open) openNote(e.data.open); });
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.open) { if (e.data.open === ':tasks') show('tasks'); else openNote(e.data.open); } });
 // Reprend automatiquement un traitement interrompu (app fermée ou mise en pause par Android)
 async function resumeInterrupted() {
   if (busy || enhancing) return;
@@ -2309,7 +2894,7 @@ window.addEventListener('beforeunload', (e) => { if (busy || enhancing) { e.prev
 /* =================== Démarrage =================== */
 (async function init() {
   if ('serviceWorker' in navigator) {
-    try { await navigator.serviceWorker.register('sw.js'); } catch (e) {}
+    try { await navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }); } catch (e) {}
   }
   const params = new URLSearchParams(location.search);
   if (params.has('shared')) history.replaceState(null, '', location.pathname.replace(/\?.*$/, ''));
@@ -2319,8 +2904,9 @@ window.addEventListener('beforeunload', (e) => { if (busy || enhancing) { e.prev
   current = '';
   show('home');
   renderNotif();
-  if (params.has('note')) { const id = params.get('note'); history.replaceState(null, '', location.pathname); openNote(id); }
+  if (params.has('note')) { const id = params.get('note'); history.replaceState(null, '', location.pathname); if (id === ':tasks') show('tasks'); else openNote(id); }
   resumeInterrupted();
+  updateBadge(); scheduleReminders(); fireReminders(); setupPeriodicCheck();
   if (params.has('shared') || pending) {
     const i = (pending && pending.info) || {};
     const lines = [];

@@ -2,7 +2,7 @@
 // - reçoit les fichiers partagés depuis Android (cible de partage)
 // - garde l'application en cache pour qu'elle s'ouvre même avec un mauvais réseau
 
-const CACHE = 'notes-plaud-v12';
+const CACHE = 'notes-plaud-v14';
 const KATEX_CACHE = 'katex-v1';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
@@ -30,7 +30,7 @@ async function putPending(value) {
 }
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
@@ -81,7 +81,8 @@ self.addEventListener('fetch', (e) => {
   // Réseau d'abord (pour recevoir les mises à jour), cache si hors ligne
   if (e.request.method === 'GET') {
     e.respondWith(
-      fetch(e.request)
+      // « no-cache » : on redemande toujours au serveur s'il y a du nouveau (GitHub Pages met sinon les fichiers en cache 10 min)
+      fetch(e.request.url, { cache: 'no-cache', credentials: 'same-origin' })
         .then((resp) => {
           if (resp.ok) {
             const copy = resp.clone();
@@ -104,3 +105,50 @@ self.addEventListener('notificationclick', (e) => {
     return self.clients.openWindow(new URL('./?note=' + encodeURIComponent(id || ''), self.registration.scope).href);
   })());
 });
+
+// Demande explicite d'activation d'une nouvelle version (bouton « Vérifier » des réglages)
+self.addEventListener('message', (e) => { if (e.data === 'skip') self.skipWaiting(); });
+
+// ---- Rappels de tâches : vérification périodique (Android, si le système l'autorise) ----
+function idbReq(store, mode, fn) {
+  return openDB().then((db) => new Promise((res, rej) => {
+    const t = db.transaction(store, mode); const r = fn(t.objectStore(store));
+    t.oncomplete = () => res(r && r.result); t.onerror = () => rej(t.error);
+  }));
+}
+// Même lecture des tâches que la page (format Obsidian Tasks : ⏰ rappel, 📅 échéance…)
+function parseTask(raw) {
+  let t = String(raw), remind = null, due = null;
+  t = t.replace(/📅\s*(\d{4}-\d{2}-\d{2})/gu, (_, d) => { due = d; return ' '; });
+  t = t.replace(/⏰\s*(\d{4}-\d{2}-\d{2})(?:[ T](\d{1,2}:\d{2}))?/gu, (_, d, h) => { remind = d + 'T' + (h ? h.padStart(5, '0') : '09:00'); return ' '; });
+  t = t.replace(/✅\s*(\d{4}-\d{2}-\d{2})/gu, ' ');
+  t = t.replace(/⏫|🔺|🔼|🔽/gu, ' ');
+  t = t.replace(/(^|\s)#(\p{L}[\p{L}\p{N}_-]*)/gu, (_, sp) => sp);
+  return { text: t.replace(/\s+/g, ' ').trim(), remind, due };
+}
+async function checkReminders() {
+  const notes = (await idbReq('notes', 'readonly', (s) => s.getAll())) || [];
+  const seen = (await idbReq('pending', 'readonly', (s) => s.get('reminded'))) || [];
+  const now = Date.now(), fresh = [];
+  for (const n of notes) {
+    let idx = -1;
+    for (const line of String(n.summary || '').split('\n')) {
+      const m = /^(\s*[-*•]\s+)\[( |x|X)\]\s+(.*)$/.exec(line); if (!m) continue;
+      idx++;
+      if (m[2] !== ' ') continue;
+      const p = parseTask(m[3]); if (!p.text || !p.remind) continue;
+      const at = new Date(p.remind).getTime();
+      const key = `${n.id}|${p.text}|${p.remind}`;
+      if (at <= now && at > now - 3 * 86400000 && !seen.includes(key)) fresh.push({ key, p, note: n, id: n.id + ':' + idx });
+    }
+  }
+  if (!fresh.length) return;
+  await idbReq('pending', 'readwrite', (s) => s.put([...seen, ...fresh.map((f) => f.key)].slice(-400), 'reminded'));
+  for (const f of fresh) {
+    await self.registration.showNotification('⏰ ' + f.p.text, {
+      body: (f.note.id === '__tasks__' ? 'Rappel de tâche' : f.note.title) || 'Rappel de tâche',
+      icon: 'icon-192.png', badge: 'icon-192.png', tag: 'rem-' + f.id, data: { id: ':tasks' },
+    });
+  }
+}
+self.addEventListener('periodicsync', (e) => { if (e.tag === 'reminders') e.waitUntil(checkReminders()); });

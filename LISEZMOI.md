@@ -59,6 +59,11 @@ Avec « Résumé avec : Auto », l'app utilise Gemini dès qu'une clé Gemini es
 - **Calendrier :** sur l'accueil, bascule « Liste / Calendrier », puis touche un jour pour voir ses notes.
 - **Sélection :** « Sélectionner » sur l'accueil permet de taguer ou supprimer plusieurs notes d'un coup. Une note seule se supprime aussi depuis son écran (bouton « Supprimer » en bas).
 
+### Plusieurs enregistrements pour un même cours
+
+- Sur une note, si d'autres enregistrements du **même jour et du même sujet** existent, une carte propose de les **fusionner**. Tu peux aussi sélectionner des notes sur l'accueil (« Sélectionner ») puis toucher **Fusionner**.
+- Les transcriptions sont mises bout à bout dans l'ordre (un séparateur par enregistrement, horodatages continus) et **un seul résumé** est fait sur l'ensemble. Les notes d'origine peuvent être gardées ou supprimées.
+
 ### Onglet Tâches
 
 - **D'où viennent les tâches :** chaque résumé liste des tâches précises (« Refaire l'exercice 3 du TD 2 »), avec leur échéance quand elle est dite ou déductible, et une priorité si c'est important. Elles arrivent toutes dans l'onglet **Tâches** (en bas de l'écran), avec les tags de leur note.

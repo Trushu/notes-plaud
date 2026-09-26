@@ -428,6 +428,24 @@
   .tsheet .tag.lock { opacity: .75; cursor: default; }
   .tsheet .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
   .tsheet .seg2 { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .seg-sep { display: flex; align-items: center; gap: 8px; margin: 14px -4px 4px; padding: 8px 10px; border-radius: 10px; background: var(--surface-2); color: var(--ink-2); font-size: 13.5px; font-weight: 600; }
+  .seg-sep:first-child { margin-top: 4px; }
+  .seg-sep svg { width: 15px; height: 15px; flex: none; color: var(--accent-ink); }
+  .md summary > span { flex: 1; min-width: 0; }
+  .merge-card { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; align-items: center; padding: 12px 14px; margin: 0 0 12px; }
+  .merge-card .btn { grid-column: 2; justify-self: start; min-height: 38px; padding: 0 14px; }
+  .merge-card .sec-ic { flex: none; background: var(--accent-soft); color: var(--accent-ink); }
+  .merge-card > div { flex: 1; min-width: 0; font-size: 14px; }
+  .merge-card b { display: block; font-size: 14.5px; }
+  .merge-card small { color: var(--muted); }
+  .mrow { display: flex; gap: 12px; align-items: center; padding: 10px 2px; cursor: pointer; }
+  .mrow + .mrow { border-top: 1px solid var(--line); }
+  .mrow > div { flex: 1; min-width: 0; }
+  .mrow b { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mrow small { color: var(--muted); font-size: 13px; }
+  .chkline { display: flex; gap: 10px; align-items: center; margin: 14px 2px; font-size: 14.5px; cursor: pointer; }
+  .selbar .bar3 { grid-template-columns: 46px 1fr 1fr 1fr !important; }
+  .selbar #selCancel { padding: 0; }
   .note-foot { display: flex; gap: 8px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
   .actions {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
@@ -595,6 +613,7 @@
       <div class="chips" id="noteMeta"></div>
       <div class="tags" id="noteTags"></div>
     </div>
+    <div id="mergeHint"></div>
     <div class="tabs-wrap">
       <div class="tabs" role="tablist">
         <button role="tab" aria-selected="true" data-tab="sum">Résumé</button>
@@ -616,6 +635,7 @@
           <b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/></svg>Amélioration en cours…</b>
           <div class="lin"><i id="enhBar"></i></div>
           <div class="enh-st" id="enhStatus"></div>
+          <button class="btn ghost" id="enhStop" style="margin-top:6px;min-height:36px">Arrêter</button>
         </div>
         <p class="enh-err hidden" id="enhErr"></p>
         <div class="enh-note hidden" id="enhNote"></div>
@@ -797,8 +817,9 @@
 <div class="actions selbar hidden" id="selBar">
   <div class="bar3">
     <div class="count" id="selCount"></div>
-    <button class="btn" id="selCancel">Annuler</button>
+    <button class="btn" id="selCancel" aria-label="Annuler"></button>
     <button class="btn" id="selTag">Taguer</button>
+    <button class="btn" id="selMerge">Fusionner</button>
     <button class="btn danger" id="selDel">Supprimer</button>
   </div>
 </div>
@@ -808,7 +829,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '14 · 26 sept. 2026';
+const APP_VERSION = '15 · 26 sept. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -820,7 +841,8 @@ window.CONFIG = {
   gemSingleShotChars: 400000, // Gemini accepte des textes très longs : une seule requête jusqu'à ~8 h d'audio
   gemChunkChars: 300000,
   cleanChars: 4500,         // amélioration avec Groq : petits morceaux (limite de 8 000 tokens/min)
-  gemCleanChars: 20000,     // amélioration avec Gemini
+  gemCleanChars: 9000,      // amélioration avec Gemini : morceaux moyens, réponses plus rapides et plus fiables
+  gemTimeout: 150000,       // délai max d'une requête Gemini
 };
 const DEFAULTS = {
   key: '', lang: 'fr', whisper: 'whisper-large-v3',
@@ -838,7 +860,7 @@ function saveSettings(s) {
 let settings = loadSettings();
 const llmList = () => settings.llms.split(',').map((x) => x.trim()).filter(Boolean);
 const gemList = () => settings.gmodels.split(',').map((x) => x.trim()).filter(Boolean);
-const provider = () => settings.provider === 'auto' ? (settings.gkey ? 'gemini' : 'groq') : settings.provider;
+const provider = () => provOverride || (settings.provider === 'auto' ? (settings.gkey ? 'gemini' : 'groq') : settings.provider);
 
 /* =================== IndexedDB =================== */
 function openDB() {
@@ -997,6 +1019,27 @@ const waitVisible = () => new Promise((res) => {
   document.addEventListener('visibilitychange', h);
 });
 class RateLimit extends ApiError { constructor(wait, msg) { super(msg); this.wait = wait; } }
+class ProviderDown extends ApiError {}   // service surchargé / limité : on peut basculer sur l'autre
+class Cancelled extends ApiError {}
+// Requêtes avec délai maximum et possibilité d'arrêt (bouton « Arrêter »)
+const activeCtls = new Set();
+let cancelReq = false;
+function cancelAll() { cancelReq = true; for (const c of activeCtls) c.abort('cancel'); }
+async function tfetch(url, init, ms) {
+  const ctl = new AbortController(); activeCtls.add(ctl);
+  const to = setTimeout(() => ctl.abort('timeout'), ms);
+  try {
+    const r = await fetch(url, { ...init, signal: ctl.signal });
+    const text = await r.text();
+    return { ok: r.ok, status: r.status, headers: r.headers, text };
+  } catch (e) {
+    if (ctl.signal.aborted) {
+      if (ctl.signal.reason === 'cancel') throw new Cancelled('Arrêté.');
+      const t = new Error('délai dépassé'); t.timeout = true; throw t;
+    }
+    throw e;
+  } finally { clearTimeout(to); activeCtls.delete(ctl); }
+}
 function parseWait(msg, retryAfter) {
   const m = /try again in\s*(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:([\d.]+)s)?/i.exec(msg || '');
   if (m && (m[1] || m[2] || m[3])) return (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (parseFloat(m[3]) || 0) + 1;
@@ -1006,6 +1049,7 @@ function parseWait(msg, retryAfter) {
 async function countdown(sec, label) {
   const end = Date.now() + sec * 1000;
   while (Date.now() < end) {
+    if (cancelReq) throw new Cancelled('Arrêté.');
     status(`${label} — reprise dans ${Math.ceil((end - Date.now()) / 1000)} s`);
     await sleep(Math.min(1000, end - Date.now()));
   }
@@ -1014,14 +1058,16 @@ async function groq(path, init, label, opts = {}) {
   for (let attempt = 0; attempt < 8; attempt++) {
     let r;
     try {
-      r = await fetch(API + path, { ...init, headers: { Authorization: 'Bearer ' + settings.key, ...(init.headers || {}) } });
+      r = await tfetch(API + path, { ...init, headers: { Authorization: 'Bearer ' + settings.key, ...(init.headers || {}) } }, opts.timeout || 180000);
     } catch (e) {
+      if (e instanceof Cancelled) throw e;
       if (document.visibilityState === 'hidden') { await waitVisible(); attempt--; continue; }
+      if (e.timeout) { if (attempt < 1) continue; throw new ProviderDown('Groq ne répond pas (délai dépassé). Réessaie dans quelques minutes.'); }
       if (attempt < 2) { await countdown(5, 'Connexion perdue'); continue; }
       throw new ApiError("Impossible de joindre Groq. Vérifie ta connexion Internet, puis réessaie.");
     }
-    if (r.ok) return r.json();
-    let text = ''; try { text = await r.text(); } catch (e) {}
+    const text = r.text;
+    if (r.ok) { try { return JSON.parse(text); } catch (e) { throw new ApiError('Réponse illisible de Groq.'); } }
     let msg = text; try { msg = JSON.parse(text).error.message || text; } catch (e) {}
     if (r.status === 401) throw new ApiError('Clé API Groq refusée. Vérifie-la dans les réglages (icône en haut à droite).');
     if (r.status === 413) throw new ApiError('Requête trop grosse pour l\'offre gratuite de Groq : ' + msg);
@@ -1032,7 +1078,7 @@ async function groq(path, init, label, opts = {}) {
       await countdown(wait, 'Limite gratuite de Groq atteinte, pause');
       continue;
     }
-    if (r.status >= 500 && attempt < 4) { await countdown(5 * (attempt + 1), 'Groq ne répond pas bien'); continue; }
+    if (r.status >= 500) { if (attempt < 2) { await countdown(5 * (attempt + 1), 'Groq ne répond pas bien'); continue; } throw new ProviderDown(`Groq est surchargé (${r.status}). Réessaie dans quelques minutes.`); }
     throw new ApiError(`Erreur Groq (${r.status}) : ${msg}`);
   }
   throw new ApiError('Groq n\'a pas répondu après plusieurs essais. Réessaie plus tard.');
@@ -1355,7 +1401,7 @@ async function transcribePart(part, i, n, onModel) {
     fd.append('temperature', '0');
     if (settings.lang !== 'auto') fd.append('language', settings.lang);
     try {
-      return { j: await groq('/audio/transcriptions', { method: 'POST', body: fd }, label, { maxWait: 20 }), model };
+      return { j: await groq('/audio/transcriptions', { method: 'POST', body: fd }, label, { maxWait: 20, timeout: 600000 }), model };
     } catch (e) {
       if (e instanceof RateLimit) { limitedUntil[model] = Date.now() + e.wait * 1000; continue; }
       throw e;
@@ -1430,13 +1476,15 @@ let lastModel = '';
 // --- Gemini (API gratuite de Google AI Studio) ---
 const GEM_API = 'https://generativelanguage.googleapis.com/v1beta/models/';
 let gemThinking = true;
+const gemLimited = {};   // modèle -> fin du blocage (quota atteint)
 async function gemini(prompt, maxOut, label) {
   if (!settings.gkey) throw new ApiError('Clé Gemini manquante. Ajoute-la dans les réglages, ou choisis Groq pour le résumé.');
   const models = gemList();
   if (!models.length) throw new ApiError('Aucun modèle Gemini indiqué dans les réglages.');
   let lastErr = '';
   for (const model of models) {
-    for (let attempt = 0; attempt < 8; attempt++) {
+    if (gemLimited[model] > Date.now()) { lastErr = `quota atteint pour « ${model} »`; continue; }
+    for (let attempt = 0; attempt < 3; attempt++) {
       const body = {
         contents: [{ role: 'user', parts: [{ text: prompt }] }],
         generationConfig: { maxOutputTokens: Math.max(maxOut * 3, 8192) },
@@ -1445,25 +1493,29 @@ async function gemini(prompt, maxOut, label) {
       status(label + '…');
       let r;
       try {
-        r = await fetch(GEM_API + encodeURIComponent(model) + ':generateContent', {
+        r = await tfetch(GEM_API + encodeURIComponent(model) + ':generateContent', {
           method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': settings.gkey }, body: JSON.stringify(body),
-        });
+        }, CONFIG.gemTimeout);
       } catch (e) {
+        if (e instanceof Cancelled) throw e;
         if (document.visibilityState === 'hidden') { await waitVisible(); attempt--; continue; }
-      if (attempt < 2) { await countdown(5, 'Connexion perdue'); continue; }
+        if (e.timeout) { lastErr = `« ${model} » ne répond pas (délai dépassé)`; break; }   // modèle suivant
+        if (attempt < 2) { await countdown(5, 'Connexion perdue'); continue; }
         throw new ApiError('Impossible de joindre Gemini. Vérifie ta connexion Internet, puis réessaie.');
       }
-      let text = ''; try { text = await r.text(); } catch (e) {}
+      const text = r.text;
       let j = null; try { j = JSON.parse(text); } catch (e) {}
       if (r.ok) {
         const cand = j && j.candidates && j.candidates[0];
         const out = cand && cand.content && (cand.content.parts || []).filter((x) => !x.thought && x.text).map((x) => x.text).join('').trim();
         if (out) { lastModel = model; return cleanOut(out); }
         const why = (cand && cand.finishReason) || (j && j.promptFeedback && j.promptFeedback.blockReason) || 'inconnue';
-        throw new ApiError(`Gemini n'a rien renvoyé (raison : ${why}). Réessaie, ou choisis Groq dans les réglages.`);
+        lastErr = `réponse vide de « ${model} » (${why})`;
+        if (attempt < 1) continue;
+        break;
       }
       const msg = (j && j.error && j.error.message) || text || ('HTTP ' + r.status);
-      if (r.status === 400 && gemThinking && /thinking/i.test(msg)) { gemThinking = false; continue; }
+      if (r.status === 400 && gemThinking && /thinking/i.test(msg)) { gemThinking = false; attempt--; continue; }
       if (r.status === 401 || r.status === 403 || /api key not valid|API_KEY_INVALID/i.test(msg)) {
         throw new ApiError('Clé API Gemini refusée. Vérifie-la dans les réglages (icône en haut à droite).');
       }
@@ -1474,20 +1526,29 @@ async function gemini(prompt, maxOut, label) {
         const det = (j && j.error && j.error.details) || [];
         const rd = det.map((d) => d.retryDelay).find(Boolean);
         const daily = /per ?day|PerDay|daily/i.test(msg + JSON.stringify(det));
-        if (daily) { lastErr = `quota du jour atteint pour « ${model} »`; break; }
         const wait = rd ? parseFloat(rd) + 1 : parseWait(msg, r.headers.get('retry-after'));
-        if (wait > 15 * 60) throw new ApiError('Limite gratuite de Gemini atteinte pour le moment. ' + msg);
+        if (daily || wait > 90) {   // attendre serait trop long : on passe au modèle suivant
+          gemLimited[model] = Date.now() + (daily ? 6 * 3600 : wait) * 1000;
+          lastErr = daily ? `quota du jour atteint pour « ${model} »` : `limite atteinte pour « ${model} »`; break;
+        }
         await countdown(wait, 'Limite gratuite de Gemini atteinte, pause');
-        continue;
+        attempt--; continue;
       }
-      if (r.status >= 500 && attempt < 4) { await countdown(5 * (attempt + 1), 'Gemini ne répond pas bien'); continue; }
+      if (r.status >= 500) {   // surchargé : un essai de plus, puis modèle suivant
+        lastErr = `« ${model} » surchargé (${r.status})`;
+        if (attempt < 1) { await countdown(6, 'Gemini est surchargé'); continue; }
+        break;
+      }
       throw new ApiError(`Erreur Gemini (${r.status}) : ${msg}`);
     }
   }
-  throw new ApiError(`Aucun modèle Gemini utilisable (${lastErr}). Change-le dans les réglages, ou choisis Groq pour le résumé.`);
+  throw new ProviderDown(`Gemini est indisponible pour le moment (${lastErr}).`);
 }
 const llm = (prompt, maxOut, label, preferFirst) =>
   provider() === 'gemini' ? gemini(prompt, maxOut, label) : chat(prompt, maxOut, label, preferFirst);
+// Si Gemini est indisponible, on refait l'étape avec Groq (découpage adapté à ses limites)
+let provOverride = null;
+const canFallback = () => provider() === 'gemini' && !!settings.key;
 
 const ctxLine = () => settings.ctx.trim() ? `\nContexte donné par l'utilisateur : ${settings.ctx.trim()}\n` : '';
 const KINDS = { auto: 'Automatique', cours: 'Cours', reunion: 'Réunion', perso: 'Note personnelle' };
@@ -1594,7 +1655,16 @@ function splitText(text, size) {
   return chunks;
 }
 async function summarize(segments, onProgress, kind = settings.kind || 'auto', recDate = Date.now()) {
-  let text = segments.map((s) => s.text).join('\n');
+  try { return await summarizeWith(segments, onProgress, kind, recDate); }
+  catch (e) {
+    if (!(e instanceof ProviderDown) || !canFallback()) throw e;
+    onProgress('Gemini indisponible : je continue avec Groq', 0.1);
+    provOverride = 'groq';
+    try { return await summarizeWith(segments, onProgress, kind, recDate); } finally { provOverride = null; }
+  }
+}
+async function summarizeWith(segments, onProgress, kind, recDate) {
+  let text = segments.map((s) => s.sep ? `\n=== ${s.text} ===` : s.text).join('\n');
   const gem = provider() === 'gemini';
   const OUT = 3200;
   // Groq : la requête (consignes + texte + réponse) doit tenir dans la limite de tokens par minute
@@ -2102,6 +2172,7 @@ function updSel() {
   const n = ui.picked.size;
   $('selCount').textContent = n ? `${n} note${n > 1 ? 's' : ''} sélectionnée${n > 1 ? 's' : ''}` : 'Touche les notes à sélectionner';
   $('selTag').disabled = $('selDel').disabled = !n;
+  $('selMerge').disabled = n < 2;
 }
 
 function renderList() {
@@ -2228,10 +2299,32 @@ async function renderTagAdmin() {
 
 function noteMarkdown(n) {
   const hasClean = !!(n.clean && n.clean.length);
-  const tr = (hasClean ? n.clean : (n.segments || [])).map((s) => `[${hms(s.start)}] ${s.text}`).join('\n\n');
+  const tr = (hasClean ? n.clean : (n.segments || [])).map((s) => s.sep ? `### ${s.text}` : `[${hms(s.start)}] ${s.text}`).join('\n\n');
   return `# ${n.title}\n\n*${fmtDate(n.created)}${n.duration ? ' · ' + dur(n.duration) : ''} · ${n.fileName}*\n\n${n.summary || ''}\n\n---\n\n## Transcription${hasClean ? ' (améliorée par IA)' : ''}\n\n${tr}\n`;
 }
 
+// « - Question ? → Réponse » : la flèche est cherchée en dehors des formules LaTeX
+function splitQA(line) {
+  const maths = [], masked = protectMath(line, maths);
+  const m = /\s*(?:→|->|=>)\s*/.exec(masked);
+  if (!m || m.index === 0) return null;
+  const unmask = (x) => x.replace(/\u0000M(\d+)\u0000/g, (_, i) => maths[+i].raw);
+  const q = unmask(masked.slice(0, m.index)).trim(), a = unmask(masked.slice(m.index + m[0].length)).trim();
+  return q && a ? [q, a] : null;
+}
+function quizHtml(body, ctr) {
+  let html = '', items = [], rest = [];
+  const flushRest = () => { if (rest.join('').trim()) html += md(rest.join('\n'), ctr); rest = []; };
+  const flushItems = () => { if (items.length) html += `<ul>${items.join('')}</ul>`; items = []; };
+  for (const line of body.split('\n')) {
+    const m = /^\s*(?:[-*•]|\d+[.)])\s+(.*)$/.exec(line);
+    const qa = m && splitQA(m[1]);
+    if (qa) { flushRest(); items.push(`<li class="qa"><details><summary><span>${inlineMd(qa[0])}</span></summary><div class="ans">${inlineMd(qa[1])}</div></details></li>`); }
+    else { flushItems(); rest.push(line); }
+  }
+  flushItems(); flushRest();
+  return html;
+}
 function renderSummary(n) {
   if (!n.summary) {
     return `<section class="sec k-other"><h3><span class="sec-ic">${ICONS.alert}</span>Pas encore de résumé</h3>
@@ -2249,8 +2342,7 @@ function renderSummary(n) {
     const k = kindOf(title);
     let inner = md(body, ctr);
     // Questions de révision : la réponse se dévoile au toucher
-    if (k === 'quiz') inner = inner.replace(/<li>([\s\S]*?)\s*(?:→|-&gt;|=&gt;)\s*([\s\S]*?)<\/li>/g,
-      '<li class="qa"><details><summary>$1</summary><div class="ans">$2</div></details></li>');
+    if (k === 'quiz') inner = quizHtml(body, ctr);
     html += `<section class="sec k-${k}"><h3><span class="sec-ic">${ICONS[k]}</span>${esc(title)}</h3><div class="md">${inner}</div></section>`;
   }
   return html;
@@ -2264,8 +2356,9 @@ function renderTranscript() {
   const q = $('trSearch').value.trim();
   const re = q ? new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi') : null;
   const para = trMode === 'clean' && hasClean(n);
-  const segs = curSegs(n).filter((s) => !re || s.text.match(re));
+  const segs = curSegs(n).filter((s) => !re || (!s.sep && s.text.match(re)));
   $('noteTr').innerHTML = segs.map((s) => {
+    if (s.sep) return `<div class="seg-sep">${ICONS.file}<span>${esc(s.text)}</span></div>`;
     let t = re ? esc(s.text) : mathify(s.text);
     if (re) t = t.replace(new RegExp(esc(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), (m) => `<mark>${m}</mark>`);
     return `<div class="seg${para ? ' para' : ''}"><time>${hms(s.start)}</time><span>${t}</span></div>`;
@@ -2284,7 +2377,9 @@ function renderEnh() {
   $('enhNote').textContent = has ? `Réécrite par ${(n.cleanBy || 'l\'IA').replace(/^openai\//, '')}. Les horodatages indiquent le début de chaque paragraphe. La version brute reste disponible.` : '';
   $('enhBtn').classList.toggle('hidden', running || (!!enhancing && !running));
   $('enhBtn').className = 'btn block ' + (has ? 'ghost' : 'primary') + ($('enhBtn').classList.contains('hidden') ? ' hidden' : '');
-  $('enhBtn').innerHTML = has ? `${ICONS.refresh}Refaire l'amélioration` : `${ICONS.spark}Améliorer avec l'IA`;
+  const part = n.cleanPartial && n.cleanPartial.total ? Math.round(100 * n.cleanPartial.si / n.cleanPartial.total) : 0;
+  $('enhBtn').innerHTML = part ? `${ICONS.refresh}Reprendre l'amélioration (${part} % fait)` : has ? `${ICONS.refresh}Refaire l'amélioration` : `${ICONS.spark}Améliorer avec l'IA`;
+  if (part && !enhancing) $('enhBtn').className = 'btn block primary';
   if (running) $('enhErr').classList.add('hidden');
   document.querySelectorAll('#trMode button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === trMode)));
 }
@@ -2325,36 +2420,62 @@ function parseClean(out, fallbackStart) {
   }
   return res.filter((x) => x.text);
 }
+// Réécrit un morceau de transcription ; renvoie des paragraphes horodatés
+async function rewriteChunk(n, about, chunk, prev, label) {
+  const gem = provider() === 'gemini';
+  const text = chunk.map((c) => c.line).join('\n');
+  const lo = chunk[0].start;
+  let paras = parseClean(await llm(P_CLEAN(n, about, text, prev), gem ? 8000 : 2600, label, true), lo);
+  const outLen = paras.reduce((a, x) => a + x.text.length, 0);
+  if (outLen < text.length * 0.35) {
+    const again = P_CLEAN(n, about, text, prev) + '\n\nATTENTION : une réponse précédente était beaucoup trop courte. Ne résume pas : réécris tout le contenu de l\'extrait.';
+    paras = parseClean(await llm(again, gem ? 8000 : 2600, label + ' (nouvel essai)', true), lo);
+  }
+  return paras;
+}
 async function enhance() {
   const n = currentNote;
   if (!n || !n.segments || !n.segments.length) return;
   if (busy || enhancing) { toast('Un traitement est déjà en cours'); return; }
-  const gem = provider() === 'gemini';
-  if (!gem && !settings.key) { toast('Ajoute d\'abord ta clé Groq'); return; }
-  const size = gem ? CONFIG.gemCleanChars : CONFIG.cleanChars;
-  const chunks = []; let cur = [], len = 0;
-  for (const s of n.segments) {
-    const line = `[${hms(s.start)}] ${s.text}`;
-    if (cur.length && len + line.length > size) { chunks.push(cur); cur = []; len = 0; }
-    cur.push({ line, start: s.start }); len += line.length + 1;
-  }
-  if (cur.length) chunks.push(cur);
-  enhancing = n.id; statusEl = 'enhStatus'; keepAwake(true);
-  renderEnh(); setEnh(0.04, chunks.length > 1 ? `Partie 1 sur ${chunks.length}` : 'Réécriture en cours');
+  if (provider() !== 'gemini' && !settings.key) { toast('Ajoute d\'abord ta clé Groq'); return; }
+  const segs = n.segments;
+  // reprise là où une amélioration précédente s'est arrêtée
+  let si = 0, out = [], prev = '';
+  const saved = n.cleanPartial;
+  if (saved && saved.total === segs.length && saved.si > 0 && saved.si < segs.length) ({ si, out, prev } = { si: saved.si, out: saved.out.slice(), prev: saved.prev || '' });
+  enhancing = n.id; statusEl = 'enhStatus'; cancelReq = false; keepAwake(true);
+  renderEnh(); setEnh(0.04 + 0.92 * (si / segs.length), si ? 'Reprise là où ça s\'était arrêté' : 'Réécriture en cours');
   const about = excerpt(n).slice(0, 600);
-  const out = []; let prev = '';
+  const save = async (extra) => {
+    const fresh = (await db.get(n.id)) || n;
+    Object.assign(fresh, extra);
+    if (!extra.cleanPartial) delete fresh.cleanPartial;
+    await db.put(fresh);
+    if (currentNote && currentNote.id === n.id) { Object.assign(currentNote, extra); if (!extra.cleanPartial) delete currentNote.cleanPartial; }
+  };
   try {
-    for (let i = 0; i < chunks.length; i++) {
-      const label = chunks.length > 1 ? `Partie ${i + 1} sur ${chunks.length}` : 'Réécriture en cours';
-      setEnh(0.04 + 0.92 * (i / chunks.length), label);
-      const text = chunks[i].map((c) => c.line).join('\n');
-      const lo = chunks[i][0].start, hi = chunks[i][chunks[i].length - 1].start;
-      let paras = parseClean(await llm(P_CLEAN(n, about, text, prev), gem ? 8000 : 2600, label, true), lo);
-      const outLen = paras.reduce((a, x) => a + x.text.length, 0);
-      if (outLen < text.length * 0.35) {
-        const again = P_CLEAN(n, about, text, prev) + '\n\nATTENTION : une réponse précédente était beaucoup trop courte. Ne résume pas : réécris tout le contenu de l\'extrait.';
-        paras = parseClean(await llm(again, gem ? 8000 : 2600, label + ' (nouvel essai)', true), lo);
+    while (si < segs.length) {
+      if (cancelReq) throw new Cancelled('Arrêté.');
+      // les séparateurs d'une note fusionnée sont recopiés tels quels
+      if (segs[si].sep) { out.push({ start: segs[si].start, text: segs[si].text, sep: true }); prev = ''; si++; continue; }
+      const gem = provider() === 'gemini';
+      const size = gem ? CONFIG.gemCleanChars : CONFIG.cleanChars;
+      const chunk = []; let len = 0, j = si;
+      while (j < segs.length && !segs[j].sep) {
+        const line = `[${hms(segs[j].start)}] ${segs[j].text}`;
+        if (chunk.length && len + line.length > size) break;
+        chunk.push({ line, start: segs[j].start }); len += line.length + 1; j++;
       }
+      const pct = si / segs.length;
+      const label = `${Math.round(pct * 100)} % fait · ${gem ? 'Gemini' : 'Groq'}`;
+      setEnh(0.04 + 0.92 * pct, label);
+      let paras;
+      try { paras = await rewriteChunk(n, about, chunk, prev, label); }
+      catch (e) {
+        if (e instanceof ProviderDown && canFallback()) { provOverride = 'groq'; toast('Gemini ne répond pas : je continue avec Groq'); continue; }
+        throw e;
+      }
+      const lo = chunk[0].start, hi = chunk[chunk.length - 1].start;
       let last = out.length ? out[out.length - 1].start : 0;
       for (const x of paras) {
         if (!(x.start >= lo - 1 && x.start <= hi + 1)) x.start = Math.max(last, lo);
@@ -2362,20 +2483,21 @@ async function enhance() {
         last = x.start; out.push(x);
       }
       prev = (paras.length ? paras[paras.length - 1].text : '').slice(-400);
+      si = j;
+      if (si < segs.length) await save({ cleanPartial: { total: segs.length, si, out, prev } });
     }
-    if (!out.length) throw new ApiError('L\'IA n\'a renvoyé aucun texte. Réessaie.');
+    if (!out.some((x) => !x.sep)) throw new ApiError('L\'IA n\'a renvoyé aucun texte. Réessaie.');
     setEnh(1, 'Terminé');
-    const fresh = (await db.get(n.id)) || n;
-    Object.assign(fresh, { clean: out, cleanBy: lastModel, cleanAt: Date.now() });
-    await db.put(fresh);
-    if (currentNote && currentNote.id === n.id) Object.assign(currentNote, { clean: out, cleanBy: lastModel, cleanAt: fresh.cleanAt });
+    await save({ clean: out, cleanBy: lastModel, cleanAt: Date.now(), cleanPartial: null });
     trMode = 'clean';
     toast('Transcription améliorée');
   } catch (e) {
-    $('enhErr').textContent = e instanceof ApiError ? e.message : 'Erreur inattendue : ' + e.message;
+    const resumable = !!(currentNote && currentNote.cleanPartial);
+    $('enhErr').textContent = (e instanceof Cancelled ? 'Amélioration arrêtée.' : e instanceof ApiError ? e.message : 'Erreur inattendue : ' + e.message)
+      + (resumable ? ' Le travail déjà fait est gardé : « Reprendre » continuera là où ça s\'est arrêté.' : '');
     $('enhErr').classList.remove('hidden');
   } finally {
-    enhancing = null; statusEl = 'jobStatus'; keepAwake(false);
+    enhancing = null; provOverride = null; cancelReq = false; statusEl = 'jobStatus'; keepAwake(false);
     if (currentNote && currentNote.id === n.id) { renderEnh(); renderTranscript(); }
   }
 }
@@ -2391,9 +2513,11 @@ async function openNote(id) {
   $('noteMeta').innerHTML = [
     n.duration ? `<span class="pill">${ICONS.clock}${dur(n.duration)}</span>` : '',
     `<span class="pill">${ICONS.file}${esc(n.fileName)}</span>`,
+    n.mergedFrom ? `<span class="pill">${ICONS.refresh}fusion de ${n.mergedFrom.length} notes</span>` : '',
     n.summaryBy ? `<span class="pill">${ICONS.spark}résumé : ${esc(n.summaryBy.replace(/^openai\//, ''))}</span>` : '',
   ].join('');
   renderNoteTags();
+  renderMergeHint(n);
   $('noteSum').innerHTML = renderSummary(n);
   renderMath($('noteSum'));
   $('trSearch').value = '';
@@ -2422,6 +2546,81 @@ $('noteSum').addEventListener('click', async (e) => {
   const t = tasksOf(currentNote).find((x) => x.idx === +b.dataset.edit);
   if (t) taskSheet(t);
 });
+
+/* =================== Fusion de plusieurs enregistrements =================== */
+/* Plusieurs enregistrements d'un même cours → une seule note : transcriptions mises bout à bout
+   (avec un séparateur par enregistrement et des horodatages continus), puis un nouveau résumé
+   fait sur l'ensemble. Les originaux peuvent être gardés ou supprimés. */
+async function mergeNotes(ids, del) {
+  const notes = (await Promise.all(ids.map((id) => db.get(id)))).filter((n) => n && n.segments && n.segments.length && n.id !== runningId)
+    .sort((a, b) => a.created - b.created);
+  if (notes.length < 2) { toast('Il faut au moins 2 notes déjà transcrites'); return null; }
+  if (busy) { toast('Un traitement est déjà en cours'); return null; }
+  const segs = [], clean = [], allClean = notes.every(hasClean);
+  let off = 0;
+  notes.forEach((n, i) => {
+    const label = `Enregistrement ${i + 1} · ${fmtDate(n.created)}${n.title ? ' · ' + n.title : ''}`;
+    segs.push({ start: off, end: off, text: label, sep: true });
+    for (const x of n.segments) if (!x.sep) segs.push({ start: x.start + off, end: (x.end || x.start) + off, text: x.text });
+    if (allClean) { clean.push({ start: off, text: label, sep: true }); for (const c of n.clean) if (!c.sep) clean.push({ start: c.start + off, text: c.text }); }
+    const lastSeg = n.segments[n.segments.length - 1];
+    off += n.duration || (lastSeg ? (lastSeg.end || lastSeg.start) : 0);
+  });
+  const first = notes[0], now = Date.now();
+  const m = {
+    id: 'n' + now.toString(36), created: first.created, addedAt: now, fileName: `${notes.length} enregistrements`,
+    size: notes.reduce((a, n) => a + (n.size || 0), 0), title: first.title, status: 'resume', segments: segs, summary: '', duration: off,
+    tags: [...new Set(notes.flatMap((n) => n.tags || []))], kind: notes.map((n) => n.kind).find(Boolean) || null,
+    mergedFrom: notes.map((n) => ({ id: n.id, title: n.title, fileName: n.fileName, created: n.created, duration: n.duration })),
+  };
+  if (allClean) Object.assign(m, { clean, cleanBy: first.cleanBy, cleanAt: now });
+  await db.put(m);
+  if (del) for (const n of notes) await db.del(n.id);
+  if (ui.sel) setSel(false);
+  run(m, { kind: m.kind || settings.kind || 'auto' });
+  return m;
+}
+async function mergeSheet(ids, pre) {
+  const all = (await Promise.all(ids.map((id) => db.get(id)))).filter((n) => n && n.segments && n.segments.length).sort((a, b) => a.created - b.created);
+  if (all.length < 2) { toast('Il faut au moins 2 notes déjà transcrites'); return; }
+  const picked = new Set(pre || all.map((n) => n.id));
+  openSheet(`<h3>Fusionner les enregistrements</h3>
+    <p class="sub">Les transcriptions sont mises bout à bout dans l'ordre chronologique, puis un seul résumé est fait sur l'ensemble.</p>
+    <div id="mList"></div>
+    <label class="chkline"><input type="checkbox" class="tck" id="mDel"><span>Supprimer les notes d'origine après la fusion</span></label>
+    <button class="btn primary block" id="mGo"></button>`, (body) => {
+    const draw = () => {
+      body.querySelector('#mList').innerHTML = all.map((n) => `<label class="mrow"><input type="checkbox" class="tck" data-id="${n.id}" ${picked.has(n.id) ? 'checked' : ''}>
+        <div><b>${esc(n.title)}</b><small>${fmtDate(n.created)}${n.duration ? ' · ' + dur(n.duration) : ''}</small></div></label>`).join('');
+      body.querySelectorAll('#mList .tck').forEach((c) => c.onchange = () => { if (c.checked) picked.add(c.dataset.id); else picked.delete(c.dataset.id); upd(); });
+      upd();
+    };
+    const upd = () => { const k = picked.size; body.querySelector('#mGo').textContent = k >= 2 ? `Fusionner ${k} enregistrements` : 'Choisis au moins 2 notes'; body.querySelector('#mGo').disabled = k < 2; };
+    draw();
+    body.querySelector('#mGo').onclick = async () => {
+      const del = body.querySelector('#mDel').checked;
+      if (del && !confirm(`Les ${picked.size} notes d'origine seront supprimées (la note fusionnée garde tout leur contenu). Continuer ?`)) return;
+      closeSheet(); await mergeNotes([...picked], del);
+    };
+  });
+}
+// Sur une note : proposer la fusion avec les autres enregistrements du même jour et du même sujet
+async function renderMergeHint(n) {
+  const box = $('mergeHint'); box.innerHTML = '';
+  if (!n || !n.segments) return;
+  const notes = await loadNotes();
+  const parent = notes.find((x) => (x.mergedFrom || []).some((f) => f.id === n.id));
+  if (parent) {
+    box.innerHTML = `<div class="card merge-card"><span class="sec-ic">${ICONS.file}</span><div><b>Fait partie d'une note fusionnée</b><small>${esc(parent.title)}</small></div><button class="btn" id="mOpen">Ouvrir</button></div>`;
+    $('mOpen').onclick = () => openNote(parent.id); return;
+  }
+  const inMerged = new Set((n.mergedFrom || []).map((f) => f.id));
+  const same = notes.filter((x) => x.id !== n.id && !inMerged.has(x.id) && x.segments && x.segments.length && dayStart(x.created) === dayStart(n.created)
+    && ((n.tags || []).some((t) => (x.tags || []).includes(t)) || (n.kind === 'cours' && x.kind === 'cours')));
+  if (!same.length) return;
+  box.innerHTML = `<div class="card merge-card"><span class="sec-ic">${ICONS.file}</span><div><b>${same.length} autre${same.length > 1 ? 's' : ''} enregistrement${same.length > 1 ? 's' : ''} ce jour-là</b><small>Même jour, même sujet : les réunir en une seule note ?</small></div><button class="btn" id="mSuggest">Fusionner</button></div>`;
+  $('mSuggest').onclick = () => mergeSheet([n.id, ...same.map((x) => x.id)]);
+}
 
 /* =================== Onglet Tâches =================== */
 const tui = { mode: lsGet('np-tmode', 'due'), tag: null, stat: null, showDone: false, day: null, month: monthStart(Date.now()) };
@@ -2770,6 +2969,8 @@ $('calNext').onclick = () => { const d = new Date(ui.month); ui.month = new Date
 $('selectBtn').onclick = () => setSel(!ui.sel);
 $('selCancel').onclick = () => setSel(false);
 $('selTag').onclick = () => { if (ui.picked.size) openTagSheet([...ui.picked]); };
+$('selMerge').onclick = () => { if (ui.picked.size >= 2) mergeSheet([...ui.picked]); };
+$('selCancel').innerHTML = ICONS.x;
 $('selDel').onclick = async () => {
   const ids = [...ui.picked].filter((id) => id !== runningId);
   if (!ids.length || !confirm(`Supprimer définitivement ${ids.length} note${ids.length > 1 ? 's' : ''} ?`)) return;
@@ -2843,7 +3044,7 @@ document.querySelectorAll('.tabs-wrap .tabs button').forEach((b) => b.onclick = 
 $('aCopy').onclick = async () => {
   const n = currentNote; if (!n) return;
   const onTr = !$('noteTrWrap').classList.contains('hidden');
-  const txt = onTr ? curSegs(n).map((s) => `[${hms(s.start)}] ${s.text}`).join(trMode === 'clean' && hasClean(n) ? '\n\n' : '\n') : `# ${n.title}\n\n${n.summary}`;
+  const txt = onTr ? curSegs(n).map((s) => s.sep ? `\n— ${s.text} —` : `[${hms(s.start)}] ${s.text}`).join(trMode === 'clean' && hasClean(n) ? '\n\n' : '\n') : `# ${n.title}\n\n${n.summary}`;
   try { await navigator.clipboard.writeText(txt); toast(onTr ? 'Transcription copiée' : 'Résumé copié'); }
   catch (e) { toast('Copie impossible'); }
 };
@@ -2872,8 +3073,9 @@ $('delNote').onclick = async () => {
   if (!currentNote || !confirm('Supprimer cette note ?')) return;
   await db.del(currentNote.id); currentNote = null; toast('Note supprimée'); show('home');
 };
+$('enhStop').onclick = () => { cancelAll(); $('enhStatus').textContent = 'Arrêt en cours…'; };
 $('enhBtn').onclick = () => {
-  if (hasClean(currentNote) && !confirm('Refaire l\'amélioration ? La version améliorée actuelle sera remplacée.')) return;
+  if (hasClean(currentNote) && !currentNote.cleanPartial && !confirm('Refaire l\'amélioration ? La version améliorée actuelle sera remplacée.')) return;
   enhance();
 };
 document.querySelectorAll('#trMode button').forEach((b) => b.onclick = () => { trMode = b.dataset.mode; renderEnh(); renderTranscript(); });

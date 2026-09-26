@@ -726,10 +726,13 @@
         <div>
           <label class="f" for="sProv">IA utilisée (résumé et amélioration)</label>
           <select id="sProv">
-            <option value="auto">Auto (Gemini si clé, sinon Groq)</option>
+            <option value="auto">Auto (la première qui a une clé)</option>
             <option value="gemini">Gemini</option>
+            <option value="cerebras">Cerebras</option>
+            <option value="mistral">Mistral</option>
             <option value="groq">Groq</option>
           </select>
+          <div class="f-help">Si l'IA choisie est saturée ou ne répond pas, l'app passe toute seule à la suivante qui a une clé, dans cet ordre : Gemini → Cerebras → Mistral → Groq.</div>
         </div>
         <div id="gBox" class="stack">
           <div>
@@ -744,6 +747,34 @@
             <label class="f" for="sGModel">Modèles Gemini</label>
             <input type="text" id="sGModel" spellcheck="false">
             <div class="f-help">Le premier est utilisé. Les suivants servent de secours s'il est indisponible ou si son quota du jour est atteint.</div>
+          </div>
+        </div>
+        <div id="cBox" class="stack">
+          <div>
+            <label class="f" for="sCKey">Clé API Cerebras (facultatif)</label>
+            <div class="keyrow">
+              <input type="password" id="sCKey" autocomplete="off" spellcheck="false" placeholder="csk-…">
+              <button class="btn" id="sCKeyShow" type="button">Voir</button>
+            </div>
+            <div class="f-help">Gratuite sur <a href="https://cloud.cerebras.ai" target="_blank" rel="noopener">cloud.cerebras.ai</a> (menu API Keys). Très rapide, limite par minute bien plus large que Groq.</div>
+          </div>
+          <div>
+            <label class="f" for="sCModel">Modèles Cerebras</label>
+            <input type="text" id="sCModel" spellcheck="false">
+          </div>
+        </div>
+        <div id="mBox" class="stack">
+          <div>
+            <label class="f" for="sMKey">Clé API Mistral (facultatif)</label>
+            <div class="keyrow">
+              <input type="password" id="sMKey" autocomplete="off" spellcheck="false" placeholder="…">
+              <button class="btn" id="sMKeyShow" type="button">Voir</button>
+            </div>
+            <div class="f-help">Gratuite sur <a href="https://console.mistral.ai/api-keys" target="_blank" rel="noopener">console.mistral.ai</a> (offre « Experiment »). Très bon en français. Sur l'offre gratuite, Mistral peut utiliser les textes envoyés pour entraîner ses modèles.</div>
+          </div>
+          <div>
+            <label class="f" for="sMModel">Modèles Mistral</label>
+            <input type="text" id="sMModel" spellcheck="false">
           </div>
         </div>
         <div id="qBox">
@@ -829,7 +860,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '15 · 26 sept. 2026';
+const APP_VERSION = '16 · 26 sept. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -847,7 +878,8 @@ window.CONFIG = {
 const DEFAULTS = {
   key: '', lang: 'fr', whisper: 'whisper-large-v3',
   llms: 'openai/gpt-oss-120b, openai/gpt-oss-20b', ctx: '', kind: 'auto',
-  autoRemind: 'eve', provider: 'auto', gkey: '', gmodels: 'gemini-3.8-flash, gemini-flash-latest, gemini-3.5-flash',
+  autoRemind: 'eve',
+  provider: 'auto', ckey: '', cmodels: 'gpt-oss-120b, zai-glm-4.7', mkey: '', mmodels: 'mistral-large-latest, mistral-medium-latest, mistral-small-latest', gkey: '', gmodels: 'gemini-3.8-flash, gemini-flash-latest, gemini-3.5-flash',
 };
 function loadSettings() {
   let s = {};
@@ -860,7 +892,14 @@ function saveSettings(s) {
 let settings = loadSettings();
 const llmList = () => settings.llms.split(',').map((x) => x.trim()).filter(Boolean);
 const gemList = () => settings.gmodels.split(',').map((x) => x.trim()).filter(Boolean);
-const provider = () => provOverride || (settings.provider === 'auto' ? (settings.gkey ? 'gemini' : 'groq') : settings.provider);
+const CHAIN = ['gemini', 'cerebras', 'mistral', 'groq'];
+const PNAME = { gemini: 'Gemini', cerebras: 'Cerebras', mistral: 'Mistral', groq: 'Groq' };
+const hasKey = (p) => !!(p === 'gemini' ? settings.gkey : p === 'cerebras' ? settings.ckey : p === 'mistral' ? settings.mkey : settings.key);
+const primary = () => settings.provider && settings.provider !== 'auto' ? settings.provider : (CHAIN.find(hasKey) || 'groq');
+const provider = () => provOverride || primary();
+// fournisseurs à essayer ensuite (ceux qui ont une clé et n'ont pas encore échoué pendant ce traitement)
+let provFailed = new Set();
+const nextProvider = () => { const cur = provider(); return [primary(), ...CHAIN].find((p) => p !== cur && hasKey(p) && !provFailed.has(p)) || null; };
 
 /* =================== IndexedDB =================== */
 function openDB() {
@@ -1544,11 +1583,81 @@ async function gemini(prompt, maxOut, label) {
   }
   throw new ProviderDown(`Gemini est indisponible pour le moment (${lastErr}).`);
 }
-const llm = (prompt, maxOut, label, preferFirst) =>
-  provider() === 'gemini' ? gemini(prompt, maxOut, label) : chat(prompt, maxOut, label, preferFirst);
+/* ---- Cerebras et Mistral : API compatibles OpenAI ---- */
+const OA = {
+  cerebras: { url: 'https://api.cerebras.ai/v1/chat/completions', key: () => settings.ckey, models: () => (settings.cmodels || DEFAULTS.cmodels) },
+  mistral: { url: 'https://api.mistral.ai/v1/chat/completions', key: () => settings.mkey, models: () => (settings.mmodels || DEFAULTS.mmodels) },
+};
+const oaNoReasoning = {};
+async function oaChat(p, prompt, maxOut, label) {
+  const conf = OA[p], name = PNAME[p];
+  if (!conf.key()) throw new ProviderDown(`Pas de clé ${name}.`);
+  const models = conf.models().split(',').map((x) => x.trim()).filter(Boolean);
+  let lastErr = '';
+  for (const model of models) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const body = { model, messages: [{ role: 'user', content: prompt }], max_tokens: maxOut, temperature: 0.3 };
+      if (/gpt-oss/.test(model) && !oaNoReasoning[p]) body.reasoning_effort = 'low';
+      status(label + '…');
+      let r;
+      try {
+        r = await tfetch(conf.url, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + conf.key() }, body: JSON.stringify(body) }, 150000);
+      } catch (e) {
+        if (e instanceof Cancelled) throw e;
+        if (document.visibilityState === 'hidden') { await waitVisible(); attempt--; continue; }
+        // délai dépassé, réseau coupé ou appel refusé par le navigateur (CORS) : on passe à la suite
+        if (!e.timeout && attempt < 1) { await countdown(3, 'Connexion perdue'); continue; }
+        throw new ProviderDown(`${name} injoignable (${e.timeout ? 'délai dépassé' : 'connexion refusée'}).`);
+      }
+      let j = null; try { j = JSON.parse(r.text); } catch (e) {}
+      const raw = (j && (j.message || (j.error && (j.error.message || j.error)) || j.detail)) || r.text || ('HTTP ' + r.status);
+      const m = typeof raw === 'string' ? raw : JSON.stringify(raw);
+      if (r.ok) {
+        const c = j && j.choices && j.choices[0];
+        let out = c && c.message && c.message.content;
+        if (Array.isArray(out)) out = out.filter((x) => x.type === 'text').map((x) => x.text).join('');
+        out = String(out || '').trim();
+        if (out) { lastModel = model; return cleanOut(out); }
+        lastErr = `réponse vide de « ${model} »`; if (attempt < 1) continue; break;
+      }
+      if (r.status === 400 && body.reasoning_effort && /reasoning/i.test(m)) { oaNoReasoning[p] = true; attempt--; continue; }
+      if (r.status === 401 || r.status === 403) throw new ProviderDown(`clé API ${name} refusée (vérifie-la dans les réglages)`);
+      if (r.status === 404 || (r.status === 400 && /model/i.test(m) && /not|invalid|exist|unknown/i.test(m))) { lastErr = `modèle « ${model} » indisponible`; break; }
+      if (r.status === 429) {
+        const wait = parseWait(m, r.headers.get('retry-after'));
+        if (wait <= 60 && attempt < 2) { await countdown(wait, `Limite gratuite de ${name}, pause`); continue; }
+        throw new ProviderDown(`limite gratuite de ${name} atteinte`);
+      }
+      if (r.status >= 500) { lastErr = `${name} surchargé (${r.status})`; if (attempt < 1) { await countdown(5, `${name} est surchargé`); continue; } break; }
+      throw new ProviderDown(`erreur ${name} (${r.status}) : ${m.slice(0, 200)}`);
+    }
+  }
+  throw new ProviderDown(`${name} indisponible (${lastErr})`);
+}
+function llm(prompt, maxOut, label, preferFirst) {
+  const p = provider();
+  if (p === 'gemini') return gemini(prompt, maxOut, label);
+  if (p === 'cerebras' || p === 'mistral') return oaChat(p, prompt, maxOut, label);
+  return chat(prompt, maxOut, label, preferFirst);
+}
+// Taille des morceaux selon le fournisseur (Groq a la limite par minute la plus serrée)
+const LIM = {
+  gemini: { single: () => CONFIG.gemSingleShotChars, chunk: () => CONFIG.gemChunkChars, clean: () => CONFIG.gemCleanChars, out: 8000 },
+  cerebras: { single: () => 60000, chunk: () => 50000, clean: () => 9000, out: 8000 },
+  mistral: { single: () => 200000, chunk: () => 150000, clean: () => 9000, out: 8000 },
+  groq: { single: () => CONFIG.singleShotChars, chunk: () => CONFIG.chunkChars, clean: () => CONFIG.cleanChars, out: 2600 },
+};
+
 // Si Gemini est indisponible, on refait l'étape avec Groq (découpage adapté à ses limites)
 let provOverride = null;
-const canFallback = () => provider() === 'gemini' && !!settings.key;
+const canFallback = () => !!nextProvider();
+function fallBack(e) {   // passe au fournisseur suivant ; renvoie son nom ou null
+  if (!(e instanceof ProviderDown)) return null;
+  provFailed.add(provider());
+  const nx = nextProvider();
+  if (nx) provOverride = nx;
+  return nx;
+}
 
 const ctxLine = () => settings.ctx.trim() ? `\nContexte donné par l'utilisateur : ${settings.ctx.trim()}\n` : '';
 const KINDS = { auto: 'Automatique', cours: 'Cours', reunion: 'Réunion', perso: 'Note personnelle' };
@@ -1655,22 +1764,26 @@ function splitText(text, size) {
   return chunks;
 }
 async function summarize(segments, onProgress, kind = settings.kind || 'auto', recDate = Date.now()) {
-  try { return await summarizeWith(segments, onProgress, kind, recDate); }
-  catch (e) {
-    if (!(e instanceof ProviderDown) || !canFallback()) throw e;
-    onProgress('Gemini indisponible : je continue avec Groq', 0.1);
-    provOverride = 'groq';
-    try { return await summarizeWith(segments, onProgress, kind, recDate); } finally { provOverride = null; }
-  }
+  provFailed = new Set(); provOverride = null;
+  try {
+    for (;;) {
+      try { return await summarizeWith(segments, onProgress, kind, recDate); }
+      catch (e) {
+        const from = PNAME[provider()], nx = fallBack(e);
+        if (!nx) throw e;
+        onProgress(`${from} indisponible : je continue avec ${PNAME[nx]}`, 0.1);
+      }
+    }
+  } finally { provOverride = null; provFailed = new Set(); }
 }
 async function summarizeWith(segments, onProgress, kind, recDate) {
   let text = segments.map((s) => s.sep ? `\n=== ${s.text} ===` : s.text).join('\n');
-  const gem = provider() === 'gemini';
+  const pv = provider(), gem = pv !== 'groq';
   const OUT = 3200;
   // Groq : la requête (consignes + texte + réponse) doit tenir dans la limite de tokens par minute
   const groqRoom = Math.max(4000, (CONFIG.tpmBudget - OUT - 200) * 3 - P_FINAL('', true, kind, recDate).length);
-  const single = gem ? CONFIG.gemSingleShotChars : Math.min(CONFIG.singleShotChars, groqRoom);
-  const chunkSize = gem ? CONFIG.gemChunkChars : CONFIG.chunkChars;
+  const single = gem ? LIM[pv].single() : Math.min(CONFIG.singleShotChars, groqRoom);
+  const chunkSize = LIM[pv].chunk();
   if (text.length <= single) {
     onProgress('Rédaction du résumé', 0.5);
     return llm(P_FINAL(text, false, kind, recDate), OUT, 'Rédaction du résumé', true);
@@ -1981,7 +2094,7 @@ async function run(note, opts = {}) {
       step('st-up', 'done', `${dur(tr.duration)} d'audio`);
     }
     bar(0.5);
-    step('st-sum', 'active', provider() === 'gemini' ? 'Avec Gemini' : 'Avec Groq');
+    step('st-sum', 'active', 'Avec ' + PNAME[provider()]);
     const raw = await summarize(note.segments, (label, p) => { step('st-sum', 'active', label); bar(0.5 + 0.48 * p); }, opts.kind || settings.kind || 'auto', note.created);
     const t = splitTitle(raw, note.title);
     const meta = splitMeta(t.body);
@@ -2422,14 +2535,14 @@ function parseClean(out, fallbackStart) {
 }
 // Réécrit un morceau de transcription ; renvoie des paragraphes horodatés
 async function rewriteChunk(n, about, chunk, prev, label) {
-  const gem = provider() === 'gemini';
+  const outMax = LIM[provider()].out;
   const text = chunk.map((c) => c.line).join('\n');
   const lo = chunk[0].start;
-  let paras = parseClean(await llm(P_CLEAN(n, about, text, prev), gem ? 8000 : 2600, label, true), lo);
+  let paras = parseClean(await llm(P_CLEAN(n, about, text, prev), outMax, label, true), lo);
   const outLen = paras.reduce((a, x) => a + x.text.length, 0);
   if (outLen < text.length * 0.35) {
     const again = P_CLEAN(n, about, text, prev) + '\n\nATTENTION : une réponse précédente était beaucoup trop courte. Ne résume pas : réécris tout le contenu de l\'extrait.';
-    paras = parseClean(await llm(again, gem ? 8000 : 2600, label + ' (nouvel essai)', true), lo);
+    paras = parseClean(await llm(again, outMax, label + ' (nouvel essai)', true), lo);
   }
   return paras;
 }
@@ -2437,13 +2550,13 @@ async function enhance() {
   const n = currentNote;
   if (!n || !n.segments || !n.segments.length) return;
   if (busy || enhancing) { toast('Un traitement est déjà en cours'); return; }
-  if (provider() !== 'gemini' && !settings.key) { toast('Ajoute d\'abord ta clé Groq'); return; }
+  if (!hasKey(provider())) { toast('Ajoute d\'abord une clé d\'IA dans les réglages'); return; }
   const segs = n.segments;
   // reprise là où une amélioration précédente s'est arrêtée
   let si = 0, out = [], prev = '';
   const saved = n.cleanPartial;
   if (saved && saved.total === segs.length && saved.si > 0 && saved.si < segs.length) ({ si, out, prev } = { si: saved.si, out: saved.out.slice(), prev: saved.prev || '' });
-  enhancing = n.id; statusEl = 'enhStatus'; cancelReq = false; keepAwake(true);
+  enhancing = n.id; statusEl = 'enhStatus'; cancelReq = false; provFailed = new Set(); provOverride = null; keepAwake(true);
   renderEnh(); setEnh(0.04 + 0.92 * (si / segs.length), si ? 'Reprise là où ça s\'était arrêté' : 'Réécriture en cours');
   const about = excerpt(n).slice(0, 600);
   const save = async (extra) => {
@@ -2458,8 +2571,8 @@ async function enhance() {
       if (cancelReq) throw new Cancelled('Arrêté.');
       // les séparateurs d'une note fusionnée sont recopiés tels quels
       if (segs[si].sep) { out.push({ start: segs[si].start, text: segs[si].text, sep: true }); prev = ''; si++; continue; }
-      const gem = provider() === 'gemini';
-      const size = gem ? CONFIG.gemCleanChars : CONFIG.cleanChars;
+      const pv = provider();
+      const size = LIM[pv].clean();
       const chunk = []; let len = 0, j = si;
       while (j < segs.length && !segs[j].sep) {
         const line = `[${hms(segs[j].start)}] ${segs[j].text}`;
@@ -2467,12 +2580,13 @@ async function enhance() {
         chunk.push({ line, start: segs[j].start }); len += line.length + 1; j++;
       }
       const pct = si / segs.length;
-      const label = `${Math.round(pct * 100)} % fait · ${gem ? 'Gemini' : 'Groq'}`;
+      const label = `${Math.round(pct * 100)} % fait · ${PNAME[pv]}`;
       setEnh(0.04 + 0.92 * pct, label);
       let paras;
       try { paras = await rewriteChunk(n, about, chunk, prev, label); }
       catch (e) {
-        if (e instanceof ProviderDown && canFallback()) { provOverride = 'groq'; toast('Gemini ne répond pas : je continue avec Groq'); continue; }
+        const nx = fallBack(e);
+        if (nx) { toast(`${PNAME[pv]} ne répond pas : je continue avec ${PNAME[nx]}`); continue; }
         throw e;
       }
       const lo = chunk[0].start, hi = chunk[chunk.length - 1].start;
@@ -2614,6 +2728,7 @@ async function renderMergeHint(n) {
     box.innerHTML = `<div class="card merge-card"><span class="sec-ic">${ICONS.file}</span><div><b>Fait partie d'une note fusionnée</b><small>${esc(parent.title)}</small></div><button class="btn" id="mOpen">Ouvrir</button></div>`;
     $('mOpen').onclick = () => openNote(parent.id); return;
   }
+  return;   // (plus de suggestion automatique de fusion : la fusion se fait via « Sélectionner »)
   const inMerged = new Set((n.mergedFrom || []).map((f) => f.id));
   const same = notes.filter((x) => x.id !== n.id && !inMerged.has(x.id) && x.segments && x.segments.length && dayStart(x.created) === dayStart(n.created)
     && ((n.tags || []).some((t) => (x.tags || []).includes(t)) || (n.kind === 'cours' && x.kind === 'cours')));
@@ -2947,6 +3062,8 @@ function showSettings() {
   $('sKey').value = settings.key; $('sLang').value = settings.lang; $('sWhisper').value = settings.whisper;
   $('sLlm').value = settings.llms; $('sCtx').value = settings.ctx;
   $('sProv').value = settings.provider; $('sGKey').value = settings.gkey; $('sGModel').value = settings.gmodels;
+  $('sCKey').value = settings.ckey || ''; $('sCModel').value = settings.cmodels || DEFAULTS.cmodels;
+  $('sMKey').value = settings.mkey || ''; $('sMModel').value = settings.mmodels || DEFAULTS.mmodels;
   provBoxes();
   show('settings');
 }
@@ -3023,18 +3140,20 @@ $('updBtn').onclick = async () => {
 $('noteDate').onclick = () => { if (currentNote) dateSheet(currentNote); };
 $('trSearch').oninput = renderTranscript;
 function provBoxes() {
-  const v = $('sProv').value;
-  $('gBox').classList.toggle('hidden', v === 'groq');
-  $('qBox').classList.toggle('hidden', v === 'gemini');
+  // toutes les IA restent visibles : celles qui ont une clé servent de secours
 }
 $('sProv').onchange = provBoxes;
 const toggleKey = (inp, btn) => () => { const i = $(inp); i.type = i.type === 'password' ? 'text' : 'password'; $(btn).textContent = i.type === 'password' ? 'Voir' : 'Cacher'; };
 $('sGKeyShow').onclick = toggleKey('sGKey', 'sGKeyShow');
+$('sCKeyShow').onclick = toggleKey('sCKey', 'sCKeyShow');
+$('sMKeyShow').onclick = toggleKey('sMKey', 'sMKeyShow');
 $('sKeyShow').onclick = toggleKey('sKey', 'sKeyShow');
 $('sSave').onclick = () => {
   settings = { key: $('sKey').value.trim(), lang: $('sLang').value, whisper: $('sWhisper').value,
     llms: $('sLlm').value.trim() || DEFAULTS.llms, ctx: $('sCtx').value,
-    provider: $('sProv').value, gkey: $('sGKey').value.trim(), gmodels: $('sGModel').value.trim() || DEFAULTS.gmodels, kind: $('sKind').value, autoRemind: $('sRemind').value };
+    provider: $('sProv').value, gkey: $('sGKey').value.trim(), gmodels: $('sGModel').value.trim() || DEFAULTS.gmodels,
+    ckey: $('sCKey').value.trim(), cmodels: $('sCModel').value.trim() || DEFAULTS.cmodels,
+    mkey: $('sMKey').value.trim(), mmodels: $('sMModel').value.trim() || DEFAULTS.mmodels, kind: $('sKind').value, autoRemind: $('sRemind').value };
   toast(saveSettings(settings) ? 'Réglages enregistrés' : 'Impossible d\'enregistrer (navigation privée ?)');
   show('home');
 };

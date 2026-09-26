@@ -43,6 +43,15 @@ Groq reste utilisé pour la transcription. Pour le résumé, Gemini Flash est pl
 
 Avec « Résumé avec : Auto », l'app utilise Gemini dès qu'une clé Gemini est enregistrée, et Groq sinon. Ton abonnement Gemini n'est pas utilisé ici : cette clé API est gratuite, et c'est un service séparé.
 
+## Étape 5 (facultative) : des IA de secours
+
+Si Gemini est saturé, l'app peut passer toute seule à d'autres IA gratuites, dans l'ordre **Gemini → Cerebras → Mistral → Groq** (seulement celles qui ont une clé) :
+
+- **Cerebras** : clé gratuite sur https://cloud.cerebras.ai (menu API Keys). Très rapide, limite par minute large.
+- **Mistral** : clé gratuite sur https://console.mistral.ai/api-keys (offre « Experiment »). Très bon en français ; sur l'offre gratuite, Mistral peut utiliser les textes envoyés pour entraîner ses modèles.
+
+Colle-les dans Réglages → Résumé. Tu peux aussi choisir l'une d'elles comme IA principale.
+
 ## Utilisation
 
 - **Depuis Plaud :** ouvre l'enregistrement, puis **Exporter → Audio → MP3 → Partager → Notes Plaud**.
@@ -61,7 +70,7 @@ Avec « Résumé avec : Auto », l'app utilise Gemini dès qu'une clé Gemini es
 
 ### Plusieurs enregistrements pour un même cours
 
-- Sur une note, si d'autres enregistrements du **même jour et du même sujet** existent, une carte propose de les **fusionner**. Tu peux aussi sélectionner des notes sur l'accueil (« Sélectionner ») puis toucher **Fusionner**.
+- Sur l'accueil, touche « Sélectionner », coche les enregistrements, puis **Fusionner**.
 - Les transcriptions sont mises bout à bout dans l'ordre (un séparateur par enregistrement, horodatages continus) et **un seul résumé** est fait sur l'ensemble. Les notes d'origine peuvent être gardées ou supprimées.
 
 ### Onglet Tâches

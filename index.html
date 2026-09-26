@@ -4,273 +4,516 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Notes Plaud</title>
-<meta name="description" content="Transcription et résumé de tes enregistrements Plaud avec Groq">
-<meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#16171a" media="(prefers-color-scheme: dark)">
+<meta name="description" content="Transcription et résumé de tes enregistrements Plaud">
+<meta name="theme-color" content="#f7f4ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141311" media="(prefers-color-scheme: dark)">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #f6f5f1; --surface: #ffffff; --surface-2: #efede7; --text: #1d1d1f; --muted: #6b6a66;
-    --line: #e2dfd7; --accent: #c2410c; --accent-soft: #fbe6da; --ok: #15803d; --err: #b91c1c;
-    --radius: 14px; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.04);
+    --bg: #f7f4ee; --surface: #ffffff; --surface-2: #f1ece4; --surface-3: #e9e3d9;
+    --ink: #1b1a17; --ink-2: #4a4640; --muted: #817a71; --line: #e8e2d8;
+    --accent: #e0572b; --accent-ink: #b8401b; --accent-soft: #fdebe3;
+    --grad: linear-gradient(135deg, #f2803f 0%, #e0572b 55%, #cf3d3a 100%);
+    --blue: #2f6bd8; --blue-soft: #e8effc; --violet: #7a55e8; --violet-soft: #efeafd;
+    --green: #15895a; --green-soft: #e3f4ec; --err: #c8382b; --err-soft: #fbe9e7;
+    --r-lg: 22px; --r: 16px; --r-sm: 12px;
+    --shadow: 0 1px 2px rgba(40, 30, 15, .04), 0 6px 20px -6px rgba(40, 30, 15, .10);
+    --shadow-lg: 0 18px 40px -16px rgba(207, 61, 58, .45);
+    --serif: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
+    --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #16171a; --surface: #1f2024; --surface-2: #2a2b30; --text: #ecebe7; --muted: #a09e98;
-      --line: #34353b; --accent: #fb923c; --accent-soft: #3a2518; --ok: #4ade80; --err: #f87171;
-      --shadow: none;
+      --bg: #141311; --surface: #1d1c19; --surface-2: #262420; --surface-3: #312e29;
+      --ink: #f3efe8; --ink-2: #cfc9bf; --muted: #9d968b; --line: #2e2b26;
+      --accent: #ff8a5b; --accent-ink: #ffa37f; --accent-soft: #3a2218;
+      --blue: #7ea6ff; --blue-soft: #1b2436; --violet: #ab93ff; --violet-soft: #251f38;
+      --green: #4fd39a; --green-soft: #14291f; --err: #ff7a6b; --err-soft: #3a1c18;
+      --shadow: 0 1px 0 rgba(255,255,255,.03) inset, 0 8px 24px -10px rgba(0,0,0,.6);
+      --shadow-lg: 0 18px 40px -18px rgba(255, 110, 70, .35);
+      color-scheme: dark;
     }
   }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
   body {
-    font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    -webkit-font-smoothing: antialiased; min-height: 100vh;
+    font: 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; min-height: 100vh;
     padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
   }
   button, input, select, textarea { font: inherit; color: inherit; }
-  .wrap { max-width: 680px; margin: 0 auto; padding: 0 16px 96px; }
+  svg { display: block; }
+  .hidden { display: none !important; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 0 18px 120px; }
+
+  /* ---------- Barre du haut ---------- */
   header {
-    position: sticky; top: 0; z-index: 5; background: var(--bg);
-    display: flex; align-items: center; gap: 8px; padding: 14px 0 12px;
+    position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 6px;
+    padding: 12px 0; background: color-mix(in srgb, var(--bg) 86%, transparent);
+    backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px);
   }
-  header h1 { font-size: 20px; margin: 0; flex: 1; letter-spacing: -.01em; }
+  .brand { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+  .logo { width: 34px; height: 34px; border-radius: 10px; background: var(--grad); display: grid; place-items: center; box-shadow: 0 6px 14px -6px rgba(207,61,58,.6); flex: none; }
+  .logo svg { width: 20px; height: 20px; }
+  .brand b { font: 600 19px/1 var(--serif); letter-spacing: -.01em; }
+  #title { flex: 1; font: 600 17px/1.2 var(--sans); margin: 0; text-align: center; }
   .iconbtn {
-    width: 40px; height: 40px; border-radius: 10px; border: 0; background: transparent;
-    display: grid; place-items: center; cursor: pointer; color: var(--text);
+    width: 42px; height: 42px; border-radius: 13px; border: 0; background: transparent; color: var(--ink);
+    display: grid; place-items: center; cursor: pointer; flex: none; transition: background .15s;
   }
   .iconbtn:active { background: var(--surface-2); }
   .iconbtn svg { width: 22px; height: 22px; }
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
-  .stack > * + * { margin-top: 12px; }
+  .spacer { width: 42px; flex: none; }
+
+  /* ---------- Éléments communs ---------- */
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); }
+  .pad { padding: 18px; }
+  .stack > * + * { margin-top: 14px; }
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--line);
-    background: var(--surface); cursor: pointer; font-weight: 500; text-decoration: none; color: var(--text);
+    min-height: 46px; padding: 0 18px; border-radius: 14px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--ink); cursor: pointer; font-weight: 600; font-size: 15px;
+    transition: transform .12s, background .15s; text-decoration: none;
   }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-  @media (prefers-color-scheme: dark) { .btn.primary { color: #1a0e05; } }
-  .btn.block { width: 100%; }
-  .btn.danger { color: var(--err); }
-  .btn:disabled { opacity: .5; cursor: default; }
+  .btn:active { transform: scale(.97); }
   .btn svg { width: 18px; height: 18px; flex: none; }
-  .pick { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 22px 16px; text-align: center; border-style: dashed; }
-  .pick svg { width: 32px; height: 32px; color: var(--accent); }
-  .pick strong { font-size: 17px; }
+  .btn.primary { background: var(--grad); border: 0; color: #fff; box-shadow: var(--shadow-lg); }
+  .btn.ghost { background: transparent; border-color: transparent; color: var(--ink-2); }
+  .btn.danger { color: var(--err); }
+  .btn.block { width: 100%; }
   .muted { color: var(--muted); }
-  .small { font-size: 14px; }
-  h2 { font-size: 15px; font-weight: 600; margin: 24px 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
-  .list { display: flex; flex-direction: column; gap: 8px; }
-  .item { display: block; width: 100%; text-align: left; cursor: pointer; }
-  .item .t { font-weight: 600; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .item .m { font-size: 14px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  .badge { font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 99px; background: var(--surface-2); color: var(--muted); }
-  .badge.err { background: color-mix(in srgb, var(--err) 14%, transparent); color: var(--err); }
-  .badge.run { background: var(--accent-soft); color: var(--accent); }
-  .empty { text-align: center; padding: 24px 8px; }
-  .hidden { display: none !important; }
+  .view.enter { animation: enter .32s cubic-bezier(.2, .8, .2, 1); }
+  @keyframes enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
-  /* Traitement */
-  .steps { list-style: none; margin: 0; padding: 0; }
-  .steps li { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; color: var(--muted); }
-  .steps li .dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); flex: none; margin-top: 1px; display: grid; place-items: center; }
-  .steps li.active { color: var(--text); }
-  .steps li.active .dot { border-color: var(--accent); border-top-color: transparent; animation: spin 0.9s linear infinite; }
-  .steps li.done { color: var(--text); }
-  .steps li.done .dot { background: var(--ok); border-color: var(--ok); }
-  .steps li.done .dot::after { content: ""; width: 8px; height: 4px; border: 2px solid #fff; border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
-  .steps li.fail .dot { background: var(--err); border-color: var(--err); }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .status { font-size: 14px; color: var(--muted); min-height: 21px; }
-  .bar { height: 6px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
-  .bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .4s; }
-  .error-box { border-color: color-mix(in srgb, var(--err) 40%, var(--line)); }
-  .error-box p { margin: 0; color: var(--err); }
-
-  /* Note */
-  .note-head h1 { font-size: 22px; line-height: 1.25; margin: 0 0 4px; letter-spacing: -.01em; }
-  .tabs { display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 12px; }
-  .tabs button { flex: 1; min-height: 38px; border: 0; border-radius: 9px; background: transparent; cursor: pointer; font-weight: 500; color: var(--muted); }
-  .tabs button[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
-  .md { overflow-wrap: anywhere; }
-  .md h1, .md h2, .md h3 { color: var(--text); text-transform: none; letter-spacing: 0; margin: 18px 0 6px; line-height: 1.3; }
-  .md h1 { font-size: 20px; } .md h2 { font-size: 17px; } .md h3 { font-size: 16px; }
-  .md > :first-child { margin-top: 0; }
-  .md p { margin: 6px 0; }
-  .md ul, .md ol { margin: 6px 0; padding-left: 22px; }
-  .md li { margin: 3px 0; }
-  .md li.task { list-style: none; margin-left: -22px; display: flex; gap: 8px; }
-  .md li.task input { margin-top: 5px; accent-color: var(--accent); }
-  .seg { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); }
-  .seg:last-child { border-bottom: 0; }
-  .seg time { font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); flex: none; padding-top: 2px; }
-  .actions { position: fixed; left: 0; right: 0; bottom: 0; background: var(--bg); border-top: 1px solid var(--line); padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); }
-  .actions .row { max-width: 680px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .actions .btn { padding: 0 8px; font-size: 15px; }
-
-  /* Réglages */
-  label.f { display: block; font-weight: 600; font-size: 14px; margin-bottom: 4px; }
-  .f-help { font-size: 13px; color: var(--muted); margin-top: 4px; }
-  input[type=text], input[type=password], select, textarea {
-    width: 100%; min-height: 44px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface);
+  /* ---------- Accueil ---------- */
+  .hello { padding: 10px 2px 18px; }
+  .hello h1 { font: 600 32px/1.1 var(--serif); letter-spacing: -.02em; margin: 0 0 6px; }
+  .hello p { margin: 0; color: var(--muted); font-size: 15px; }
+  .hero {
+    position: relative; overflow: hidden; display: block; cursor: pointer; color: #fff;
+    background: var(--grad); border-radius: var(--r-lg); padding: 22px 20px 20px; box-shadow: var(--shadow-lg);
+    transition: transform .15s;
   }
-  textarea { min-height: 84px; resize: vertical; }
+  .hero:active { transform: scale(.985); }
+  .hero::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,.22), transparent 55%);
+  }
+  .hero-row { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
+  .hero-ic { width: 52px; height: 52px; border-radius: 16px; background: rgba(255,255,255,.2); display: grid; place-items: center; flex: none; }
+  .hero-ic svg { width: 26px; height: 26px; }
+  .hero strong { display: block; font: 600 20px/1.2 var(--serif); letter-spacing: -.01em; }
+  .hero span { font-size: 14px; opacity: .88; }
+  .hero-wave { position: absolute; right: -6px; bottom: -8px; display: flex; gap: 5px; align-items: flex-end; height: 70px; opacity: .22; z-index: 0; }
+  .hero-wave i { width: 7px; border-radius: 4px; background: #fff; animation: wave 1.8s ease-in-out infinite; }
+  .hero-wave i:nth-child(1) { height: 30%; animation-delay: -.2s } .hero-wave i:nth-child(2) { height: 65%; animation-delay: -.5s }
+  .hero-wave i:nth-child(3) { height: 45%; animation-delay: -.9s } .hero-wave i:nth-child(4) { height: 90%; animation-delay: -.3s }
+  .hero-wave i:nth-child(5) { height: 55%; animation-delay: -1.1s } .hero-wave i:nth-child(6) { height: 75%; animation-delay: -.7s }
+  .hero-wave i:nth-child(7) { height: 35%; animation-delay: -1.4s } .hero-wave i:nth-child(8) { height: 60%; animation-delay: -.1s }
+  @keyframes wave { 0%, 100% { transform: scaleY(.55); } 50% { transform: scaleY(1); } }
+  .hero-wave i { transform-origin: bottom; }
+
+  .setup { padding: 18px; }
+  .setup h2 { font: 600 19px/1.25 var(--serif); margin: 0 0 4px; }
+  .setup p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+  .setup ol { list-style: none; padding: 0; margin: 0 0 16px; display: grid; gap: 10px; }
+  .setup li { display: flex; gap: 12px; align-items: center; font-size: 14.5px; }
+  .setup li i { width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-ink); font: 600 13px/26px var(--sans); text-align: center; font-style: normal; flex: none; }
+  .setup li small { color: var(--muted); display: block; font-size: 13px; }
+
+  .search { position: relative; margin: 22px 0 4px; }
+  .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
+  .search input {
+    width: 100%; height: 46px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface);
+    padding: 0 14px 0 42px; outline: none; transition: border-color .15s, box-shadow .15s;
+  }
+  .search input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  .group { font-size: 12.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 22px 4px 10px; }
+  .list { display: flex; flex-direction: column; gap: 10px; }
+  .item {
+    display: block; width: 100%; text-align: left; cursor: pointer; padding: 15px 16px; border-radius: var(--r);
+    background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); transition: transform .12s;
+  }
+  .item:active { transform: scale(.985); }
+  .item-top { display: flex; gap: 10px; align-items: baseline; }
+  .item .t { flex: 1; min-width: 0; font: 600 17px/1.3 var(--serif); letter-spacing: -.005em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item .time { font-size: 13px; color: var(--muted); flex: none; font-variant-numeric: tabular-nums; }
+  .item .ex { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--ink-2); font-size: 14.5px; line-height: 1.45; margin-top: 4px; }
+  .item .m { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 500; padding: 3px 9px; border-radius: 99px; background: var(--surface-2); color: var(--ink-2); }
+  .pill svg { width: 13px; height: 13px; }
+  .pill.task { background: var(--green-soft); color: var(--green); }
+  .pill.err { background: var(--err-soft); color: var(--err); }
+  .pill.run { background: var(--accent-soft); color: var(--accent-ink); }
+  .empty { text-align: center; padding: 34px 20px 10px; }
+  .empty-art { width: 120px; height: 90px; margin: 0 auto 14px; color: var(--accent); }
+  .empty h3 { font: 600 20px/1.25 var(--serif); margin: 0 0 6px; }
+  .empty p { margin: 0 auto; color: var(--muted); font-size: 14.5px; max-width: 300px; }
+  .flow { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; margin-top: 16px; font-size: 13px; }
+  .flow span { padding: 5px 10px; border-radius: 99px; background: var(--surface); border: 1px solid var(--line); }
+  .flow svg { width: 14px; height: 14px; color: var(--muted); }
+  .empty-s { text-align: center; color: var(--muted); padding: 28px 10px; font-size: 14.5px; }
+  .diag { border-color: color-mix(in srgb, var(--err) 35%, var(--line)); background: var(--err-soft); padding: 16px; }
+  .diag p { margin: 0 0 6px; color: var(--err); font-weight: 600; }
+
+  /* ---------- Traitement ---------- */
+  .job-hero { text-align: center; padding: 18px 0 22px; }
+  .ring { position: relative; width: 168px; height: 168px; margin: 0 auto 18px; }
+  .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring circle { fill: none; stroke-width: 8; }
+  .ring-bg { stroke: var(--surface-3); }
+  .ring-fg { stroke: url(#ringGrad); stroke-linecap: round; stroke-dasharray: 326.73; stroke-dashoffset: 326.73; transition: stroke-dashoffset .6s cubic-bezier(.2,.8,.2,1); }
+  .ring-in { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 6px; }
+  .eq { display: flex; gap: 4px; align-items: center; height: 34px; }
+  .eq i { width: 5px; height: 100%; border-radius: 3px; background: var(--grad); animation: wave 1s ease-in-out infinite; transform-origin: center; }
+  .eq i:nth-child(2) { animation-delay: -.3s } .eq i:nth-child(3) { animation-delay: -.6s } .eq i:nth-child(4) { animation-delay: -.15s } .eq i:nth-child(5) { animation-delay: -.45s }
+  .ring.stopped .eq i { animation: none; transform: scaleY(.35); }
+  .ring.failed .eq i { background: var(--err); }
+  .pct { font-size: 14px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .job-name { font: 600 20px/1.3 var(--serif); overflow-wrap: anywhere; padding: 0 10px; }
+  .job-size { color: var(--muted); font-size: 14px; margin-top: 2px; }
+  .steps { list-style: none; margin: 0; padding: 6px 18px; }
+  .step { display: flex; gap: 14px; padding: 14px 0; position: relative; color: var(--muted); }
+  .step + .step { border-top: 1px solid var(--line); }
+  .step .ic { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--surface-3); flex: none; display: grid; place-items: center; }
+  .step .ic svg { width: 15px; height: 15px; opacity: 0; }
+  .step b { display: block; font-weight: 600; color: inherit; }
+  .step small { display: block; font-size: 13.5px; color: var(--muted); min-height: 1em; }
+  .step.active { color: var(--ink); }
+  .step.active .ic { border-color: var(--accent); border-right-color: transparent; animation: spin .9s linear infinite; }
+  .step.done { color: var(--ink); }
+  .step.done .ic { background: var(--green); border-color: var(--green); color: #fff; }
+  .step.done .ic svg { opacity: 1; }
+  .step.fail .ic { background: var(--err); border-color: var(--err); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .status { padding: 0 18px 16px; font-size: 14px; color: var(--accent-ink); min-height: 21px; }
+  .status:empty { display: none; }
+  .hint { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; color: var(--muted); margin: 16px 4px 0; }
+  .hint svg { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+  .err-card { margin-top: 16px; padding: 16px 18px; background: var(--err-soft); border-color: color-mix(in srgb, var(--err) 30%, var(--line)); }
+  .err-card p { margin: 0 0 14px; color: var(--err); font-weight: 500; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ---------- Note ---------- */
+  .note-head { padding: 6px 2px 18px; }
+  .eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--accent-ink); margin-bottom: 8px; }
+  .note-head h1 { font: 600 28px/1.15 var(--serif); letter-spacing: -.02em; margin: 0 0 12px; overflow-wrap: anywhere; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tabs-wrap { position: sticky; top: 66px; z-index: 5; padding: 4px 0 12px; background: var(--bg); }
+  .tabs { display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 14px; }
+  .tabs button { flex: 1; min-height: 40px; border: 0; border-radius: 11px; background: transparent; cursor: pointer; font-weight: 600; font-size: 14.5px; color: var(--muted); transition: all .2s; }
+  .tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+  .secs { display: flex; flex-direction: column; gap: 12px; }
+  .sec { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 16px 18px; --k: var(--accent); --ks: var(--accent-soft); }
+  .sec.k-points { --k: var(--blue); --ks: var(--blue-soft); }
+  .sec.k-decisions { --k: var(--violet); --ks: var(--violet-soft); }
+  .sec.k-actions { --k: var(--green); --ks: var(--green-soft); }
+  .sec.k-other { --k: var(--ink-2); --ks: var(--surface-2); }
+  .sec h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--k); }
+  .sec-ic { width: 30px; height: 30px; border-radius: 9px; background: var(--ks); display: grid; place-items: center; }
+  .sec-ic svg { width: 17px; height: 17px; }
+  .sec.k-resume .md { font-size: 16.5px; line-height: 1.6; }
+  .md { overflow-wrap: anywhere; color: var(--ink); }
+  .md > :first-child { margin-top: 0; } .md > :last-child { margin-bottom: 0; }
+  .md h1, .md h2, .md h3 { font: 600 17px/1.3 var(--serif); margin: 14px 0 6px; text-transform: none; letter-spacing: 0; color: var(--ink); display: block; }
+  .md p { margin: 6px 0; }
+  .md ul, .md ol { margin: 4px 0; padding-left: 20px; }
+  .md li { margin: 6px 0; padding-left: 2px; }
+  .md li::marker { color: var(--k, var(--accent)); }
+  .md strong { font-weight: 600; }
+  .md code { font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-radius: 6px; }
+  .md li.task { list-style: none; margin-left: -20px; padding-left: 0; }
+  .md li.task label { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
+  .md li.task input { appearance: none; -webkit-appearance: none; width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--surface-3); flex: none; margin: 1px 0 0; display: grid; place-items: center; cursor: pointer; transition: all .15s; background: var(--surface); }
+  .md li.task input:checked { background: var(--green); border-color: var(--green); }
+  .md li.task input:checked::after { content: ""; width: 10px; height: 5px; border: 2.5px solid #fff; border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
+  .md li.task input:checked + span { color: var(--muted); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--muted) 60%, transparent); }
+  .tr-tools { margin: 0 0 12px; }
+  .tr-tools .search { margin: 0; }
+  .tr-list { padding: 6px 16px; }
+  .seg { display: flex; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+  .seg:last-child { border-bottom: 0; }
+  .seg time { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--accent-ink); background: var(--accent-soft); border-radius: 7px; padding: 2px 7px; height: fit-content; flex: none; margin-top: 2px; }
+  .seg span { color: var(--ink-2); }
+  .seg mark { background: color-mix(in srgb, var(--accent) 28%, transparent); color: var(--ink); border-radius: 3px; padding: 0 1px; }
+  .note-foot { display: flex; gap: 8px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+  .actions {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+    padding: 10px 18px calc(12px + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: saturate(1.4) blur(16px); -webkit-backdrop-filter: saturate(1.4) blur(16px);
+    border-top: 1px solid var(--line);
+  }
+  .actions .bar3 { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 8px; }
+  .actions .btn { padding: 0 8px; }
+
+  /* ---------- Réglages ---------- */
+  .set-group + .set-group { margin-top: 24px; }
+  .set-h { display: flex; align-items: center; gap: 10px; margin: 0 4px 10px; }
+  .set-h .sec-ic { background: var(--accent-soft); color: var(--accent-ink); }
+  .set-h b { font: 600 18px/1.2 var(--serif); }
+  .set-h small { display: block; font-size: 13px; color: var(--muted); font-weight: 400; }
+  label.f { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+  .f-help { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+  input[type=text], input[type=password], select, textarea {
+    width: 100%; min-height: 46px; padding: 10px 13px; border-radius: 12px; border: 1px solid var(--line);
+    background: var(--bg); outline: none; transition: border-color .15s, box-shadow .15s;
+  }
+  input[type=text]:focus, input[type=password]:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  textarea { min-height: 90px; resize: vertical; }
   .keyrow { display: flex; gap: 8px; }
   .keyrow input { flex: 1; min-width: 0; }
-  a { color: var(--accent); }
+  .keyrow .btn { min-height: 46px; padding: 0 14px; }
+  a { color: var(--accent-ink); }
+  .save-bar { margin-top: 24px; }
+  .privacy { display: flex; gap: 10px; font-size: 13px; color: var(--muted); margin: 18px 4px 0; line-height: 1.5; }
+  .privacy svg { width: 18px; height: 18px; flex: none; margin-top: 1px; }
+
   .toast {
-    position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%) translateY(20px); opacity: 0;
-    background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px;
-    transition: .25s; pointer-events: none; z-index: 20; max-width: calc(100% - 32px);
+    position: fixed; left: 50%; bottom: 96px; z-index: 30; transform: translate(-50%, 16px); opacity: 0;
+    background: var(--ink); color: var(--bg); padding: 11px 18px; border-radius: 99px; font-size: 14px; font-weight: 500;
+    transition: .25s cubic-bezier(.2,.8,.2,1); pointer-events: none; max-width: calc(100% - 36px); box-shadow: 0 10px 30px -10px rgba(0,0,0,.4);
   }
-  .toast.show { opacity: 1; transform: translateX(-50%); }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f2803f"/><stop offset=".55" stop-color="#e0572b"/><stop offset="1" stop-color="#cf3d3a"/>
+    </linearGradient>
+  </defs>
+</svg>
 <div class="wrap">
   <header>
     <button class="iconbtn hidden" id="backBtn" aria-label="Retour">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
     </button>
-    <h1 id="title">Notes Plaud</h1>
+    <div class="brand" id="brand">
+      <span class="logo"><svg viewBox="0 0 24 24" fill="#fff"><rect x="3" y="9" width="2.6" height="6" rx="1.3"/><rect x="7.4" y="5.5" width="2.6" height="13" rx="1.3"/><rect x="11.8" y="8" width="2.6" height="8" rx="1.3"/><rect x="16.2" y="4" width="2.6" height="16" rx="1.3"/><rect x="20.4" y="9.5" width="2.2" height="5" rx="1.1"/></svg></span>
+      <b>Notes Plaud</b>
+    </div>
+    <h1 id="title" class="hidden"></h1>
     <button class="iconbtn" id="settingsBtn" aria-label="Réglages">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg>
     </button>
+    <span class="spacer hidden" id="spacer"></span>
   </header>
 
-  <!-- Accueil -->
-  <section id="v-home" class="stack">
-    <div id="onboard" class="card stack hidden">
-      <strong>Bienvenue 👋</strong>
-      <p class="muted small" style="margin:0">Pour commencer, colle ta clé API Groq (gratuite, sans carte bancaire). Elle reste sur ce téléphone.</p>
-      <button class="btn primary block" id="onboardBtn">Ajouter ma clé Groq</button>
+  <!-- ===== Accueil ===== -->
+  <section id="v-home" class="view">
+    <div class="hello">
+      <h1 id="greet">Bonjour</h1>
+      <p id="stats"></p>
     </div>
-    <label class="card pick" for="fileInput">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
-      <strong>Choisir un fichier audio</strong>
-      <span class="muted small">Ou depuis l'app Plaud : Exporter → Audio → MP3 → Partager → Notes Plaud</span>
+
+    <div id="onboard" class="card setup hidden">
+      <h2>Deux minutes de réglage</h2>
+      <p>Les clés sont gratuites et restent uniquement sur ce téléphone.</p>
+      <ol>
+        <li><i>1</i><span>Clé <b>Groq</b> pour la transcription<small>Obligatoire · console.groq.com/keys</small></span></li>
+        <li><i>2</i><span>Clé <b>Gemini</b> pour les résumés<small>Recommandée · aistudio.google.com/apikey</small></span></li>
+      </ol>
+      <button class="btn primary block" id="onboardBtn">Ajouter mes clés</button>
+    </div>
+
+    <div id="shareDiag" class="card diag hidden" style="margin-bottom:14px">
+      <p>Partage reçu, mais sans fichier audio.</p>
+      <div id="shareDiagTxt" style="white-space:pre-wrap; overflow-wrap:anywhere; font-size:14px"></div>
+      <button class="btn" id="shareDiagClose" style="margin-top:12px">Fermer</button>
+    </div>
+
+    <label class="hero" for="fileInput">
+      <div class="hero-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="hero-row">
+        <span class="hero-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>
+        <div><strong>Nouvel enregistrement</strong><span>Choisir un fichier audio, ou partager depuis Plaud</span></div>
+      </div>
     </label>
-    <input type="file" id="fileInput" accept="audio/*,.mp3,.m4a,.wav,.ogg,.opus,.aac,.flac" class="hidden">
-    <h2>Mes notes</h2>
+    <input type="file" id="fileInput" accept="audio/*,video/*,.mp3,.m4a,.wav,.ogg,.opus,.aac,.flac,.amr" class="hidden">
+
+    <div class="search hidden" id="searchWrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" id="search" placeholder="Rechercher dans mes notes" autocomplete="off">
+    </div>
     <div class="list" id="notesList"></div>
   </section>
 
-  <!-- Traitement -->
-  <section id="v-job" class="stack hidden">
-    <div class="card stack">
-      <div>
-        <strong id="jobName">—</strong>
-        <div class="muted small" id="jobSize"></div>
+  <!-- ===== Traitement ===== -->
+  <section id="v-job" class="view hidden">
+    <div class="job-hero">
+      <div class="ring" id="jobVis">
+        <svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" id="jobBar" cx="60" cy="60" r="52"/></svg>
+        <div class="ring-in"><div class="eq"><i></i><i></i><i></i><i></i><i></i></div><div class="pct" id="jobPct">0 %</div></div>
       </div>
-      <ul class="steps">
-        <li id="st-up"><span class="dot"></span><span>Envoi et transcription<br><span class="small muted" id="st-up-d"></span></span></li>
-        <li id="st-sum"><span class="dot"></span><span>Résumé<br><span class="small muted" id="st-sum-d"></span></span></li>
-      </ul>
-      <div class="bar"><i id="jobBar"></i></div>
-      <div class="status" id="jobStatus"></div>
-      <p class="muted small" style="margin:0">Garde l'app ouverte pendant le traitement. L'écran reste allumé automatiquement.</p>
+      <div class="job-name" id="jobName">—</div>
+      <div class="job-size" id="jobSize"></div>
     </div>
-    <div class="card error-box stack hidden" id="jobError">
+    <div class="card">
+      <ol class="steps">
+        <li class="step" id="st-up"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span><div><b>Transcription</b><small id="st-up-d"></small></div></li>
+        <li class="step" id="st-sum"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg></span><div><b>Résumé</b><small id="st-sum-d"></small></div></li>
+      </ol>
+      <div class="status" id="jobStatus"></div>
+    </div>
+    <p class="hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M11 18.5h2"/></svg><span>Garde l'app ouverte pendant le traitement. L'écran reste allumé tout seul.</span></p>
+    <div class="card err-card hidden" id="jobError">
       <p id="jobErrorMsg"></p>
-      <div style="display:flex; gap:8px; flex-wrap:wrap">
-        <button class="btn" id="jobRetry">Réessayer</button>
+      <div class="row">
+        <button class="btn primary" id="jobRetry">Réessayer</button>
         <button class="btn" id="jobHome">Retour</button>
       </div>
     </div>
   </section>
 
-  <!-- Note -->
-  <section id="v-note" class="stack hidden">
+  <!-- ===== Note ===== -->
+  <section id="v-note" class="view hidden">
     <div class="note-head">
+      <div class="eyebrow" id="noteDate"></div>
       <h1 id="noteTitle"></h1>
-      <div class="muted small" id="noteMeta"></div>
+      <div class="chips" id="noteMeta"></div>
     </div>
-    <div class="tabs" role="tablist">
-      <button role="tab" aria-selected="true" data-tab="sum">Résumé</button>
-      <button role="tab" aria-selected="false" data-tab="tr">Transcription</button>
+    <div class="tabs-wrap">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="sum">Résumé</button>
+        <button role="tab" aria-selected="false" data-tab="tr">Transcription</button>
+      </div>
     </div>
-    <div class="card md" id="noteSum"></div>
-    <div class="card hidden" id="noteTr"></div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap">
-      <button class="btn" id="resumAgain">Refaire le résumé</button>
-      <button class="btn danger" id="delNote">Supprimer</button>
+    <div class="secs" id="noteSum"></div>
+    <div id="noteTrWrap" class="hidden">
+      <div class="tr-tools">
+        <div class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input type="search" id="trSearch" placeholder="Rechercher dans la transcription" autocomplete="off">
+        </div>
+      </div>
+      <div class="card tr-list" id="noteTr"></div>
+    </div>
+    <div class="note-foot">
+      <button class="btn ghost" id="resumAgain">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg><span>Refaire le résumé</span></button>
+      <button class="btn ghost danger" id="delNote">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Supprimer</button>
     </div>
   </section>
 
-  <!-- Réglages -->
-  <section id="v-settings" class="stack hidden">
-    <div class="card stack">
-      <div>
-        <label class="f" for="sKey">Clé API Groq</label>
-        <div class="keyrow">
-          <input type="password" id="sKey" autocomplete="off" spellcheck="false" placeholder="gsk_…">
-          <button class="btn" id="sKeyShow" type="button">Voir</button>
+  <!-- ===== Réglages ===== -->
+  <section id="v-settings" class="view hidden">
+    <div class="set-group">
+      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span><div><b>Transcription</b><small>Groq · Whisper</small></div></div>
+      <div class="card pad stack">
+        <div>
+          <label class="f" for="sKey">Clé API Groq</label>
+          <div class="keyrow">
+            <input type="password" id="sKey" autocomplete="off" spellcheck="false" placeholder="gsk_…">
+            <button class="btn" id="sKeyShow" type="button">Voir</button>
+          </div>
+          <div class="f-help">Crée-la sur <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> (gratuit, sans carte bancaire).</div>
         </div>
-        <div class="f-help">Crée-la sur <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> (compte gratuit). Elle est stockée uniquement sur ce téléphone.</div>
+        <div>
+          <label class="f" for="sLang">Langue des enregistrements</label>
+          <select id="sLang">
+            <option value="fr">Français</option>
+            <option value="auto">Détection automatique</option>
+            <option value="en">Anglais</option>
+            <option value="es">Espagnol</option>
+            <option value="de">Allemand</option>
+            <option value="it">Italien</option>
+          </select>
+        </div>
+        <div>
+          <label class="f" for="sWhisper">Modèle de transcription</label>
+          <select id="sWhisper">
+            <option value="whisper-large-v3">whisper-large-v3 (le plus précis)</option>
+            <option value="whisper-large-v3-turbo">whisper-large-v3-turbo (plus rapide)</option>
+          </select>
+        </div>
       </div>
-      <div>
-        <label class="f" for="sLang">Langue des enregistrements</label>
-        <select id="sLang">
-          <option value="fr">Français</option>
-          <option value="auto">Détection automatique</option>
-          <option value="en">Anglais</option>
-          <option value="es">Espagnol</option>
-          <option value="de">Allemand</option>
-          <option value="it">Italien</option>
-        </select>
-      </div>
-      <div>
-        <label class="f" for="sWhisper">Modèle de transcription</label>
-        <select id="sWhisper">
-          <option value="whisper-large-v3">whisper-large-v3 (le plus précis)</option>
-          <option value="whisper-large-v3-turbo">whisper-large-v3-turbo (plus rapide)</option>
-        </select>
-      </div>
-      <div>
-        <label class="f" for="sLlm">Modèles de résumé</label>
-        <input type="text" id="sLlm" spellcheck="false">
-        <div class="f-help">Séparés par des virgules. Le premier sert à la synthèse finale. Utiliser plusieurs modèles accélère les longs enregistrements, car chacun a sa propre limite gratuite.</div>
-      </div>
-      <div>
-        <label class="f" for="sCtx">Contexte (facultatif)</label>
-        <textarea id="sCtx" placeholder="Ex. : je suis étudiant en BTS, ce sont surtout des cours d'économie. Les noms fréquents : Mme Durand, M. Leroy."></textarea>
-        <div class="f-help">Ajouté aux consignes du résumé pour qu'il soit plus pertinent.</div>
-      </div>
-      <button class="btn primary block" id="sSave">Enregistrer</button>
     </div>
-    <p class="muted small">Tes notes sont stockées dans ce navigateur, sur ce téléphone. L'audio est envoyé à Groq pour la transcription, puis supprimé de l'app une fois la note terminée.</p>
+
+    <div class="set-group">
+      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></span><div><b>Résumé</b><small>Gemini ou Groq</small></div></div>
+      <div class="card pad stack">
+        <div>
+          <label class="f" for="sProv">Résumé avec</label>
+          <select id="sProv">
+            <option value="auto">Auto (Gemini si clé, sinon Groq)</option>
+            <option value="gemini">Gemini</option>
+            <option value="groq">Groq</option>
+          </select>
+        </div>
+        <div id="gBox" class="stack">
+          <div>
+            <label class="f" for="sGKey">Clé API Gemini</label>
+            <div class="keyrow">
+              <input type="password" id="sGKey" autocomplete="off" spellcheck="false" placeholder="AIza…">
+              <button class="btn" id="sGKeyShow" type="button">Voir</button>
+            </div>
+            <div class="f-help">Crée-la sur <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (gratuit, sans carte bancaire). Sur l'offre gratuite, Google peut utiliser les textes envoyés pour améliorer ses modèles.</div>
+          </div>
+          <div>
+            <label class="f" for="sGModel">Modèles Gemini</label>
+            <input type="text" id="sGModel" spellcheck="false">
+            <div class="f-help">Le premier est utilisé. Les suivants servent de secours s'il est indisponible ou si son quota du jour est atteint.</div>
+          </div>
+        </div>
+        <div id="qBox">
+          <label class="f" for="sLlm">Modèles Groq pour le résumé</label>
+          <input type="text" id="sLlm" spellcheck="false">
+          <div class="f-help">Séparés par des virgules. Le premier sert à la synthèse finale. Plusieurs modèles accélèrent les longs enregistrements, car chacun a sa propre limite gratuite.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="set-group">
+      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><div><b>Personnalisation</b><small>Pour des résumés plus pertinents</small></div></div>
+      <div class="card pad">
+        <label class="f" for="sCtx">Contexte (facultatif)</label>
+        <textarea id="sCtx" placeholder="Ex. : je suis étudiant en BTS, ce sont surtout des cours d'économie. Noms fréquents : Mme Durand, M. Leroy."></textarea>
+        <div class="f-help">Ajouté aux consignes du résumé.</div>
+      </div>
+    </div>
+
+    <div class="save-bar"><button class="btn primary block" id="sSave">Enregistrer</button></div>
+    <p class="privacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span>Tes clés et tes notes restent dans ce téléphone. L'audio est envoyé à Groq pour la transcription, puis supprimé de l'app une fois la note terminée. Seule la transcription écrite est envoyée pour le résumé.</span></p>
   </section>
 </div>
 
 <div class="actions hidden" id="noteActions">
-  <div class="row">
-    <button class="btn" id="aCopy">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copier</button>
-    <button class="btn" id="aShare">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>Partager</button>
-    <button class="btn" id="aDl">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>.md</button>
+  <div class="bar3">
+    <button class="btn" id="aCopy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="12" height="12" rx="2.5"/><path d="M15.5 8.5V6a2.5 2.5 0 0 0-2.5-2.5H6A2.5 2.5 0 0 0 3.5 6v7A2.5 2.5 0 0 0 6 15.5h2.5"/></svg>Copier</button>
+    <button class="btn primary" id="aShare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Partager</button>
+    <button class="btn" id="aDl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>.md</button>
   </div>
 </div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 'use strict';
-
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
 window.CONFIG = {
   tpmBudget: 7000,          // l'offre gratuite de Groq : 8 000 tokens/min par modèle, on garde une marge
   maxAudioChunk: 20 * 1024 * 1024, // limite Groq gratuite : 25 Mo par fichier
-  singleShotChars: 12000,   // en dessous, résumé en une seule requête
-  chunkChars: 11000,        // taille des morceaux pour les longs enregistrements
+  singleShotChars: 12000,   // Groq : en dessous, résumé en une seule requête
+  chunkChars: 11000,        // Groq : taille des morceaux pour les longs enregistrements
+  gemSingleShotChars: 400000, // Gemini accepte des textes très longs : une seule requête jusqu'à ~8 h d'audio
+  gemChunkChars: 300000,
 };
 const DEFAULTS = {
   key: '', lang: 'fr', whisper: 'whisper-large-v3',
   llms: 'openai/gpt-oss-120b, openai/gpt-oss-20b', ctx: '',
+  provider: 'auto', gkey: '', gmodels: 'gemini-3.8-flash, gemini-flash-latest, gemini-3.5-flash',
 };
 function loadSettings() {
   let s = {};
@@ -282,6 +525,8 @@ function saveSettings(s) {
 }
 let settings = loadSettings();
 const llmList = () => settings.llms.split(',').map((x) => x.trim()).filter(Boolean);
+const gemList = () => settings.gmodels.split(',').map((x) => x.trim()).filter(Boolean);
+const provider = () => settings.provider === 'auto' ? (settings.gkey ? 'gemini' : 'groq') : settings.provider;
 
 /* =================== IndexedDB =================== */
 function openDB() {
@@ -349,7 +594,7 @@ function extFor(file) {
 const baseName = (n) => (n || 'Enregistrement').replace(/\.[a-z0-9]{2,5}$/i, '');
 
 // Mini rendu Markdown (titres, listes, cases à cocher, gras, italique)
-function md(src) {
+function md(src, ctr = { i: 0 }) {
   const inline = (s) => esc(s)
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/(^|[^*])\*(?!\s)(.+?)\*(?!\*)/g, '$1<em>$2</em>')
@@ -364,7 +609,7 @@ function md(src) {
     if (/^(-{3,}|\*{3,})$/.test(line.trim())) { close(); continue; }
     if ((m = /^\s*[-*•]\s+\[( |x|X)\]\s+(.*)$/.exec(line))) {
       if (list !== 'ul') { close(); out.push('<ul>'); list = 'ul'; }
-      out.push(`<li class="task"><input type="checkbox" ${m[1].trim() ? 'checked' : ''} disabled><span>${inline(m[2])}</span></li>`); continue;
+      out.push(`<li class="task"><label><input type="checkbox" data-task="${ctr.i++}" ${m[1].trim() ? 'checked' : ''}><span>${inline(m[2])}</span></label></li>`); continue;
     }
     if ((m = /^\s*[-*•]\s+(.*)$/.exec(line))) { if (list !== 'ul') { close(); out.push('<ul>'); list = 'ul'; } out.push(`<li>${inline(m[1])}</li>`); continue; }
     if ((m = /^\s*\d+[.)]\s+(.*)$/.exec(line))) { if (list !== 'ol') { close(); out.push('<ol>'); list = 'ol'; } out.push(`<li>${inline(m[1])}</li>`); continue; }
@@ -388,7 +633,7 @@ async function keepAwake(on) {
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantWake) keepAwake(true); });
 
 /* =================== Appels Groq =================== */
-class GroqError extends Error {}
+class ApiError extends Error {}
 function parseWait(msg, retryAfter) {
   const m = /try again in\s*(?:(\d+)h)?\s*(?:(\d+)m)?\s*(?:([\d.]+)s)?/i.exec(msg || '');
   if (m && (m[1] || m[2] || m[3])) return (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (parseFloat(m[3]) || 0) + 1;
@@ -409,23 +654,23 @@ async function groq(path, init, label) {
       r = await fetch(API + path, { ...init, headers: { Authorization: 'Bearer ' + settings.key, ...(init.headers || {}) } });
     } catch (e) {
       if (attempt < 2) { await countdown(5, 'Connexion perdue'); continue; }
-      throw new GroqError("Impossible de joindre Groq. Vérifie ta connexion Internet, puis réessaie.");
+      throw new ApiError("Impossible de joindre Groq. Vérifie ta connexion Internet, puis réessaie.");
     }
     if (r.ok) return r.json();
     let text = ''; try { text = await r.text(); } catch (e) {}
     let msg = text; try { msg = JSON.parse(text).error.message || text; } catch (e) {}
-    if (r.status === 401) throw new GroqError('Clé API Groq refusée. Vérifie-la dans les réglages (icône en haut à droite).');
-    if (r.status === 413) throw new GroqError('Requête trop grosse pour l\'offre gratuite de Groq : ' + msg);
+    if (r.status === 401) throw new ApiError('Clé API Groq refusée. Vérifie-la dans les réglages (icône en haut à droite).');
+    if (r.status === 413) throw new ApiError('Requête trop grosse pour l\'offre gratuite de Groq : ' + msg);
     if (r.status === 429) {
       const wait = parseWait(msg, r.headers.get('retry-after'));
-      if (wait > 15 * 60) throw new GroqError('Limite gratuite de Groq atteinte pour le moment. ' + msg);
+      if (wait > 15 * 60) throw new ApiError('Limite gratuite de Groq atteinte pour le moment. ' + msg);
       await countdown(wait, 'Limite gratuite de Groq atteinte, pause');
       continue;
     }
     if (r.status >= 500 && attempt < 4) { await countdown(5 * (attempt + 1), 'Groq ne répond pas bien'); continue; }
-    throw new GroqError(`Erreur Groq (${r.status}) : ${msg}`);
+    throw new ApiError(`Erreur Groq (${r.status}) : ${msg}`);
   }
-  throw new GroqError('Groq n\'a pas répondu après plusieurs essais. Réessaie plus tard.');
+  throw new ApiError('Groq n\'a pas répondu après plusieurs essais. Réessaie plus tard.');
 }
 
 // --- Transcription ---
@@ -475,13 +720,14 @@ function waitFor(model, tok) {
 }
 async function chat(prompt, maxOut, label, preferFirst) {
   const models = llmList();
-  if (!models.length) throw new GroqError('Aucun modèle de résumé indiqué dans les réglages.');
+  if (!models.length) throw new ApiError('Aucun modèle de résumé indiqué dans les réglages.');
   const tok = Math.ceil(prompt.length / 3) + maxOut + 200;
   let best = models[0], bw = waitFor(best, tok);
   if (!preferFirst) for (const m of models.slice(1)) { const w = waitFor(m, tok); if (w < bw) { bw = w; best = m; } }
   if (bw > 0) await countdown(Math.ceil(bw), label + ' — pause (limite gratuite)');
   status(label + '…');
   (usage[best] = usage[best] || []).push({ t: Date.now(), tok });
+  lastModel = best;
   const body = {
     model: best, messages: [{ role: 'user', content: prompt }],
     temperature: 0.3, max_completion_tokens: maxOut,
@@ -490,9 +736,72 @@ async function chat(prompt, maxOut, label, preferFirst) {
   const j = await groq('/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }, label);
   const c = j.choices && j.choices[0];
   const out = c && c.message && (c.message.content || '').trim();
-  if (!out) throw new GroqError('Le modèle a renvoyé une réponse vide. Réessaie avec « Refaire le résumé ».');
-  return out.replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
+  if (!out) throw new ApiError('Le modèle a renvoyé une réponse vide. Réessaie avec « Refaire le résumé ».');
+  return cleanOut(out);
 }
+const cleanOut = (t) => t.replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
+let lastModel = '';
+
+// --- Gemini (API gratuite de Google AI Studio) ---
+const GEM_API = 'https://generativelanguage.googleapis.com/v1beta/models/';
+let gemThinking = true;
+async function gemini(prompt, maxOut, label) {
+  if (!settings.gkey) throw new ApiError('Clé Gemini manquante. Ajoute-la dans les réglages, ou choisis Groq pour le résumé.');
+  const models = gemList();
+  if (!models.length) throw new ApiError('Aucun modèle Gemini indiqué dans les réglages.');
+  let lastErr = '';
+  for (const model of models) {
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const body = {
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: { maxOutputTokens: Math.max(maxOut * 3, 8192) },
+      };
+      if (gemThinking) body.generationConfig.thinkingConfig = { thinkingLevel: 'low' };
+      status(label + '…');
+      let r;
+      try {
+        r = await fetch(GEM_API + encodeURIComponent(model) + ':generateContent', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': settings.gkey }, body: JSON.stringify(body),
+        });
+      } catch (e) {
+        if (attempt < 2) { await countdown(5, 'Connexion perdue'); continue; }
+        throw new ApiError('Impossible de joindre Gemini. Vérifie ta connexion Internet, puis réessaie.');
+      }
+      let text = ''; try { text = await r.text(); } catch (e) {}
+      let j = null; try { j = JSON.parse(text); } catch (e) {}
+      if (r.ok) {
+        const cand = j && j.candidates && j.candidates[0];
+        const out = cand && cand.content && (cand.content.parts || []).filter((x) => !x.thought && x.text).map((x) => x.text).join('').trim();
+        if (out) { lastModel = model; return cleanOut(out); }
+        const why = (cand && cand.finishReason) || (j && j.promptFeedback && j.promptFeedback.blockReason) || 'inconnue';
+        throw new ApiError(`Gemini n'a rien renvoyé (raison : ${why}). Réessaie, ou choisis Groq dans les réglages.`);
+      }
+      const msg = (j && j.error && j.error.message) || text || ('HTTP ' + r.status);
+      if (r.status === 400 && gemThinking && /thinking/i.test(msg)) { gemThinking = false; continue; }
+      if (r.status === 401 || r.status === 403 || /api key not valid|API_KEY_INVALID/i.test(msg)) {
+        throw new ApiError('Clé API Gemini refusée. Vérifie-la dans les réglages (icône en haut à droite).');
+      }
+      if (r.status === 404 || (r.status === 400 && /not found|is not supported|unknown model/i.test(msg))) {
+        lastErr = `modèle « ${model} » indisponible`; break;
+      }
+      if (r.status === 429) {
+        const det = (j && j.error && j.error.details) || [];
+        const rd = det.map((d) => d.retryDelay).find(Boolean);
+        const daily = /per ?day|PerDay|daily/i.test(msg + JSON.stringify(det));
+        if (daily) { lastErr = `quota du jour atteint pour « ${model} »`; break; }
+        const wait = rd ? parseFloat(rd) + 1 : parseWait(msg, r.headers.get('retry-after'));
+        if (wait > 15 * 60) throw new ApiError('Limite gratuite de Gemini atteinte pour le moment. ' + msg);
+        await countdown(wait, 'Limite gratuite de Gemini atteinte, pause');
+        continue;
+      }
+      if (r.status >= 500 && attempt < 4) { await countdown(5 * (attempt + 1), 'Gemini ne répond pas bien'); continue; }
+      throw new ApiError(`Erreur Gemini (${r.status}) : ${msg}`);
+    }
+  }
+  throw new ApiError(`Aucun modèle Gemini utilisable (${lastErr}). Change-le dans les réglages, ou choisis Groq pour le résumé.`);
+}
+const llm = (prompt, maxOut, label, preferFirst) =>
+  provider() === 'gemini' ? gemini(prompt, maxOut, label) : chat(prompt, maxOut, label, preferFirst);
 
 const ctxLine = () => settings.ctx.trim() ? `\nContexte donné par l'utilisateur : ${settings.ctx.trim()}\n` : '';
 const P_FINAL = (text, fromParts) => `Tu rédiges des comptes rendus clairs et fidèles, en français.
@@ -535,24 +844,27 @@ function splitText(text, size) {
 }
 async function summarize(segments, onProgress) {
   let text = segments.map((s) => s.text).join('\n');
-  if (text.length <= CONFIG.singleShotChars) {
+  const gem = provider() === 'gemini';
+  const single = gem ? CONFIG.gemSingleShotChars : CONFIG.singleShotChars;
+  const chunkSize = gem ? CONFIG.gemChunkChars : CONFIG.chunkChars;
+  if (text.length <= single) {
     onProgress('Rédaction du résumé', 0.5);
-    return chat(P_FINAL(text, false), 2500, 'Rédaction du résumé', true);
+    return llm(P_FINAL(text, false), 2500, 'Rédaction du résumé', true);
   }
   let round = 0;
-  while (text.length > CONFIG.singleShotChars && round < 3) {
-    const chunks = splitText(text, CONFIG.chunkChars);
+  while (text.length > single && round < 3) {
+    const chunks = splitText(text, chunkSize);
     const notes = [];
     for (let i = 0; i < chunks.length; i++) {
       const label = `Résumé de la partie ${i + 1}/${chunks.length}`;
       onProgress(label, (i / (chunks.length + 1)));
-      notes.push(await chat(P_PART(chunks[i], i + 1, chunks.length), 1200, label));
+      notes.push(await llm(P_PART(chunks[i], i + 1, chunks.length), 1200, label));
     }
     text = notes.map((n, i) => `### Partie ${i + 1}\n${n}`).join('\n\n');
     round++;
   }
   onProgress('Synthèse finale', 0.95);
-  return chat(P_FINAL(text.slice(0, CONFIG.singleShotChars + 4000), true), 2500, 'Synthèse finale', true);
+  return llm(P_FINAL(text.slice(0, single + 4000), true), 2500, 'Synthèse finale', true);
 }
 function splitTitle(summary, fallback) {
   const m = /^#\s+(.+)\n?/.exec(summary.trim());
@@ -560,14 +872,38 @@ function splitTitle(summary, fallback) {
   return { title: fallback, body: summary.trim() };
 }
 
+
+/* =================== Icônes =================== */
+const I = (d, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const ICONS = {
+  resume: I('<path d="M6 3.5h8l4 4V20a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 6 20z"/><path d="M14 3.5V8h4M9 12h6M9 16h4"/>'),
+  points: I('<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor"/>'),
+  decisions: I('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>'),
+  actions: I('<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M8 12l3 3 5-6"/>'),
+  other: I('<path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/>'),
+  clock: I('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
+  check: I('<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M8 12l3 3 5-6"/>'),
+  file: I('<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>'),
+  spark: I('<path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/>'),
+  alert: I('<circle cx="12" cy="12" r="8.5"/><path d="M12 8v5M12 16h.01"/>'),
+  arrow: I('<path d="M9 6l6 6-6 6"/>'),
+};
+const kindOf = (t) => /résum|resum|synth/i.test(t) ? 'resume' : /point|clé|cle|essentiel/i.test(t) ? 'points'
+  : /décision|decision/i.test(t) ? 'decisions' : /action|tâche|tache|à faire|todo/i.test(t) ? 'actions' : 'other';
+
 /* =================== Traitement d'un fichier =================== */
 let busy = false;
+const RING = 2 * Math.PI * 52;
 function status(t) { $('jobStatus').textContent = t || ''; }
 function step(id, state, detail) {
-  const li = $(id); li.className = state || '';
+  $(id).className = 'step' + (state ? ' ' + state : '');
   if (detail != null) $(id + '-d').textContent = detail;
 }
-function bar(p) { $('jobBar').style.width = Math.round(Math.max(0, Math.min(1, p)) * 100) + '%'; }
+function bar(p) {
+  p = Math.max(0, Math.min(1, p));
+  $('jobBar').style.strokeDashoffset = String(RING * (1 - p));
+  $('jobPct').textContent = Math.round(p * 100) + ' %';
+}
 
 async function startFile(file) {
   if (busy) { toast('Un traitement est déjà en cours'); return; }
@@ -591,39 +927,43 @@ async function startFile(file) {
 async function run(note) {
   busy = true;
   show('job');
-  $('jobName').textContent = note.fileName;
-  $('jobSize').textContent = mb(note.size);
+  $('jobName').textContent = baseName(note.fileName);
+  $('jobSize').textContent = [mb(note.size), note.duration ? dur(note.duration) : ''].filter(Boolean).join(' · ');
   $('jobError').classList.add('hidden');
-  step('st-up', note.segments ? 'done' : '', note.segments ? `${dur(note.duration)} d'audio` : '');
-  step('st-sum', '', '');
-  bar(note.segments ? 0.5 : 0.02);
+  $('jobVis').className = 'ring';
+  step('st-up', note.segments ? 'done' : '', note.segments ? `${dur(note.duration)} d'audio` : 'En attente');
+  step('st-sum', '', 'En attente');
+  bar(note.segments ? 0.5 : 0.03);
   keepAwake(true);
   try {
     if (!note.segments) {
-      if (!note.audio) throw new GroqError('L\'audio de cette note n\'est plus disponible. Partage de nouveau le fichier.');
-      step('st-up', 'active', 'Envoi de ' + mb(note.size) + ' à Groq…');
-      status('Transcription en cours…');
+      if (!note.audio) throw new ApiError('L\'audio de cette note n\'est plus disponible. Partage de nouveau le fichier.');
+      step('st-up', 'active', 'Envoi à Groq…');
+      status('');
       const tr = await transcribe(note.audio, (i, n) => {
-        step('st-up', 'active', n > 1 ? `Partie ${i + 1} sur ${n}` : 'Envoi de ' + mb(note.size) + ' à Groq…');
+        step('st-up', 'active', n > 1 ? `Partie ${i + 1} sur ${n}` : 'Envoi à Groq…');
         bar(0.05 + 0.4 * (i / n));
       });
-      if (!tr.segments.length) throw new GroqError('Aucune parole détectée dans cet enregistrement.');
+      if (!tr.segments.length) throw new ApiError('Aucune parole détectée dans cet enregistrement.');
       Object.assign(note, { segments: tr.segments, duration: tr.duration, language: tr.language, status: 'resume' });
       await db.put(note);
       step('st-up', 'done', `${dur(tr.duration)} d'audio`);
     }
     bar(0.5);
-    step('st-sum', 'active', '');
+    step('st-sum', 'active', provider() === 'gemini' ? 'Avec Gemini' : 'Avec Groq');
     const raw = await summarize(note.segments, (label, p) => { step('st-sum', 'active', label); bar(0.5 + 0.48 * p); });
     const { title, body } = splitTitle(raw, note.title);
-    Object.assign(note, { title, summary: body, status: 'ok' });
+    Object.assign(note, { title, summary: body, status: 'ok', summaryBy: lastModel });
     delete note.audio; // plus besoin de l'audio, on libère de la place
+    delete note.error;
     await db.put(note);
-    step('st-sum', 'done', '');
+    step('st-sum', 'done', 'Terminé');
     bar(1);
     status('');
+    $('jobVis').classList.add('stopped');
     busy = false;
     keepAwake(false);
+    await sleep(350);
     openNote(note.id);
   } catch (e) {
     busy = false;
@@ -631,44 +971,107 @@ async function run(note) {
     note.status = note.segments ? 'resume-err' : 'err';
     note.error = e.message;
     await db.put(note).catch(() => {});
-    if ($('st-up').className === 'active') step('st-up', 'fail');
-    if ($('st-sum').className === 'active') step('st-sum', 'fail');
+    for (const id of ['st-up', 'st-sum']) if ($(id).classList.contains('active')) step(id, 'fail');
     status('');
-    $('jobErrorMsg').textContent = e instanceof GroqError ? e.message : 'Erreur inattendue : ' + e.message;
+    $('jobVis').className = 'ring stopped failed';
+    $('jobErrorMsg').textContent = e instanceof ApiError ? e.message : 'Erreur inattendue : ' + e.message;
     $('jobError').classList.remove('hidden');
     $('jobRetry').onclick = () => run(note);
+    show('job', true);
   }
 }
 
 /* =================== Vues =================== */
-let current = 'home', currentNote = null;
-function show(v) {
+let current = 'home', currentNote = null, allNotes = [];
+const TITLES = { job: 'Traitement', note: '', settings: 'Réglages' };
+function show(v, keepScroll) {
+  const changed = v !== current;
   current = v;
-  for (const id of ['home', 'job', 'note', 'settings']) $('v-' + id).classList.toggle('hidden', id !== v);
-  $('backBtn').classList.toggle('hidden', v === 'home' || (v === 'job' && busy));
-  $('settingsBtn').classList.toggle('hidden', v === 'settings' || (v === 'job' && busy));
+  for (const id of ['home', 'job', 'note', 'settings']) {
+    const el = $('v-' + id);
+    el.classList.toggle('hidden', id !== v);
+    if (id === v && changed) { el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); }
+  }
+  const lockBack = v === 'job' && busy;
+  $('backBtn').classList.toggle('hidden', v === 'home' || lockBack);
+  $('brand').classList.toggle('hidden', v !== 'home');
+  $('title').classList.toggle('hidden', v === 'home');
+  $('title').textContent = TITLES[v] || '';
+  $('settingsBtn').classList.toggle('hidden', v !== 'home');
+  $('spacer').classList.toggle('hidden', v === 'home' || lockBack);
   $('noteActions').classList.toggle('hidden', v !== 'note');
-  $('title').textContent = v === 'settings' ? 'Réglages' : v === 'job' ? 'Traitement' : v === 'note' ? 'Note' : 'Notes Plaud';
-  window.scrollTo(0, 0);
+  if (!keepScroll) window.scrollTo(0, 0);
   if (v === 'home') renderHome();
 }
 
+const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+function greeting() {
+  const h = new Date().getHours();
+  return h < 5 ? 'Bonne nuit' : h < 12 ? 'Bonjour' : h < 18 ? 'Bon après-midi' : 'Bonsoir';
+}
+const dayStart = (t) => { const d = new Date(t); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
+function groupOf(t) {
+  const diff = Math.round((dayStart(Date.now()) - dayStart(t)) / 86400000);
+  return diff < 1 ? 'Aujourd\'hui' : diff < 2 ? 'Hier' : diff < 7 ? 'Cette semaine' : diff < 31 ? 'Ce mois-ci' : 'Plus ancien';
+}
+function shortTime(t) {
+  const diff = Math.round((dayStart(Date.now()) - dayStart(t)) / 86400000);
+  return diff < 2 ? new Date(t).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    : new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}
+function excerpt(n) {
+  if (!n.summary) return n.error || (n.status === 'transcription' ? 'Traitement interrompu.' : '');
+  const m = /##\s*[^\n]*r[ée]sum[ée][^\n]*\n+([\s\S]*?)(?=\n##|$)/i.exec(n.summary);
+  return (m ? m[1] : n.summary).replace(/^#+.*$/gm, '').replace(/[*_`>#]|\[[ xX]\]/g, '').replace(/^\s*[-•]\s+/gm, '').replace(/\s+/g, ' ').trim();
+}
+const openTasks = (n) => ((n.summary || '').match(/^\s*[-*•]\s+\[ \]/gm) || []).length;
+
 async function renderHome() {
   $('onboard').classList.toggle('hidden', !!settings.key);
-  const notes = (await db.all()).sort((a, b) => b.created - a.created);
+  $('greet').textContent = greeting();
+  allNotes = (await db.all()).sort((a, b) => b.created - a.created);
+  const total = allNotes.reduce((a, n) => a + (n.duration || 0), 0);
+  const todo = allNotes.reduce((a, n) => a + openTasks(n), 0);
+  $('stats').textContent = allNotes.length
+    ? [`${allNotes.length} note${allNotes.length > 1 ? 's' : ''}`, total ? `${dur(total)} transcrites` : '', todo ? `${todo} action${todo > 1 ? 's' : ''} à faire` : ''].filter(Boolean).join(' · ')
+    : 'Prêt pour ton premier enregistrement.';
+  $('searchWrap').classList.toggle('hidden', allNotes.length < 2);
+  renderList();
+}
+
+const EMPTY = `
+  <div class="empty">
+    <svg class="empty-art" viewBox="0 0 120 90" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+      <rect x="22" y="8" width="76" height="74" rx="14" fill="currentColor" fill-opacity=".08" stroke-opacity=".35"/>
+      <path d="M38 45v0M46 36v18M54 28v34M62 38v14M70 31v28M78 41v8" stroke-opacity=".9"/>
+    </svg>
+    <h3>Aucune note pour l'instant</h3>
+    <p>Partage un enregistrement depuis l'app Plaud, ou touche « Nouvel enregistrement ».</p>
+    <div class="flow"><span>Exporter</span>${ICONS.arrow}<span>MP3</span>${ICONS.arrow}<span>Partager</span>${ICONS.arrow}<span>Notes Plaud</span></div>
+  </div>`;
+
+function renderList() {
   const list = $('notesList');
-  if (!notes.length) {
-    list.innerHTML = '<div class="empty muted small">Aucune note pour l\'instant.<br>Partage un enregistrement depuis l\'app Plaud pour commencer.</div>';
-    return;
+  if (!allNotes.length) { list.innerHTML = EMPTY; return; }
+  const q = norm($('search').value.trim());
+  const notes = q ? allNotes.filter((n) => norm(`${n.title} ${n.summary || ''} ${(n.segments || []).map((s) => s.text).join(' ')}`).includes(q)) : allNotes;
+  if (!notes.length) { list.innerHTML = `<div class="empty-s">Aucune note ne contient « ${esc($('search').value.trim())} ».</div>`; return; }
+  let html = '', g = '';
+  for (const n of notes) {
+    const gg = groupOf(n.created);
+    if (gg !== g) { html += `<div class="group">${gg}</div>`; g = gg; }
+    const tasks = openTasks(n);
+    const badge = n.status === 'ok' ? '' :
+      n.status === 'resume-err' ? `<span class="pill err">${ICONS.alert}Résumé à refaire</span>` :
+      n.status === 'err' ? `<span class="pill err">${ICONS.alert}Échec</span>` : `<span class="pill run">${ICONS.alert}Interrompu</span>`;
+    html += `
+      <button class="item" data-id="${n.id}">
+        <span class="item-top"><span class="t">${esc(n.title)}</span><span class="time">${shortTime(n.created)}</span></span>
+        ${excerpt(n) ? `<span class="ex">${esc(excerpt(n))}</span>` : ''}
+        <span class="m">${n.duration ? `<span class="pill">${ICONS.clock}${dur(n.duration)}</span>` : ''}${tasks ? `<span class="pill task">${ICONS.check}${tasks} à faire</span>` : ''}${badge}</span>
+      </button>`;
   }
-  const badge = (n) => n.status === 'ok' ? '' :
-    n.status === 'resume-err' ? '<span class="badge err">Résumé à refaire</span>' :
-    n.status === 'err' ? '<span class="badge err">Échec</span>' : '<span class="badge run">Interrompu</span>';
-  list.innerHTML = notes.map((n) => `
-    <button class="card item" data-id="${n.id}">
-      <span class="t">${esc(n.title)}</span>
-      <span class="m"><span>${fmtDate(n.created)}</span>${n.duration ? `<span>· ${dur(n.duration)}</span>` : ''}${badge(n)}</span>
-    </button>`).join('');
+  list.innerHTML = html;
   list.querySelectorAll('.item').forEach((b) => b.onclick = () => openNote(b.dataset.id));
 }
 
@@ -677,46 +1080,104 @@ function noteMarkdown(n) {
   return `# ${n.title}\n\n*${fmtDate(n.created)}${n.duration ? ' · ' + dur(n.duration) : ''} · ${n.fileName}*\n\n${n.summary || ''}\n\n---\n\n## Transcription\n\n${tr}\n`;
 }
 
+function renderSummary(n) {
+  if (!n.summary) {
+    return `<section class="sec k-other"><h3><span class="sec-ic">${ICONS.alert}</span>Pas encore de résumé</h3>
+      <div class="md"><p>${n.error ? esc(n.error) : 'Touche « Générer le résumé » ci-dessous.'}</p></div></section>`;
+  }
+  const ctr = { i: 0 };
+  const parts = n.summary.split(/^##\s+/m);
+  let html = '';
+  const pre = parts.shift().trim();
+  if (pre) html += `<section class="sec k-resume"><div class="md">${md(pre, ctr)}</div></section>`;
+  for (const p of parts) {
+    const nl = p.indexOf('\n');
+    const title = (nl < 0 ? p : p.slice(0, nl)).replace(/[*_`]/g, '').trim();
+    const body = nl < 0 ? '' : p.slice(nl + 1);
+    const k = kindOf(title);
+    html += `<section class="sec k-${k}"><h3><span class="sec-ic">${ICONS[k]}</span>${esc(title)}</h3><div class="md">${md(body, ctr)}</div></section>`;
+  }
+  return html;
+}
+
+function renderTranscript() {
+  const n = currentNote; if (!n) return;
+  const q = $('trSearch').value.trim();
+  const re = q ? new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi') : null;
+  const segs = (n.segments || []).filter((s) => !re || s.text.match(re));
+  $('noteTr').innerHTML = segs.map((s) => {
+    let t = esc(s.text);
+    if (re) t = t.replace(new RegExp(esc(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), (m) => `<mark>${m}</mark>`);
+    return `<div class="seg"><time>${hms(s.start)}</time><span>${t}</span></div>`;
+  }).join('') || `<p class="muted" style="padding:10px 0">${n.segments ? 'Aucun passage ne correspond.' : 'Pas de transcription.'}</p>`;
+}
+
 async function openNote(id) {
   const n = await db.get(id);
   if (!n) { show('home'); return; }
-  if ((n.status === 'transcription' || n.status === 'err') && !busy) {
-    // note inachevée : on relance le traitement si l'audio est encore là
-    if (n.audio) { run(n); return; }
-  }
+  if ((n.status === 'transcription' || n.status === 'err') && !busy && n.audio) { run(n); return; }
   currentNote = n;
+  $('noteDate').textContent = new Date(n.created).toLocaleString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
   $('noteTitle').textContent = n.title;
-  $('noteMeta').textContent = [fmtDate(n.created), n.duration ? dur(n.duration) : '', n.fileName].filter(Boolean).join(' · ');
-  $('noteSum').innerHTML = n.summary ? md(n.summary)
-    : `<p class="muted">${n.error ? esc(n.error) : 'Pas encore de résumé.'}</p>`;
-  $('noteTr').innerHTML = (n.segments || []).map((s) => `<div class="seg"><time>${hms(s.start)}</time><span>${esc(s.text)}</span></div>`).join('')
-    || '<p class="muted">Pas de transcription.</p>';
+  $('noteMeta').innerHTML = [
+    n.duration ? `<span class="pill">${ICONS.clock}${dur(n.duration)}</span>` : '',
+    `<span class="pill">${ICONS.file}${esc(n.fileName)}</span>`,
+    n.summaryBy ? `<span class="pill">${ICONS.spark}résumé : ${esc(n.summaryBy.replace(/^openai\//, ''))}</span>` : '',
+  ].join('');
+  $('noteSum').innerHTML = renderSummary(n);
+  $('trSearch').value = '';
+  renderTranscript();
   $('resumAgain').classList.toggle('hidden', !n.segments);
-  $('resumAgain').textContent = n.summary ? 'Refaire le résumé' : 'Générer le résumé';
+  $('resumAgain').querySelector('span').textContent = n.summary ? 'Refaire le résumé' : 'Générer le résumé';
   setTab('sum');
   show('note');
 }
 function setTab(t) {
   document.querySelectorAll('.tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
   $('noteSum').classList.toggle('hidden', t !== 'sum');
-  $('noteTr').classList.toggle('hidden', t !== 'tr');
+  $('noteTrWrap').classList.toggle('hidden', t !== 'tr');
 }
+// cocher une action : on met à jour le Markdown de la note (et donc les exports)
+$('noteSum').addEventListener('change', async (e) => {
+  const box = e.target.closest('input[data-task]'); const n = currentNote;
+  if (!box || !n) return;
+  const idx = +box.dataset.task; let k = -1;
+  n.summary = n.summary.split('\n').map((line) => {
+    if (/^\s*[-*•]\s+\[( |x|X)\]\s+/.test(line) && ++k === idx) return line.replace(/\[( |x|X)\]/, box.checked ? '[x]' : '[ ]');
+    return line;
+  }).join('\n');
+  await db.put(n);
+});
 
 function showSettings() {
   $('sKey').value = settings.key; $('sLang').value = settings.lang; $('sWhisper').value = settings.whisper;
   $('sLlm').value = settings.llms; $('sCtx').value = settings.ctx;
+  $('sProv').value = settings.provider; $('sGKey').value = settings.gkey; $('sGModel').value = settings.gmodels;
+  provBoxes();
   show('settings');
 }
 
 /* =================== Événements =================== */
+$('shareDiagClose').onclick = () => $('shareDiag').classList.add('hidden');
 $('settingsBtn').onclick = showSettings;
 $('onboardBtn').onclick = showSettings;
 $('backBtn').onclick = () => show('home');
 $('jobHome').onclick = () => show('home');
-$('sKeyShow').onclick = () => { const i = $('sKey'); i.type = i.type === 'password' ? 'text' : 'password'; $('sKeyShow').textContent = i.type === 'password' ? 'Voir' : 'Cacher'; };
+$('search').oninput = renderList;
+$('trSearch').oninput = renderTranscript;
+function provBoxes() {
+  const v = $('sProv').value;
+  $('gBox').classList.toggle('hidden', v === 'groq');
+  $('qBox').classList.toggle('hidden', v === 'gemini');
+}
+$('sProv').onchange = provBoxes;
+const toggleKey = (inp, btn) => () => { const i = $(inp); i.type = i.type === 'password' ? 'text' : 'password'; $(btn).textContent = i.type === 'password' ? 'Voir' : 'Cacher'; };
+$('sGKeyShow').onclick = toggleKey('sGKey', 'sGKeyShow');
+$('sKeyShow').onclick = toggleKey('sKey', 'sKeyShow');
 $('sSave').onclick = () => {
   settings = { key: $('sKey').value.trim(), lang: $('sLang').value, whisper: $('sWhisper').value,
-    llms: $('sLlm').value.trim() || DEFAULTS.llms, ctx: $('sCtx').value };
+    llms: $('sLlm').value.trim() || DEFAULTS.llms, ctx: $('sCtx').value,
+    provider: $('sProv').value, gkey: $('sGKey').value.trim(), gmodels: $('sGModel').value.trim() || DEFAULTS.gmodels };
   toast(saveSettings(settings) ? 'Réglages enregistrés' : 'Impossible d\'enregistrer (navigation privée ?)');
   show('home');
 };
@@ -725,7 +1186,7 @@ document.querySelectorAll('.tabs button').forEach((b) => b.onclick = () => setTa
 
 $('aCopy').onclick = async () => {
   const n = currentNote; if (!n) return;
-  const onTr = !$('noteTr').classList.contains('hidden');
+  const onTr = !$('noteTrWrap').classList.contains('hidden');
   const txt = onTr ? (n.segments || []).map((s) => `[${hms(s.start)}] ${s.text}`).join('\n') : `# ${n.title}\n\n${n.summary}`;
   try { await navigator.clipboard.writeText(txt); toast(onTr ? 'Transcription copiée' : 'Résumé copié'); }
   catch (e) { toast('Copie impossible'); }
@@ -767,9 +1228,21 @@ window.addEventListener('beforeunload', (e) => { if (busy) { e.preventDefault();
   let pending = null;
   try { pending = await db.takePending(); } catch (e) {}
   if (pending && pending.file) { startFile(pending.file); return; }
-  if (params.has('shared')) toast('Aucun fichier audio reçu');
+  current = '';
   show('home');
+  if (params.has('shared') || pending) {
+    const i = (pending && pending.info) || {};
+    const lines = [];
+    if (i.files && i.files.length) lines.push('Fichiers : ' + i.files.map((f) => `${f.name || 'sans nom'} (${f.type || 'type inconnu'}, ${mb(f.size)})`).join(', '));
+    if (i.texts && i.texts.length) lines.push('Texte : ' + i.texts.join(' | '));
+    if (i.error) lines.push('Erreur : ' + i.error);
+    if (!lines.length) lines.push("Rien du tout : l'app qui partage n'a transmis aucun contenu.");
+    lines.push("\nEn attendant, touche « Nouvel enregistrement » : le fichier exporté apparaît en haut de la liste « Récents ».");
+    $('shareDiagTxt').textContent = lines.join('\n');
+    $('shareDiag').classList.remove('hidden');
+  }
 })();
+
 </script>
 </body>
 </html>

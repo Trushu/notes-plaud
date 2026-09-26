@@ -49,6 +49,7 @@ Avec « Résumé avec : Auto », l'app utilise Gemini dès qu'une clé Gemini es
 - **Depuis un fichier :** dans l'app, touche **Choisir un fichier audio**.
 - **Pendant le traitement :** garde l'app au premier plan. L'écran reste allumé tout seul.
 - **Sur une note :** **Copier**, **Partager** (vers Keep, Gmail, WhatsApp, Drive…) ou **.md** (téléchargement).
+- **Améliorer la transcription :** dans l'onglet Transcription, touche **Améliorer avec l'IA**. L'IA corrige les mots mal reconnus d'après le contexte, enlève les hésitations et reformule en phrases claires, sans rien résumer. Tu peux passer de la version **Améliorée** à la version **Brute** à tout moment. Avec Gemini, ça prend quelques secondes ; avec Groq, compte quelques minutes pour 1 h d'audio.
 
 ### Temps de traitement (à peu près)
 

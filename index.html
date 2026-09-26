@@ -241,6 +241,24 @@
   .seg time { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--accent-ink); background: var(--accent-soft); border-radius: 7px; padding: 2px 7px; height: fit-content; flex: none; margin-top: 2px; }
   .seg span { color: var(--ink-2); }
   .seg mark { background: color-mix(in srgb, var(--accent) 28%, transparent); color: var(--ink); border-radius: 3px; padding: 0 1px; }
+  .enh { padding: 16px; margin-bottom: 12px; }
+  .enh-intro { display: flex; gap: 12px; align-items: flex-start; }
+  .enh-intro b { display: block; font-weight: 600; }
+  .enh-intro small { display: block; color: var(--muted); font-size: 13.5px; line-height: 1.45; margin-top: 2px; }
+  .enh-intro .sec-ic { background: var(--violet-soft); color: var(--violet); flex: none; }
+  .enh .btn { margin-top: 14px; }
+  .enh .btn.ghost { margin-top: 6px; min-height: 40px; }
+  .tabs.mini button { min-height: 36px; font-size: 14px; }
+  .tabs.mini button svg { width: 14px; height: 14px; display: inline-block; vertical-align: -2px; margin-right: 4px; }
+  .lin { height: 6px; border-radius: 99px; background: var(--surface-3); overflow: hidden; margin: 12px 0 8px; }
+  .lin i { display: block; height: 100%; width: 0; background: var(--grad); transition: width .5s cubic-bezier(.2,.8,.2,1); }
+  .enh-st { font-size: 13.5px; color: var(--accent-ink); min-height: 20px; }
+  .enh-prog b { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  .enh-prog b svg { width: 18px; height: 18px; color: var(--violet); animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .35; transform: scale(.85); } }
+  .enh-note { font-size: 12.5px; color: var(--muted); margin-top: 10px; line-height: 1.45; }
+  .enh-err { margin: 12px 0 0; color: var(--err); font-size: 14px; font-weight: 500; }
+  .seg.para span { color: var(--ink); line-height: 1.6; }
   .note-foot { display: flex; gap: 8px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
   .actions {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
@@ -277,7 +295,7 @@
   .toast {
     position: fixed; left: 50%; bottom: 96px; z-index: 30; transform: translate(-50%, 16px); opacity: 0;
     background: var(--ink); color: var(--bg); padding: 11px 18px; border-radius: 99px; font-size: 14px; font-weight: 500;
-    transition: .25s cubic-bezier(.2,.8,.2,1); pointer-events: none; max-width: calc(100% - 36px); box-shadow: 0 10px 30px -10px rgba(0,0,0,.4);
+    transition: .25s cubic-bezier(.2,.8,.2,1); pointer-events: none; width: max-content; max-width: calc(100% - 36px); text-align: center; box-shadow: 0 10px 30px -10px rgba(0,0,0,.4);
   }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
   @media (prefers-reduced-motion: reduce) {
@@ -390,6 +408,24 @@
     </div>
     <div class="secs" id="noteSum"></div>
     <div id="noteTrWrap" class="hidden">
+      <div class="card enh" id="enhBox">
+        <div class="enh-intro" id="enhIntro">
+          <span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></span>
+          <div><b>Transcription brute</b><small>L'IA peut corriger les mots mal reconnus, enlever les hésitations et reformuler en phrases claires, d'après le contexte. Rien n'est résumé ni supprimé.</small></div>
+        </div>
+        <div class="tabs mini hidden" id="trMode">
+          <button data-mode="clean" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/></svg>Améliorée</button>
+          <button data-mode="raw" aria-selected="false">Brute</button>
+        </div>
+        <div class="enh-prog hidden" id="enhProg">
+          <b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/></svg>Amélioration en cours…</b>
+          <div class="lin"><i id="enhBar"></i></div>
+          <div class="enh-st" id="enhStatus"></div>
+        </div>
+        <p class="enh-err hidden" id="enhErr"></p>
+        <div class="enh-note hidden" id="enhNote"></div>
+        <button class="btn primary block" id="enhBtn"></button>
+      </div>
       <div class="tr-tools">
         <div class="search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
@@ -444,7 +480,7 @@
       <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></span><div><b>Résumé</b><small>Gemini ou Groq</small></div></div>
       <div class="card pad stack">
         <div>
-          <label class="f" for="sProv">Résumé avec</label>
+          <label class="f" for="sProv">IA utilisée (résumé et amélioration)</label>
           <select id="sProv">
             <option value="auto">Auto (Gemini si clé, sinon Groq)</option>
             <option value="gemini">Gemini</option>
@@ -509,6 +545,8 @@ window.CONFIG = {
   chunkChars: 11000,        // Groq : taille des morceaux pour les longs enregistrements
   gemSingleShotChars: 400000, // Gemini accepte des textes très longs : une seule requête jusqu'à ~8 h d'audio
   gemChunkChars: 300000,
+  cleanChars: 4500,         // amélioration avec Groq : petits morceaux (limite de 8 000 tokens/min)
+  gemCleanChars: 20000,     // amélioration avec Gemini
 };
 const DEFAULTS = {
   key: '', lang: 'fr', whisper: 'whisper-large-v3',
@@ -885,6 +923,7 @@ const ICONS = {
   check: I('<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M8 12l3 3 5-6"/>'),
   file: I('<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>'),
   spark: I('<path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/>'),
+  refresh: I('<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>'),
   alert: I('<circle cx="12" cy="12" r="8.5"/><path d="M12 8v5M12 16h.01"/>'),
   arrow: I('<path d="M9 6l6 6-6 6"/>'),
 };
@@ -894,7 +933,8 @@ const kindOf = (t) => /résum|resum|synth/i.test(t) ? 'resume' : /point|clé|cle
 /* =================== Traitement d'un fichier =================== */
 let busy = false;
 const RING = 2 * Math.PI * 52;
-function status(t) { $('jobStatus').textContent = t || ''; }
+let statusEl = 'jobStatus';
+function status(t) { $(statusEl).textContent = t || ''; }
 function step(id, state, detail) {
   $(id).className = 'step' + (state ? ' ' + state : '');
   if (detail != null) $(id + '-d').textContent = detail;
@@ -906,7 +946,7 @@ function bar(p) {
 }
 
 async function startFile(file) {
-  if (busy) { toast('Un traitement est déjà en cours'); return; }
+  if (busy || enhancing) { toast('Un traitement est déjà en cours'); return; }
   if (!file || !file.size) { toast('Aucun fichier audio reçu'); return; }
   const note = {
     id: 'n' + Date.now().toString(36), created: Date.now(), fileName: file.name || 'audio.' + extFor(file),
@@ -925,6 +965,7 @@ async function startFile(file) {
 }
 
 async function run(note) {
+  if (enhancing) { toast('Attends la fin de l\'amélioration en cours'); return; }
   busy = true;
   show('job');
   $('jobName').textContent = baseName(note.fileName);
@@ -1054,7 +1095,7 @@ function renderList() {
   const list = $('notesList');
   if (!allNotes.length) { list.innerHTML = EMPTY; return; }
   const q = norm($('search').value.trim());
-  const notes = q ? allNotes.filter((n) => norm(`${n.title} ${n.summary || ''} ${(n.segments || []).map((s) => s.text).join(' ')}`).includes(q)) : allNotes;
+  const notes = q ? allNotes.filter((n) => norm(`${n.title} ${n.summary || ''} ${(n.segments || []).map((s) => s.text).join(' ')} ${(n.clean || []).map((s) => s.text).join(' ')}`).includes(q)) : allNotes;
   if (!notes.length) { list.innerHTML = `<div class="empty-s">Aucune note ne contient « ${esc($('search').value.trim())} ».</div>`; return; }
   let html = '', g = '';
   for (const n of notes) {
@@ -1076,8 +1117,9 @@ function renderList() {
 }
 
 function noteMarkdown(n) {
-  const tr = (n.segments || []).map((s) => `[${hms(s.start)}] ${s.text}`).join('\n\n');
-  return `# ${n.title}\n\n*${fmtDate(n.created)}${n.duration ? ' · ' + dur(n.duration) : ''} · ${n.fileName}*\n\n${n.summary || ''}\n\n---\n\n## Transcription\n\n${tr}\n`;
+  const hasClean = !!(n.clean && n.clean.length);
+  const tr = (hasClean ? n.clean : (n.segments || [])).map((s) => `[${hms(s.start)}] ${s.text}`).join('\n\n');
+  return `# ${n.title}\n\n*${fmtDate(n.created)}${n.duration ? ' · ' + dur(n.duration) : ''} · ${n.fileName}*\n\n${n.summary || ''}\n\n---\n\n## Transcription${hasClean ? ' (améliorée par IA)' : ''}\n\n${tr}\n`;
 }
 
 function renderSummary(n) {
@@ -1100,16 +1142,126 @@ function renderSummary(n) {
   return html;
 }
 
+let trMode = 'clean', enhancing = null;
+const hasClean = (n) => !!(n && n.clean && n.clean.length);
+const curSegs = (n) => (trMode === 'clean' && hasClean(n)) ? n.clean : (n.segments || []);
 function renderTranscript() {
   const n = currentNote; if (!n) return;
   const q = $('trSearch').value.trim();
   const re = q ? new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi') : null;
-  const segs = (n.segments || []).filter((s) => !re || s.text.match(re));
+  const para = trMode === 'clean' && hasClean(n);
+  const segs = curSegs(n).filter((s) => !re || s.text.match(re));
   $('noteTr').innerHTML = segs.map((s) => {
     let t = esc(s.text);
     if (re) t = t.replace(new RegExp(esc(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), (m) => `<mark>${m}</mark>`);
-    return `<div class="seg"><time>${hms(s.start)}</time><span>${t}</span></div>`;
+    return `<div class="seg${para ? ' para' : ''}"><time>${hms(s.start)}</time><span>${t}</span></div>`;
   }).join('') || `<p class="muted" style="padding:10px 0">${n.segments ? 'Aucun passage ne correspond.' : 'Pas de transcription.'}</p>`;
+}
+
+function renderEnh() {
+  const n = currentNote; if (!n) return;
+  const has = hasClean(n), running = enhancing === n.id;
+  $('enhBox').classList.toggle('hidden', !n.segments);
+  $('enhIntro').classList.toggle('hidden', has || running);
+  $('trMode').classList.toggle('hidden', !has || running);
+  $('enhProg').classList.toggle('hidden', !running);
+  $('enhNote').classList.toggle('hidden', !has || running || trMode !== 'clean');
+  $('enhNote').textContent = has ? `Réécrite par ${(n.cleanBy || 'l\'IA').replace(/^openai\//, '')}. Les horodatages indiquent le début de chaque paragraphe. La version brute reste disponible.` : '';
+  $('enhBtn').classList.toggle('hidden', running || (!!enhancing && !running));
+  $('enhBtn').className = 'btn block ' + (has ? 'ghost' : 'primary') + ($('enhBtn').classList.contains('hidden') ? ' hidden' : '');
+  $('enhBtn').innerHTML = has ? `${ICONS.refresh}Refaire l'amélioration` : `${ICONS.spark}Améliorer avec l'IA`;
+  if (running) $('enhErr').classList.add('hidden');
+  document.querySelectorAll('#trMode button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === trMode)));
+}
+function setEnh(p, label) {
+  $('enhBar').style.width = Math.round(Math.max(0.04, Math.min(1, p)) * 100) + '%';
+  if (label != null && statusEl === 'enhStatus') status(label);
+}
+const LANGS = { fr: 'français', en: 'anglais', es: 'espagnol', de: 'allemand', it: 'italien' };
+const P_CLEAN = (n, about, text, prev) => `Tu es un correcteur-rédacteur professionnel. Voici un extrait de la transcription automatique (reconnaissance vocale) d'un enregistrement audio. Chaque ligne commence par son horodatage entre crochets.
+
+Contexte de l'enregistrement : « ${n.title} ».${about ? ' En résumé : ' + about : ''}
+${ctxLine()}
+Réécris cet extrait en ${LANGS[settings.lang] || "respectant la langue de l'extrait"}, en langage écrit clair et fluide :
+- corrige les mots mal reconnus en t'aidant du contexte (noms propres, termes techniques, chiffres, sigles) ;
+- supprime les hésitations, répétitions, faux départs et tics de langage (euh, ben, du coup, voilà, en fait…) ;
+- rétablis la ponctuation et reformule les phrases maladroites ou mal construites, sans en changer le sens ;
+- ne résume pas : conserve toutes les idées, informations, exemples, chiffres et noms ;
+- n'invente rien et n'ajoute aucun commentaire ;
+- regroupe les phrases en paragraphes cohérents de 2 à 6 phrases.
+
+Format de réponse obligatoire : un paragraphe par ligne, chaque ligne commençant par l'horodatage entre crochets de la première phrase du paragraphe, recopié tel quel depuis l'extrait (exemple : « [12:34] Texte du paragraphe… »). Aucune autre ligne : pas de titre, pas d'introduction, pas de conclusion.
+${prev ? `\nPour la continuité, voici la fin du passage précédent déjà réécrit (ne la répète pas) : « ${prev} »\n` : ''}
+Extrait :
+"""
+${text}
+"""`;
+const toSec = (t) => t.split(':').map(Number).reduce((a, b) => a * 60 + b, 0);
+function parseClean(out, fallbackStart) {
+  const res = [];
+  for (const raw of out.split('\n')) {
+    const line = raw.trim().replace(/^[-*•]\s+/, '').replace(/^\*\*(\[[^\]]+\])\*\*/, '$1');
+    if (!line) continue;
+    const m = /^\[((?:\d+:)?\d{1,2}:\d{2})\]\s*[-–:]?\s*(.*)$/.exec(line);
+    if (m) res.push({ start: toSec(m[1]), text: m[2].trim() });
+    else if (res.length) res[res.length - 1].text += (res[res.length - 1].text ? ' ' : '') + line;
+    else res.push({ start: fallbackStart, text: line });
+  }
+  return res.filter((x) => x.text);
+}
+async function enhance() {
+  const n = currentNote;
+  if (!n || !n.segments || !n.segments.length) return;
+  if (busy || enhancing) { toast('Un traitement est déjà en cours'); return; }
+  const gem = provider() === 'gemini';
+  if (!gem && !settings.key) { toast('Ajoute d\'abord ta clé Groq'); return; }
+  const size = gem ? CONFIG.gemCleanChars : CONFIG.cleanChars;
+  const chunks = []; let cur = [], len = 0;
+  for (const s of n.segments) {
+    const line = `[${hms(s.start)}] ${s.text}`;
+    if (cur.length && len + line.length > size) { chunks.push(cur); cur = []; len = 0; }
+    cur.push({ line, start: s.start }); len += line.length + 1;
+  }
+  if (cur.length) chunks.push(cur);
+  enhancing = n.id; statusEl = 'enhStatus'; keepAwake(true);
+  renderEnh(); setEnh(0.04, chunks.length > 1 ? `Partie 1 sur ${chunks.length}` : 'Réécriture en cours');
+  const about = excerpt(n).slice(0, 600);
+  const out = []; let prev = '';
+  try {
+    for (let i = 0; i < chunks.length; i++) {
+      const label = chunks.length > 1 ? `Partie ${i + 1} sur ${chunks.length}` : 'Réécriture en cours';
+      setEnh(0.04 + 0.92 * (i / chunks.length), label);
+      const text = chunks[i].map((c) => c.line).join('\n');
+      const lo = chunks[i][0].start, hi = chunks[i][chunks[i].length - 1].start;
+      let paras = parseClean(await llm(P_CLEAN(n, about, text, prev), gem ? 8000 : 2600, label, true), lo);
+      const outLen = paras.reduce((a, x) => a + x.text.length, 0);
+      if (outLen < text.length * 0.35) {
+        const again = P_CLEAN(n, about, text, prev) + '\n\nATTENTION : une réponse précédente était beaucoup trop courte. Ne résume pas : réécris tout le contenu de l\'extrait.';
+        paras = parseClean(await llm(again, gem ? 8000 : 2600, label + ' (nouvel essai)', true), lo);
+      }
+      let last = out.length ? out[out.length - 1].start : 0;
+      for (const x of paras) {
+        if (!(x.start >= lo - 1 && x.start <= hi + 1)) x.start = Math.max(last, lo);
+        if (x.start < last) x.start = last;
+        last = x.start; out.push(x);
+      }
+      prev = (paras.length ? paras[paras.length - 1].text : '').slice(-400);
+    }
+    if (!out.length) throw new ApiError('L\'IA n\'a renvoyé aucun texte. Réessaie.');
+    setEnh(1, 'Terminé');
+    const fresh = (await db.get(n.id)) || n;
+    Object.assign(fresh, { clean: out, cleanBy: lastModel, cleanAt: Date.now() });
+    await db.put(fresh);
+    if (currentNote && currentNote.id === n.id) Object.assign(currentNote, { clean: out, cleanBy: lastModel, cleanAt: fresh.cleanAt });
+    trMode = 'clean';
+    toast('Transcription améliorée');
+  } catch (e) {
+    $('enhErr').textContent = e instanceof ApiError ? e.message : 'Erreur inattendue : ' + e.message;
+    $('enhErr').classList.remove('hidden');
+  } finally {
+    enhancing = null; statusEl = 'jobStatus'; keepAwake(false);
+    if (currentNote && currentNote.id === n.id) { renderEnh(); renderTranscript(); }
+  }
 }
 
 async function openNote(id) {
@@ -1126,6 +1278,9 @@ async function openNote(id) {
   ].join('');
   $('noteSum').innerHTML = renderSummary(n);
   $('trSearch').value = '';
+  trMode = 'clean';
+  $('enhErr').classList.add('hidden');
+  renderEnh();
   renderTranscript();
   $('resumAgain').classList.toggle('hidden', !n.segments);
   $('resumAgain').querySelector('span').textContent = n.summary ? 'Refaire le résumé' : 'Générer le résumé';
@@ -1187,7 +1342,7 @@ document.querySelectorAll('.tabs button').forEach((b) => b.onclick = () => setTa
 $('aCopy').onclick = async () => {
   const n = currentNote; if (!n) return;
   const onTr = !$('noteTrWrap').classList.contains('hidden');
-  const txt = onTr ? (n.segments || []).map((s) => `[${hms(s.start)}] ${s.text}`).join('\n') : `# ${n.title}\n\n${n.summary}`;
+  const txt = onTr ? curSegs(n).map((s) => `[${hms(s.start)}] ${s.text}`).join(trMode === 'clean' && hasClean(n) ? '\n\n' : '\n') : `# ${n.title}\n\n${n.summary}`;
   try { await navigator.clipboard.writeText(txt); toast(onTr ? 'Transcription copiée' : 'Résumé copié'); }
   catch (e) { toast('Copie impossible'); }
 };
@@ -1216,7 +1371,12 @@ $('delNote').onclick = async () => {
   if (!currentNote || !confirm('Supprimer cette note ?')) return;
   await db.del(currentNote.id); currentNote = null; toast('Note supprimée'); show('home');
 };
-window.addEventListener('beforeunload', (e) => { if (busy) { e.preventDefault(); e.returnValue = ''; } });
+$('enhBtn').onclick = () => {
+  if (hasClean(currentNote) && !confirm('Refaire l\'amélioration ? La version améliorée actuelle sera remplacée.')) return;
+  enhance();
+};
+document.querySelectorAll('#trMode button').forEach((b) => b.onclick = () => { trMode = b.dataset.mode; renderEnh(); renderTranscript(); });
+window.addEventListener('beforeunload', (e) => { if (busy || enhancing) { e.preventDefault(); e.returnValue = ''; } });
 
 /* =================== Démarrage =================== */
 (async function init() {

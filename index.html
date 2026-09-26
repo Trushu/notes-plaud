@@ -713,15 +713,301 @@ async function groq(path, init, label) {
 
 // --- Transcription ---
 const HALLU = /amara\.org|sous-titr(es|age)\s+(réalisés\s+)?(par|st)|merci d'avoir regardé cette vidéo|abonnez-vous/i;
-async function transcribe(file, onPart) {
-  const ext = extFor(file);
-  const parts = [];
-  for (let off = 0; off < file.size; off += CONFIG.maxAudioChunk) parts.push(file.slice(off, off + CONFIG.maxAudioChunk, file.type));
+/* ---- Découpage des gros fichiers audio ----
+   Groq accepte 25 Mo maximum par envoi. On découpe proprement selon le format :
+   - WAV : chaque morceau reçoit son propre en-tête ; le PCM est converti en 16 kHz mono (ce qu'utilise Whisper),
+     ce qui divise souvent la taille par 3 à 6 ;
+   - MP3 : on coupe sur un début de trame ;
+   - autres formats (m4a…) : impossible à couper sans les décoder, on demande un export MP3. */
+const u32 = (v) => [v & 255, (v >> 8) & 255, (v >> 16) & 255, (v >>> 24) & 255];
+const u16 = (v) => [v & 255, (v >> 8) & 255];
+const ascii = (t) => [...t].map((c) => c.charCodeAt(0));
+async function parseWav(file) {
+  const head = new Uint8Array(await file.slice(0, Math.min(file.size, 1 << 20)).arrayBuffer());
+  const dv = new DataView(head.buffer);
+  const tag = (o) => String.fromCharCode(head[o], head[o + 1], head[o + 2], head[o + 3]);
+  if (head.length < 12 || tag(0) !== 'RIFF' || tag(8) !== 'WAVE') return null;
+  let o = 12, fmt = null, fmtBytes = null, dataOff = -1, dataLen = 0;
+  while (o + 8 <= head.length) {
+    const id = tag(o), size = dv.getUint32(o + 4, true);
+    if (id === 'fmt ') {
+      fmtBytes = head.slice(o + 8, o + 8 + size);
+      const f = new DataView(fmtBytes.buffer);
+      fmt = { format: f.getUint16(0, true), channels: f.getUint16(2, true), rate: f.getUint32(4, true), byteRate: f.getUint32(8, true),
+              blockAlign: f.getUint16(12, true), bits: f.getUint16(14, true) };
+      if (fmt.format === 0xFFFE && size >= 26) fmt.format = f.getUint16(24, true); // WAVE_FORMAT_EXTENSIBLE
+      if ((fmt.format === 0x11 || fmt.format === 0x02) && size >= 20) fmt.samplesPerBlock = f.getUint16(18, true); // ADPCM
+    } else if (id === 'data') {
+      dataOff = o + 8;
+      dataLen = (size === 0 || size === 0xFFFFFFFF || dataOff + size > file.size) ? file.size - dataOff : size;
+      break;
+    }
+    o += 8 + size + (size & 1);
+  }
+  if (!fmt || dataOff < 0 || !fmt.blockAlign) return null;
+  return { ...fmt, fmtBytes, dataOff, dataLen };
+}
+function wavHeader(fmtBytes, dataLen) {
+  const h = [...ascii('RIFF'), ...u32(4 + 8 + fmtBytes.length + (fmtBytes.length & 1) + 8 + dataLen), ...ascii('WAVE'),
+    ...ascii('fmt '), ...u32(fmtBytes.length), ...fmtBytes, ...(fmtBytes.length & 1 ? [0] : []),
+    ...ascii('data'), ...u32(dataLen)];
+  return new Uint8Array(h);
+}
+// PCM entier (8/16/24/32 bits) ou flottant 32 bits -> 16 kHz mono 16 bits (moyenne par fenêtre = filtre anti-repliement simple)
+function toMono16k(buf, w) {
+  const dv = new DataView(buf), bps = w.bits / 8, ch = w.channels, frames = Math.floor(buf.byteLength / w.blockAlign);
+  const read = w.format === 3 && w.bits === 32 ? (o) => dv.getFloat32(o, true)
+    : w.bits === 16 ? (o) => dv.getInt16(o, true) / 32768
+    : w.bits === 24 ? (o) => ((dv.getUint8(o) | (dv.getUint8(o + 1) << 8) | (dv.getInt8(o + 2) << 16)) / 8388608)
+    : w.bits === 32 ? (o) => dv.getInt32(o, true) / 2147483648
+    : (o) => (dv.getUint8(o) - 128) / 128;
+  const ratio = w.rate / 16000;
+  const outLen = Math.floor(frames / Math.max(ratio, 1));
+  const out = new Int16Array(outLen);
+  if (ratio <= 1) { // pas de rééchantillonnage vers le haut : on garde la fréquence d'origine
+    for (let k = 0; k < frames; k++) { let v = 0; for (let c = 0; c < ch; c++) v += read(k * w.blockAlign + c * bps); out[k] = Math.max(-1, Math.min(1, v / ch)) * 32767; }
+    return out;
+  }
+  for (let k = 0; k < outLen; k++) {
+    const a = Math.floor(k * ratio), b = Math.min(frames, Math.floor((k + 1) * ratio));
+    let v = 0;
+    for (let i = a; i < b; i++) for (let c = 0; c < ch; c++) v += read(i * w.blockAlign + c * bps);
+    out[k] = Math.max(-1, Math.min(1, v / ((b - a) * ch || 1))) * 32767;
+  }
+  return out;
+}
+function monoHeaderFor(rate) {
+  return new Uint8Array([...u16(1), ...u16(1), ...u32(rate), ...u32(rate * 2), ...u16(2), ...u16(16)]);
+}
+async function mp3Sync(file, off) {
+  const b = new Uint8Array(await file.slice(off, Math.min(file.size, off + 16384)).arrayBuffer());
+  for (let i = 0; i + 3 < b.length; i++) {
+    if (b[i] === 0xFF && (b[i + 1] & 0xE0) === 0xE0 && (b[i + 1] & 0x18) !== 0x08 && (b[i + 1] & 0x06) !== 0
+      && (b[i + 2] & 0xF0) !== 0xF0 && (b[i + 2] & 0x0C) !== 0x0C) return off + i;
+  }
+  return off;
+}
+// Durée réelle d'un morceau MP3, en comptant ses trames (l'en-tête « Xing » du 1er morceau annonce la durée du fichier entier)
+const MP3_BR = { 1: [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320], 2: [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160] };
+const MP3_SR = { 3: [44100, 48000, 32000], 2: [22050, 24000, 16000], 0: [11025, 12000, 8000] };
+async function mp3Duration(blob) {
+  const b = new Uint8Array(await blob.arrayBuffer());
+  let i = 0, sec = 0;
+  if (b[0] === 0x49 && b[1] === 0x44 && b[2] === 0x33) i = 10 + ((b[6] & 127) << 21 | (b[7] & 127) << 14 | (b[8] & 127) << 7 | (b[9] & 127));
+  while (i + 4 <= b.length) {
+    if (b[i] === 0xFF && (b[i + 1] & 0xE0) === 0xE0) {
+      const ver = (b[i + 1] >> 3) & 3, layer = (b[i + 1] >> 1) & 3, bri = b[i + 2] >> 4, sri = (b[i + 2] >> 2) & 3, pad = (b[i + 2] >> 1) & 1;
+      if (ver !== 1 && layer === 1 && bri > 0 && bri < 15 && sri < 3) { // Layer III
+        const br = MP3_BR[ver === 3 ? 1 : 2][bri] * 1000, sr = MP3_SR[ver][sri];
+        const len = Math.floor((ver === 3 ? 144 : 72) * br / sr) + pad;
+        if (len > 4) { sec += (ver === 3 ? 1152 : 576) / sr; i += len; continue; }
+      }
+    }
+    i++;
+  }
+  return sec;
+}
+/* ---- Lecture des fichiers M4A / MP4 (sans librairie externe) ----
+   On lit la table des échantillons audio (moov > trak > stbl), puis on décode par petits paquets
+   avec le décodeur audio du navigateur (WebCodecs), pour ne jamais charger tout l'audio décodé en mémoire. */
+async function parseMp4Audio(file) {
+  const str4 = (b, o) => String.fromCharCode(b[o], b[o + 1], b[o + 2], b[o + 3]);
+  let off = 0, moov = null;
+  while (off + 8 <= file.size) {
+    const h = new Uint8Array(await file.slice(off, off + 16).arrayBuffer()), hv = new DataView(h.buffer);
+    let size = hv.getUint32(0), hdr = 8;
+    if (size === 1) { size = Number(hv.getBigUint64(8)); hdr = 16; } else if (size === 0) size = file.size - off;
+    if (size < 8) return null;
+    if (str4(h, 4) === 'moov') { moov = new Uint8Array(await file.slice(off + hdr, off + size).arrayBuffer()); break; }
+    off += size;
+  }
+  if (!moov) return null;
+  const dv = new DataView(moov.buffer);
+  const kids = (bx) => {
+    const out = []; let o = bx.start;
+    while (o + 8 <= bx.end) {
+      let size = dv.getUint32(o), hdr = 8;
+      if (size === 1) { size = Number(dv.getBigUint64(o + 8)); hdr = 16; } else if (size === 0) size = bx.end - o;
+      if (size < 8) break;
+      out.push({ type: str4(moov, o + 4), start: o + hdr, end: o + size }); o += size;
+    }
+    return out;
+  };
+  const find = (bx, t) => bx && kids(bx).find((k) => k.type === t);
+  for (const trak of kids({ start: 0, end: moov.length }).filter((k) => k.type === 'trak')) {
+    const mdia = find(trak, 'mdia'), hdlr = find(mdia, 'hdlr');
+    if (!hdlr || str4(moov, hdlr.start + 8) !== 'soun') continue;
+    const mdhd = find(mdia, 'mdhd');
+    const timescale = moov[mdhd.start] === 1 ? dv.getUint32(mdhd.start + 20) : dv.getUint32(mdhd.start + 12);
+    const stbl = find(find(mdia, 'minf'), 'stbl');
+    const stsd = find(stbl, 'stsd');
+    const e0 = stsd.start + 8, eSize = dv.getUint32(e0), fourcc = str4(moov, e0 + 4);
+    const sev = dv.getUint16(e0 + 16);
+    const channels = dv.getUint16(e0 + 24), sampleRate = dv.getUint32(e0 + 32) >>> 16;
+    const entry = { start: e0 + 36 + (sev === 1 ? 16 : sev === 2 ? 36 : 0), end: e0 + eSize };
+    let codec = null, description = null;
+    if (fourcc === 'mp4a') {
+      const esds = find(entry, 'esds');
+      if (esds) {
+        const b = moov;
+        const desc = (o) => { const tag = b[o++]; let len = 0, c, k = 0; do { c = b[o++]; len = (len << 7) | (c & 127); } while ((c & 128) && ++k < 4); return { tag, len, start: o }; };
+        let d = desc(esds.start + 4), o = d.start;
+        if (d.tag === 3) { const fl = b[o + 2]; o += 3; if (fl & 128) o += 2; if (fl & 64) o += 1 + b[o]; if (fl & 32) o += 2; d = desc(o); }
+        if (d.tag === 4) {
+          const oti = b[d.start];
+          const dsiD = desc(d.start + 13);
+          if (dsiD.tag === 5) description = b.slice(dsiD.start, dsiD.start + dsiD.len);
+          if (oti === 0x40 || oti === 0x66 || oti === 0x67 || oti === 0x68) {
+            let aot = description && description.length ? description[0] >> 3 : 2;
+            if (aot === 31 && description.length > 1) aot = 32 + (((description[0] & 7) << 3) | (description[1] >> 5));
+            codec = 'mp4a.40.' + aot;
+          } else if (oti === 0x69 || oti === 0x6B) { codec = 'mp3'; description = null; }
+        }
+      }
+    } else if (fourcc === 'Opus') codec = 'opus';
+    else if (fourcc === 'fLaC') codec = 'flac';
+    // table des échantillons
+    const box = (t) => find(stbl, t);
+    const stsz = box('stsz'), stco = box('stco'), co64 = box('co64'), stsc = box('stsc'), stts = box('stts');
+    if (!stsz || !(stco || co64) || !stsc || !stts) return null;
+    const fixed = dv.getUint32(stsz.start + 4), count = dv.getUint32(stsz.start + 8);
+    const sizes = new Uint32Array(count);
+    for (let i = 0; i < count; i++) sizes[i] = fixed || dv.getUint32(stsz.start + 12 + i * 4);
+    const cBox = stco || co64, nCh = dv.getUint32(cBox.start + 4), chunkOff = new Float64Array(nCh);
+    for (let i = 0; i < nCh; i++) chunkOff[i] = co64 ? Number(dv.getBigUint64(cBox.start + 8 + i * 8)) : dv.getUint32(cBox.start + 8 + i * 4);
+    const nSc = dv.getUint32(stsc.start + 4), offsets = new Float64Array(count);
+    let si = 0;
+    for (let e = 0; e < nSc; e++) {
+      const first = dv.getUint32(stsc.start + 8 + e * 12) - 1, per = dv.getUint32(stsc.start + 12 + e * 12);
+      const last = e + 1 < nSc ? dv.getUint32(stsc.start + 8 + (e + 1) * 12) - 1 : nCh;
+      for (let c = first; c < last && si < count; c++) { let o = chunkOff[c]; for (let k = 0; k < per && si < count; k++) { offsets[si] = o; o += sizes[si++]; } }
+    }
+    const deltas = new Uint32Array(count), nTs = dv.getUint32(stts.start + 4);
+    let di = 0;
+    for (let e = 0; e < nTs; e++) { const n = dv.getUint32(stts.start + 8 + e * 8), d = dv.getUint32(stts.start + 12 + e * 8); for (let k = 0; k < n && di < count; k++) deltas[di++] = d; }
+    return { codec, description, sampleRate, channels, timescale, sizes, offsets, deltas, count };
+  }
+  return null;
+}
+async function decodeToWavParts(file, info, onPrep) {
+  const unsupported = new ApiError(`Ce téléphone ne sait pas décoder ce fichier ${info.codec ? '(' + info.codec + ')' : ''} pour le découper. Exporte l'enregistrement en MP3 depuis Plaud (1 h ≈ 12 Mo).`);
+  if (!info.codec || !('AudioDecoder' in window)) throw unsupported;
+  const cfg = { codec: info.codec, sampleRate: info.sampleRate, numberOfChannels: info.channels };
+  if (info.description && info.description.length) cfg.description = info.description;
+  let ok = false;
+  try { ok = (await AudioDecoder.isConfigSupported(cfg)).supported; } catch (e) {}
+  if (!ok) throw unsupported;
+  const perPart = Math.floor((CONFIG.maxAudioChunk - 64) / 2), parts = [];
+  let out = new Int16Array(perPart), n = 0, outRate = 0, ratio = 1, acc = 0, cnt = 0, pos = 0, next = 1, err = null;
+  const flushPart = () => {
+    if (!n) return;
+    const pcm = out.slice(0, n);
+    parts.push({ blob: new Blob([wavHeader(monoHeaderFor(outRate), n * 2), pcm.buffer], { type: 'audio/wav' }), name: 'audio.wav', duration: n / outRate });
+    n = 0;
+  };
+  const dec = new AudioDecoder({
+    output: (d) => {
+      try {
+        if (!outRate) { outRate = Math.min(16000, d.sampleRate); ratio = d.sampleRate / outRate; next = ratio; }
+        const ch = d.numberOfChannels, fr = d.numberOfFrames, planes = [];
+        for (let c = 0; c < ch; c++) { const a = new Float32Array(fr); d.copyTo(a, { planeIndex: c, format: 'f32-planar' }); planes.push(a); }
+        for (let i = 0; i < fr; i++) {
+          let v = 0; for (let c = 0; c < ch; c++) v += planes[c][i];
+          acc += v / ch; cnt++; pos++;
+          if (pos >= next) {
+            out[n++] = Math.max(-1, Math.min(1, acc / cnt)) * 32767;
+            acc = 0; cnt = 0; next += ratio;
+            if (n === perPart) flushPart();
+          }
+        }
+      } catch (e) { err = e; } finally { d.close(); }
+    },
+    error: (e) => { err = e; },
+  });
+  dec.configure(cfg);
+  let i = 0, t = 0;
+  while (i < info.count) {
+    let j = i, start = info.offsets[i], end = start + info.sizes[i];
+    while (j + 1 < info.count && info.offsets[j + 1] === end && end - start < (2 << 20)) { j++; end += info.sizes[j]; }
+    const bytes = new Uint8Array(await file.slice(start, end).arrayBuffer());
+    let o = 0;
+    for (let k = i; k <= j; k++) {
+      dec.decode(new EncodedAudioChunk({ type: 'key', timestamp: Math.round(t * 1e6 / info.timescale),
+        duration: Math.round(info.deltas[k] * 1e6 / info.timescale), data: bytes.subarray(o, o + info.sizes[k]) }));
+      o += info.sizes[k]; t += info.deltas[k];
+    }
+    i = j + 1;
+    while (dec.decodeQueueSize > 100 && !err) await sleep(4);
+    if (err) break;
+    onPrep && onPrep(i / info.count);
+    await sleep(0);
+  }
+  if (!err) { try { await dec.flush(); } catch (e) { err = err || e; } }
+  try { dec.close(); } catch (e) {}
+  if (err) throw new ApiError('Le décodage du fichier a échoué (' + (err.message || err) + '). Exporte l\'enregistrement en MP3 depuis Plaud.');
+  flushPart();
+  if (!parts.length) throw new ApiError('Aucun son n\'a pu être extrait de ce fichier.');
+  return parts;
+}
+
+// Renvoie une liste de fonctions, chacune produisant un morceau { blob, name } au moment de l'envoi
+async function splitAudio(file, onPrep) {
+  const ext = extFor(file), max = CONFIG.maxAudioChunk;
+  const wav = ext === 'wav' || /wav/.test(file.type) ? await parseWav(file) : null;
+  if (wav) {
+    const pcm = (wav.format === 1 && [8, 16, 24, 32].includes(wav.bits)) || (wav.format === 3 && wav.bits === 32);
+    const convert = pcm && (wav.rate > 16000 || wav.channels > 1 || wav.bits !== 16);
+    const byteRate = wav.samplesPerBlock ? wav.blockAlign * wav.rate / wav.samplesPerBlock : (wav.byteRate || wav.rate * wav.blockAlign);
+    if (!convert && file.size <= max) return [async () => ({ blob: file, name: 'audio.wav', duration: wav.dataLen / byteRate })];
+    const outRate = Math.min(wav.rate, 16000);
+    const outPerFrame = convert ? 2 * (outRate / wav.rate) : wav.blockAlign;
+    let frames = Math.floor((max - 64) / outPerFrame);
+    frames = Math.max(1, Math.min(frames, Math.floor((48 << 20) / wav.blockAlign))); // on ne lit jamais plus de 48 Mo d'un coup
+    const step = frames * wav.blockAlign, parts = [];
+    for (let off = 0; off < wav.dataLen; off += step) {
+      const a = wav.dataOff + off, b = Math.min(wav.dataOff + wav.dataLen, a + step);
+      parts.push(async () => {
+        if (!convert) {
+          const slice = file.slice(a, b);
+          return { blob: new Blob([wavHeader(wav.fmtBytes, b - a), slice], { type: 'audio/wav' }), name: 'audio.wav', duration: (b - a) / byteRate };
+        }
+        const samples = toMono16k(await file.slice(a, b).arrayBuffer(), wav);
+        return { blob: new Blob([wavHeader(monoHeaderFor(outRate), samples.byteLength), samples.buffer], { type: 'audio/wav' }), name: 'audio.wav', duration: samples.length / outRate };
+      });
+    }
+    return parts;
+  }
+  if (file.size <= max) return [async () => ({ blob: file, name: 'audio.' + ext })];
+  if (ext === 'mp3' || /mpeg|mp3/.test(file.type)) {
+    const cuts = [0];
+    for (let off = max; off < file.size; off += max) cuts.push(await mp3Sync(file, off));
+    cuts.push(file.size);
+    const parts = [];
+    for (let i = 0; i < cuts.length - 1; i++) {
+      if (cuts[i + 1] <= cuts[i]) continue;
+      const a = cuts[i], b = cuts[i + 1];
+      parts.push(async () => { const blob = file.slice(a, b, 'audio/mpeg'); return { blob, name: 'audio.mp3', duration: await mp3Duration(blob) }; });
+    }
+    return parts;
+  }
+  if (/^(m4a|mp4|aac|m4b|mov|3gp)$/.test(ext) || /mp4|m4a|aac/.test(file.type)) {
+    const info = await parseMp4Audio(file).catch(() => null);
+    if (info) {
+      const parts = await decodeToWavParts(file, info, onPrep);
+      return parts.map((x) => async () => x);
+    }
+  }
+  throw new ApiError(`Ce fichier .${ext} fait ${mb(file.size)}, au-delà de la limite de 25 Mo de Groq, et ce format ne peut pas être découpé dans le téléphone. Exporte l'enregistrement en MP3 depuis Plaud (1 h ≈ 12 Mo).`);
+}
+
+async function transcribe(file, onPart, onPrep) {
+  const parts = await splitAudio(file, onPrep);
   const segments = []; let offset = 0, language = '';
   for (let i = 0; i < parts.length; i++) {
     onPart(i, parts.length);
     const fd = new FormData();
-    fd.append('file', parts[i], `audio-${i + 1}.${ext}`);
+    const part = await parts[i]();
+    fd.append('file', part.blob, part.name.replace('audio', 'audio-' + (i + 1)));
     fd.append('model', settings.whisper);
     fd.append('response_format', 'verbose_json');
     fd.append('temperature', '0');
@@ -739,7 +1025,7 @@ async function transcribe(file, onPart) {
       segments.push({ start: (s.start || 0) + offset, end: (s.end || 0) + offset, text });
     }
     const last = segs[segs.length - 1];
-    offset += j.duration || (last ? last.end : 0) || 0;
+    offset += part.duration || j.duration || (last ? last.end : 0) || 0;
   }
   return { segments, duration: offset, language };
 }
@@ -983,7 +1269,10 @@ async function run(note) {
       status('');
       const tr = await transcribe(note.audio, (i, n) => {
         step('st-up', 'active', n > 1 ? `Partie ${i + 1} sur ${n}` : 'Envoi à Groq…');
-        bar(0.05 + 0.4 * (i / n));
+        bar(0.2 + 0.25 * (i / n));
+      }, (p) => {
+        step('st-up', 'active', `Préparation du fichier… ${Math.round(p * 100)} %`);
+        bar(0.03 + 0.17 * p);
       });
       if (!tr.segments.length) throw new ApiError('Aucune parole détectée dans cet enregistrement.');
       Object.assign(note, { segments: tr.segments, duration: tr.duration, language: tr.language, status: 'resume' });

@@ -138,7 +138,7 @@
   }
   .btn:active { transform: scale(.97); }
   .btn svg { width: 18px; height: 18px; flex: none; }
-  .btn.primary { background: var(--grad); border: 0; color: #fff; box-shadow: var(--shadow-lg); }
+  .btn.primary { background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,0) 45%), var(--grad); border: 0; color: #fff; box-shadow: var(--shadow-lg); }
   .btn.ghost { background: transparent; border-color: transparent; color: var(--ink-2); }
   .btn.danger { color: var(--err); }
   .btn.block { width: 100%; }
@@ -148,7 +148,8 @@
 
   /* ---------- Accueil ---------- */
   .hello { padding: 10px 2px 18px; }
-  .hello h1 { font: 600 32px/1.1 var(--serif); letter-spacing: -.02em; margin: 0 0 6px; }
+  .hello h1 { font: 600 32px/1.1 var(--serif); letter-spacing: -.02em; margin: 0 0 6px; display: flex; align-items: center; gap: 11px; }
+  .greet-ic { width: 27px; height: 27px; color: var(--accent); flex: none; }
   .hello p { margin: 0; color: var(--muted); font-size: 15px; }
   .hero {
     position: relative; overflow: hidden; display: block; cursor: pointer; color: #fff;
@@ -271,7 +272,12 @@
   .tabs button { flex: 1; min-height: 40px; border: 0; border-radius: 11px; background: transparent; cursor: pointer; font-weight: 600; font-size: 13.5px; letter-spacing: -.01em; padding: 0 4px; color: var(--muted); transition: color .2s, background .2s, box-shadow .2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); font-weight: 700; }
   .secs { display: flex; flex-direction: column; gap: 12px; }
-  .sec { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 16px 18px; --k: var(--accent); --ks: var(--accent-soft); }
+  .sec { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 0; overflow: hidden; --k: var(--accent); --ks: var(--accent-soft); }
+  .sec > h3 { margin: 0; padding: 12px 16px; background: var(--ks); border-bottom: 1px solid color-mix(in srgb, var(--k) 14%, transparent); }
+  .sec > .md { padding: 14px 18px 16px; }
+  .sec.k-resume > .md { padding: 18px; }
+  .sec > h3 .sec-ic { background: var(--k); box-shadow: 0 2px 6px -1px color-mix(in srgb, var(--k) 55%, transparent); }
+  .sec > h3 .sec-ic svg { color: #fff; }
   .sec.k-points { --k: var(--blue); --ks: var(--blue-soft); }
   .sec.k-decisions { --k: var(--violet); --ks: var(--violet-soft); }
   .sec.k-actions { --k: var(--green); --ks: var(--green-soft); }
@@ -290,7 +296,7 @@
   .md summary::before { content: "?"; flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--ks); color: var(--k); font: 700 13px/22px var(--sans); text-align: center; margin-top: 1px; }
   .md details[open] summary::before { content: "✓"; }
   .md .ans { margin: 6px 0 0 32px; padding: 8px 12px; border-radius: 10px; background: var(--surface-2); color: var(--ink-2); }
-  .sec h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--k); }
+  .sec h3 { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--k); }
   .sec-ic { width: 30px; height: 30px; border-radius: 9px; background: var(--ks); display: grid; place-items: center; }
   .sec-ic svg { width: 17px; height: 17px; }
   .sec.k-resume .md { font-size: 16.5px; line-height: 1.6; }
@@ -611,10 +617,17 @@
     .tabs button:not([aria-selected="true"]):hover { color: var(--ink-2); background: color-mix(in srgb, var(--surface) 55%, transparent); }
   }
   .item, .hero { will-change: transform; }
-  .sec { transition: box-shadow .2s; }
+  @keyframes secIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  #noteSum .sec { animation: secIn .42s cubic-bezier(.2,.85,.25,1) both; }
+  #noteSum .sec:nth-child(2) { animation-delay: .05s; }
+  #noteSum .sec:nth-child(3) { animation-delay: .1s; }
+  #noteSum .sec:nth-child(4) { animation-delay: .15s; }
+  #noteSum .sec:nth-child(5) { animation-delay: .2s; }
+  #noteSum .sec:nth-child(n+6) { animation-delay: .24s; }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
     .item:hover, .hero:hover { transform: none; }
+    #noteSum .sec { opacity: 1 !important; }
   }
 </style>
 </head>
@@ -1052,7 +1065,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '24 · 27 sept. 2026';
+const APP_VERSION = '25 · 27 sept. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -2422,6 +2435,15 @@ function greeting() {
   const h = new Date().getHours();
   return h < 5 ? 'Bonne nuit' : h < 12 ? 'Bonjour' : h < 18 ? 'Bon après-midi' : 'Bonsoir';
 }
+function greetIcon() {
+  const h = new Date().getHours();
+  const inner = h >= 12 && h < 18
+    ? '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.2 12H2M22 12h-2.2M5.4 5.4 3.9 3.9M20.1 20.1l-1.5-1.5M5.4 18.6 3.9 20.1M20.1 3.9l-1.5 1.5"/>'
+    : h < 5 ? '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/>'
+    : h < 12 ? '<path d="M12 3v3M5.6 10.6 4.2 9.2M19.8 9.2l-1.4 1.4M3 17.5h18M7.5 17.5a4.5 4.5 0 0 1 9 0"/>'
+    : '<path d="M17 18a5 5 0 0 0-10 0M12 9.5V3M4.5 11.5 3 10M21 10l-1.5 1.5M3 18h1.5M19.5 18H21M3 21.5h18"/>';
+  return `<svg class="greet-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+}
 const dayStart = (t) => { const d = new Date(t); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
 function groupOf(t) {
   const diff = Math.round((dayStart(Date.now()) - dayStart(t)) / 86400000);
@@ -2443,7 +2465,7 @@ async function renderHome() {
   $('plaudBtn').classList.toggle('hidden', !plaudOn());
   $('runBanner').classList.toggle('hidden', !runningId);
   $('onboard').classList.toggle('hidden', !!settings.key);
-  $('greet').textContent = greeting();
+  $('greet').innerHTML = greetIcon() + '<span>' + esc(greeting()) + '</span>';
   allNotes = await loadNotes();
   const total = allNotes.reduce((a, n) => a + (n.duration || 0), 0);
   const todo = allNotes.reduce((a, n) => a + openTasks(n), 0);

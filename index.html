@@ -304,6 +304,33 @@
   .md th { background: var(--surface-2); font-weight: 600; }
   .md tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
   .md.lect { font-size: 16.5px; line-height: 1.72; }
+  #printRoot { display: none; }
+  @media print {
+    html, body { background: #fff !important; }
+    body > *:not(#printRoot) { display: none !important; }
+    #printRoot { display: block !important; color: #111; font: 12pt/1.55 var(--sans); }
+    #printRoot .doc-title { font: 700 20pt/1.2 var(--serif); margin: 0 0 2pt; color: #111; }
+    #printRoot .doc-meta { color: #555; font-size: 9.5pt; margin: 0 0 14pt; }
+    #printRoot .md h1 { font: 700 15pt/1.25 var(--serif); margin: 18pt 0 6pt; border-top: 1px solid #ddd; padding-top: 10pt; }
+    #printRoot .md h2 { font: 700 13pt/1.3 var(--serif); margin: 12pt 0 4pt; color: #b8401b; }
+    #printRoot .md h3 { font: 700 11.5pt/1.3 var(--serif); margin: 9pt 0 3pt; }
+    #printRoot .md p { margin: 5pt 0; }
+    #printRoot .md ul, #printRoot .md ol { margin: 5pt 0; padding-left: 18pt; }
+    #printRoot .md li { margin: 2pt 0; }
+    #printRoot .md code { background: #eee; padding: 0 3px; border-radius: 3px; }
+    #printRoot .tbl-wrap { overflow: visible; margin: 8pt 0; }
+    #printRoot table { border-collapse: collapse; width: 100%; font-size: 10.5pt; }
+    #printRoot th, #printRoot td { border: 1px solid #999; padding: 3pt 6pt; text-align: left; }
+    #printRoot th { background: #f0f0f0; }
+    #printRoot .task { list-style: none; }
+    #printRoot .task input { -webkit-appearance: none; appearance: none; width: 10pt; height: 10pt; border: 1px solid #666; border-radius: 2px; display: inline-block; vertical-align: -1px; margin-right: 4px; }
+    #printRoot .task input:checked { background: #666; }
+    #printRoot .tedit, #printRoot .qa .ans { display: none !important; }
+    #printRoot .qa summary { list-style: none; font-weight: 600; }
+    #printRoot h1, #printRoot h2, #printRoot h3 { break-after: avoid; }
+    #printRoot table, #printRoot tr, #printRoot li, #printRoot .katex-display { break-inside: avoid; }
+    @page { margin: 16mm 14mm; }
+  }
   .md.lect h2 { font-size: 19px; margin: 22px 0 6px; }
   .md.lect h2:first-child, .md.lect h3:first-child { margin-top: 2px; }
   .md.lect h3 { font-size: 16.5px; margin: 16px 0 4px; }
@@ -536,6 +563,9 @@
 
   /* ---------- Réglages ---------- */
   .set-group + .set-group { margin-top: 24px; }
+  .h1edit { cursor: pointer; }
+  .h1edit .ti-pen { display: inline-block; width: 17px; height: 17px; margin-left: 8px; vertical-align: 3px; color: var(--muted); opacity: .6; }
+  .h1edit:hover .ti-pen, .h1edit:focus-visible .ti-pen { opacity: 1; }
   .themes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
   .sw { border: 0; background: none; cursor: pointer; padding: 0; }
   .sw .chip { display: block; height: 46px; border-radius: 12px; border: 2px solid var(--line); position: relative; box-shadow: var(--shadow); }
@@ -698,7 +728,7 @@
   <section id="v-note" class="view hidden">
     <div class="note-head">
       <button class="eyebrow edit" id="noteDate" aria-label="Modifier la date"></button>
-      <h1 id="noteTitle"></h1>
+      <h1 id="noteTitle" class="h1edit" role="button" tabindex="0" aria-label="Modifier le titre"></h1>
       <div class="chips" id="noteMeta"></div>
       <div class="tags" id="noteTags"></div>
     </div>
@@ -1001,10 +1031,11 @@
 <div class="sheet-bg hidden" id="sheetBg"></div>
 <div class="sheet hidden" id="sheet" role="dialog" aria-modal="true"><div class="grab"></div><div id="sheetBody"></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="printRoot" aria-hidden="true"></div>
 
 <script>
 'use strict';
-const APP_VERSION = '21 · 27 sept. 2026';
+const APP_VERSION = '22 · 27 sept. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -2910,6 +2941,16 @@ async function generateLecture() {
   }
 }
 
+const PEN = '<svg class="ti-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+async function renameNote() {
+  const n = currentNote; if (!n) return;
+  const t = (prompt('Titre de la note :', n.title) || '').trim();
+  if (!t || t === n.title) return;
+  currentNote.title = t;
+  const fresh = await db.get(n.id); if (fresh) { fresh.title = t; await db.put(fresh); }
+  $('noteTitle').innerHTML = esc(t) + PEN;
+  toast('Titre modifié');
+}
 async function openNote(id) {
   if (id === runningId) { show('job'); return; }
   const n = await db.get(id);
@@ -2917,7 +2958,7 @@ async function openNote(id) {
   if ((n.status === 'transcription' || n.status === 'err') && !busy && n.audio) { run(n); return; }
   currentNote = n;
   renderNoteDate();
-  $('noteTitle').textContent = n.title;
+  $('noteTitle').innerHTML = esc(n.title) + PEN;
   $('noteMeta').innerHTML = [
     n.duration ? `<span class="pill">${ICONS.clock}${dur(n.duration)}</span>` : '',
     `<span class="pill">${ICONS.file}${esc(n.fileName)}</span>`,
@@ -3654,6 +3695,7 @@ $('updBtn').onclick = async () => {
   } catch (e) { $('updState').textContent = 'Vérification impossible (hors ligne ?).'; }
 };
 $('noteDate').onclick = () => { if (currentNote) dateSheet(currentNote); };
+$('noteTitle').onclick = renameNote;
 $('trSearch').oninput = renderTranscript;
 function provBoxes() {
   // toutes les IA restent visibles : celles qui ont une clé servent de secours
@@ -3692,94 +3734,63 @@ $('sSave').onclick = () => {
 $('fileInput').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) startFile(f); };
 document.querySelectorAll('.tabs-wrap .tabs button').forEach((b) => b.onclick = () => setTab(b.dataset.tab));
 
-/* =================== Export PDF -> NotebookLM =================== */
-/* NotebookLM (grand public) n'a pas d'API : le seul lien fluide est le partage Android,
-   qui accepte les PDF. On fabrique donc un PDF propre de la note (résumé + cours + transcription)
-   et on ouvre le partage : l'utilisateur touche NotebookLM, qui l'ajoute comme source.
-   Sur ordinateur, on télécharge le PDF (ou on colle le texte via « Copier »). */
-let jspdfLoad = null;
-function loadJsPDF() {
-  if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve();
-  if (!jspdfLoad) jspdfLoad = new Promise((res, rej) => {
-    const sc = document.createElement('script');
-    sc.src = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js';
-    sc.onload = () => res(); sc.onerror = () => { jspdfLoad = null; rej(new Error('Création du PDF impossible (connexion Internet ?)')); };
-    document.head.appendChild(sc);
-  });
-  return jspdfLoad;
-}
-// Contenu du PDF : titre, résumé, cours rédigé puis transcription (horodatages retirés pour un texte propre)
-function pdfMarkdown(n) {
-  const out = [`# ${n.title}`, `${fmtDate(n.created)}${n.duration ? '  ·  ' + dur(n.duration) : ''}`];
-  if (n.summary) out.push('', n.summary);
-  if (n.lecture && n.lecture.trim()) out.push('', '# Cours rédigé', '', n.lecture);
+/* =================== Export PDF (impression) -> NotebookLM =================== */
+/* NotebookLM (grand public) n'a pas d'API : on passe par un PDF. Plutôt que de dessiner le PDF
+   nous-mêmes (accents mal lus, pas de tableaux ni de formules), on utilise le moteur d'impression
+   du navigateur : il rend exactement la note (tableaux, formules KaTeX, accents), en texte que
+   NotebookLM lit correctement. L'utilisateur choisit « Enregistrer au format PDF », puis l'ajoute
+   comme source dans NotebookLM. */
+function printMarkdown(n) {
+  const out = [];
+  if (n.summary) out.push(n.summary);
+  if (n.lecture && n.lecture.trim()) out.push('\n\n# Cours rédigé\n\n' + n.lecture);
   const segs = hasClean(n) ? n.clean : (n.segments || []);
   if (segs.length) {
-    const tr = segs.map((x) => x.sep ? `\n## ${x.text}` : x.text).join(hasClean(n) ? '\n\n' : ' ');
-    out.push('', '# Transcription', '', tr);
+    const tr = segs.map((x) => x.sep ? `\n## ${x.text}\n` : x.text).join(hasClean(n) ? '\n\n' : ' ');
+    out.push('\n\n# Transcription\n\n' + tr);
   }
-  return out.join('\n');
+  return out.join('\n\n');
 }
-async function buildNotePdf(n) {
-  await loadJsPDF();
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-  const M = 48, W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), maxW = W - 2 * M;
-  let y = M;
-  const strip = (t) => String(t)
-    .replace(/\$\$([\s\S]*?)\$\$/g, '$1').replace(/\$([^$]+)\$/g, '$1')
-    .replace(/\\\[([\s\S]*?)\\\]/g, '$1').replace(/\\\(([\s\S]*?)\\\)/g, '$1')
-    .replace(/\*\*(.+?)\*\*/g, '$1').replace(/(^|[^*])\*(?!\s)(.+?)\*(?!\*)/g, '$1$2')
-    .replace(/`([^`]+)`/g, '$1').trim();
-  const need = (h) => { if (y + h > H - M) { doc.addPage(); y = M; } };
-  const write = (text, o = {}) => {
-    const size = o.size || 11, indent = o.indent || 0;
-    doc.setFont('helvetica', o.style || 'normal'); doc.setFontSize(size); doc.setTextColor(...(o.color || [28, 26, 23]));
-    for (const ln of doc.splitTextToSize(String(text), maxW - indent)) { need(size * 1.35); doc.text(ln, M + indent, y); y += size * 1.35; }
-    y += (o.gap == null ? 4 : o.gap);
-  };
-  const cells = (t) => t.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => strip(c.trim()));
-  const isSep = (t) => t.includes('-') && cells(t).every((x) => /^:?-{1,}:?$/.test(x.replace(/\s/g, '')));
-  const lines = pdfMarkdown(n).split('\n');
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].replace(/\s+$/, ''); let m;
-    if (!line.trim()) { y += 4; continue; }
-    if (line.includes('|') && !isSep(line) && i + 1 < lines.length && isSep(lines[i + 1])) {
-      const rows = [cells(line)]; i += 2;
-      while (i < lines.length && lines[i].includes('|') && lines[i].trim()) { if (!isSep(lines[i])) rows.push(cells(lines[i])); i++; }
-      i--;
-      rows.forEach((r, ri) => write(r.join('    |    '), { size: 10, style: ri ? 'normal' : 'bold', gap: 2 }));
-      y += 6; continue;
-    }
-    if ((m = /^#\s+(.*)/.exec(line))) { need(26); y += 8; write(strip(m[1]), { size: 17, style: 'bold', gap: 6 }); continue; }
-    if ((m = /^##\s+(.*)/.exec(line))) { need(20); y += 6; write(strip(m[1]), { size: 13.5, style: 'bold', gap: 4, color: [184, 64, 27] }); continue; }
-    if ((m = /^###\s+(.*)/.exec(line))) { write(strip(m[1]), { size: 12, style: 'bold', gap: 3 }); continue; }
-    if ((m = /^#{4}\s+(.*)/.exec(line))) { write(strip(m[1]), { size: 11, style: 'bold', gap: 3 }); continue; }
-    if (/^(-{3,}|\*{3,})$/.test(line.trim())) { need(12); doc.setDrawColor(205); doc.line(M, y, W - M, y); y += 12; continue; }
-    if ((m = /^\s*[-*•]\s+\[( |x|X)\]\s+(.*)$/.exec(line))) { write((m[1].trim() ? '[x]  ' : '[ ]  ') + strip(m[2]), { indent: 14, gap: 2 }); continue; }
-    if ((m = /^\s*[-*•]\s+(.*)$/.exec(line))) { write('•  ' + strip(m[1]), { indent: 14, gap: 2 }); continue; }
-    if ((m = /^\s*(\d+[.)])\s+(.*)$/.exec(line))) { write(m[1] + '  ' + strip(m[2]), { indent: 14, gap: 2 }); continue; }
-    write(strip(line));
-  }
-  return doc;
+async function preparePrint(n) {
+  const root = $('printRoot');
+  root.innerHTML = `<h1 class="doc-title">${esc(n.title)}</h1>`
+    + `<p class="doc-meta">${esc(fmtDate(n.created))}${n.duration ? ' · ' + dur(n.duration) : ''}${n.fileName ? ' · ' + esc(n.fileName) : ''}</p>`
+    + `<div class="md">${md(printMarkdown(n), { i: 0, noEdit: true })}</div>`;
+  try { await loadKatex(); } catch (e) {}
+  await renderMath(root);
+  try { await document.fonts.ready; } catch (e) {}
+  await new Promise((r) => setTimeout(r, 150));
 }
-function savePdf(file) {
-  const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name;
-  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+function doPrint(n) {
+  const prev = document.title;
+  document.title = (baseName(n.title) || 'Note').replace(/[\\/:*?"<>|]/g, '').slice(0, 90) || 'Note';
+  const restore = () => { document.title = prev; window.removeEventListener('afterprint', restore); };
+  window.addEventListener('afterprint', restore);
+  setTimeout(restore, 60000);
+  window.print();
 }
-async function toNotebookLM() {
+async function printForNotebookLM() {
   const n = currentNote; if (!n) return;
   const btn = $('nlmBtn'); if (btn.disabled) return;
-  const label = btn.querySelector('span').textContent; btn.disabled = true; btn.querySelector('span').textContent = 'Création du PDF…';
+  const span = btn.querySelector('span'), label = span.textContent;
+  btn.disabled = true; span.textContent = 'Préparation…';
   try {
-    const doc = await buildNotePdf(n);
-    const file = new File([doc.output('blob')], (baseName(n.title).replace(/[\\/:*?"<>|]/g, '').slice(0, 80) || 'note') + '.pdf', { type: 'application/pdf' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: n.title }); }
-      catch (e) { if (e.name !== 'AbortError') { savePdf(file); toast('PDF téléchargé — importe-le dans NotebookLM'); } }
-    } else { savePdf(file); toast('PDF téléchargé — importe-le dans NotebookLM'); }
-  } catch (e) { toast(e.message || 'PDF impossible'); }
-  finally { btn.disabled = false; btn.querySelector('span').textContent = label; }
+    await preparePrint(n);
+    if (lsGet('np-print-hint', '') === 'ok') { doPrint(n); return; }
+    // première fois : petite explication, puis impression
+    openSheet(`<h3>Exporter en PDF pour NotebookLM</h3>
+      <p class="sub">La fenêtre d'impression va s'ouvrir.</p>
+      <ol class="steps-mini" style="font-size:14px">
+        <li>Choisis <b>« Enregistrer au format PDF »</b> (au lieu d'une imprimante).</li>
+        <li>Enregistre le fichier.</li>
+        <li>Dans NotebookLM : <b>Ajouter une source → Importer / PDF</b>, et choisis ce fichier. Sur téléphone, tu peux aussi le <b>partager</b> vers NotebookLM.</li>
+      </ol>
+      <label class="chkline" style="margin:10px 0 0"><input type="checkbox" id="pHintOff"><span>Ne plus afficher</span></label>
+      <button class="btn primary block" id="pGoPrint" style="margin-top:12px">Ouvrir l'impression</button>`, (body) => {
+      body.querySelector('#pGoPrint').onclick = () => { if (body.querySelector('#pHintOff').checked) lsSet('np-print-hint', 'ok'); closeSheet(); setTimeout(() => doPrint(n), 250); };
+    });
+  } catch (e) { toast('Impression impossible : ' + (e.message || e)); }
+  finally { btn.disabled = false; span.textContent = label; }
 }
 
 $('aCopy').onclick = async () => {
@@ -3810,7 +3821,7 @@ $('aDl').onclick = () => {
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 };
-$('nlmBtn').onclick = toNotebookLM;
+$('nlmBtn').onclick = printForNotebookLM;
 $('resumAgain').onclick = () => { const n = currentNote; if (n && !busy) kindSheet(n); };
 $('delNote').onclick = async () => {
   if (!currentNote || !confirm('Supprimer cette note ?')) return;

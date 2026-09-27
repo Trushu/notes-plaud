@@ -109,12 +109,16 @@ Réglages → **Apparence** : choisis parmi 8 thèmes — **Système** (suit le 
 
 NotebookLM (version gratuite) n'a pas d'API : impossible d'y pousser une note automatiquement. Mais on peut le faire en un geste.
 
-- **Sur téléphone :** sur une note, touche **Envoyer vers NotebookLM (PDF)**. L'app fabrique un PDF propre (résumé + cours rédigé + transcription) et ouvre le partage Android → touche **NotebookLM**, qui l'ajoute comme source. (L'app NotebookLM n'accepte au partage que les PDF, sites web et vidéos YouTube — d'où le PDF.)
-- **Sur ordinateur :** deux options, sans rien installer :
-  - **Copier** la note, puis dans NotebookLM : **Ajouter une source → Texte collé** → coller.
-  - ou **Envoyer vers NotebookLM (PDF)** télécharge le PDF, que tu importes dans NotebookLM (**Ajouter une source → Importer un fichier**). L'export **.md** marche aussi à l'import.
+Sur une note, touche **Envoyer vers NotebookLM (PDF)**. L'app prépare un PDF propre (résumé + cours rédigé + transcription, avec **tableaux, formules et accents** correctement rendus), puis ouvre la fenêtre d'impression : choisis **« Enregistrer au format PDF »**.
 
-Le PDF se génère sur l'appareil ; la première fois, l'app télécharge une petite bibliothèque (connexion Internet requise une fois).
+- **Sur téléphone :** une fois le PDF enregistré, ouvre l'app NotebookLM et ajoute-le comme source (ou partage-le vers NotebookLM depuis tes fichiers). L'app NotebookLM accepte au partage les PDF, sites web et vidéos YouTube.
+- **Sur ordinateur :** dans NotebookLM, **Ajouter une source → Importer / PDF** et choisis le fichier. Encore plus simple : bouton **Copier** → **Ajouter une source → Texte collé**. L'export **.md** s'importe aussi directement.
+
+Le PDF est produit par le navigateur (moteur d'impression) : rien à installer, et le texte est parfaitement lu par NotebookLM.
+
+### Renommer une note
+
+Touche le **titre** en haut d'une note (il a un petit crayon) pour le modifier. Le nouveau titre est repris partout : accueil, exports, PDF et nom du fichier PDF.
 
 ### Organiser ses notes
 

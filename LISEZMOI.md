@@ -90,6 +90,10 @@ Réglages → **Import depuis Plaud** : colle l'adresse du relais et le jeton, t
 
 ⚠️ Cette API de Plaud n'est **pas officielle** : Plaud peut la modifier ou la bloquer du jour au lendemain. Dans ce cas, le partage manuel (Exporter → MP3 → Partager) continue de fonctionner.
 
+## Apparence (thèmes)
+
+Réglages → **Apparence** : choisis parmi 8 thèmes — **Système** (suit le mode clair/sombre du téléphone), **Clair**, **Sombre**, **Parchemin**, **Océan**, **Forêt**, **Nuit** et **Prune**. Le changement est immédiat et retenu. « Système » bascule tout seul entre clair et sombre selon l'heure/les réglages Android.
+
 ## Utilisation
 
 - **Depuis Plaud :** automatiquement si l'import depuis le cloud est configuré (étape 6). Sinon, ouvre l'enregistrement, puis **Exporter → Audio → MP3 → Partager → Notes Plaud**.

@@ -97,6 +97,7 @@ Réglages → **Import depuis Plaud** : colle l'adresse du relais et le jeton, t
 - **Pendant le traitement :** garde l'app au premier plan. L'écran reste allumé tout seul.
 - **Sur une note :** **Copier**, **Partager** (vers Keep, Gmail, WhatsApp, Drive…) ou **.md** (téléchargement).
 - **Améliorer la transcription :** dans l'onglet Transcription, touche **Améliorer avec l'IA**. L'IA corrige les mots mal reconnus d'après le contexte, enlève les hésitations et reformule en phrases claires, sans rien résumer. Tu peux passer de la version **Améliorée** à la version **Brute** à tout moment. Avec Gemini, ça prend quelques secondes ; avec Groq, compte quelques minutes pour 1 h d'audio.
+- **Cours rédigé :** dans l'onglet **Cours**, touche **Rédiger le cours**. À la différence du résumé (condensé) et de la transcription améliorée (le parlé nettoyé), l'IA écrit ici une **version longue, développée et structurée** de tout le cours — titres, paragraphes, définitions et formules — comme un chapitre de manuel ou un polycopié, idéale pour réviser. Rien n'est résumé : tout est repris et expliqué. Sur un long enregistrement, la rédaction se fait morceau par morceau (barre de progression) ; si elle s'interrompt, **Reprendre** continue là où ça s'était arrêté. Le cours est inclus dans **Copier** (depuis l'onglet Cours) et dans l'export **.md**.
 
 ### Organiser ses notes
 

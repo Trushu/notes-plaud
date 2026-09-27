@@ -214,7 +214,7 @@
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .tabs-wrap { position: sticky; top: 66px; z-index: 5; padding: 4px 0 12px; background: var(--bg); }
   .tabs { display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 14px; }
-  .tabs button { flex: 1; min-height: 40px; border: 0; border-radius: 11px; background: transparent; cursor: pointer; font-weight: 600; font-size: 14.5px; color: var(--muted); transition: all .2s; }
+  .tabs button { flex: 1; min-height: 40px; border: 0; border-radius: 11px; background: transparent; cursor: pointer; font-weight: 600; font-size: 14.5px; color: var(--muted); transition: all .2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
   .secs { display: flex; flex-direction: column; gap: 12px; }
   .sec { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 16px 18px; --k: var(--accent); --ks: var(--accent-soft); }
@@ -244,6 +244,13 @@
   .md > :first-child { margin-top: 0; } .md > :last-child { margin-bottom: 0; }
   .md h1, .md h2, .md h3 { font: 600 17px/1.3 var(--serif); margin: 14px 0 6px; text-transform: none; letter-spacing: 0; color: var(--ink); display: block; }
   .md p { margin: 6px 0; }
+  .md.lect { font-size: 16.5px; line-height: 1.72; }
+  .md.lect h2 { font-size: 19px; margin: 22px 0 6px; }
+  .md.lect h2:first-child, .md.lect h3:first-child { margin-top: 2px; }
+  .md.lect h3 { font-size: 16.5px; margin: 16px 0 4px; }
+  .md.lect p { margin: 10px 0; }
+  .md.lect ul, .md.lect ol { margin: 8px 0; padding-left: 22px; }
+  .md.lect li { margin: 4px 0; }
   .md ul, .md ol { margin: 4px 0; padding-left: 20px; }
   .md li { margin: 6px 0; padding-left: 2px; }
   .md li::marker { color: var(--k, var(--accent)); }
@@ -632,6 +639,7 @@
       <div class="tabs" role="tablist">
         <button role="tab" aria-selected="true" data-tab="sum">Résumé</button>
         <button role="tab" aria-selected="false" data-tab="tr">Transcription</button>
+        <button role="tab" aria-selected="false" data-tab="lecture">Cours</button>
       </div>
     </div>
     <div class="secs" id="noteSum"></div>
@@ -662,6 +670,24 @@
         </div>
       </div>
       <div class="card tr-list" id="noteTr"></div>
+    </div>
+    <div id="noteLectWrap" class="hidden">
+      <div class="card enh" id="lectBox">
+        <div class="enh-intro" id="lectIntro">
+          <span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5"/></svg></span>
+          <div><b>Cours rédigé</b><small>À partir de la transcription, l'IA rédige une version écrite, développée et bien structurée du cours — comme un chapitre de manuel ou un polycopié. Rien n'est résumé : tout est repris, expliqué et mis au propre. Idéal pour réviser.</small></div>
+        </div>
+        <div class="enh-prog hidden" id="lectProg">
+          <b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/></svg>Rédaction en cours…</b>
+          <div class="lin"><i id="lectBar"></i></div>
+          <div class="enh-st" id="lectStatus"></div>
+          <button class="btn ghost" id="lectStop" style="margin-top:6px;min-height:36px">Arrêter</button>
+        </div>
+        <p class="enh-err hidden" id="lectErr" style="white-space:pre-line"></p>
+        <div class="enh-note hidden" id="lectNote"></div>
+        <button class="btn primary block" id="lectBtn"></button>
+      </div>
+      <div class="card hidden" id="noteLect" style="padding:18px 20px"></div>
     </div>
     <div class="note-foot">
       <button class="btn ghost" id="resumAgain">
@@ -901,7 +927,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '17 · 27 sept. 2026';
+const APP_VERSION = '18 · 27 sept. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -1683,10 +1709,10 @@ function llm(prompt, maxOut, label, preferFirst) {
 }
 // Taille des morceaux selon le fournisseur (Groq a la limite par minute la plus serrée)
 const LIM = {
-  gemini: { single: () => CONFIG.gemSingleShotChars, chunk: () => CONFIG.gemChunkChars, clean: () => CONFIG.gemCleanChars, out: 8000 },
-  cerebras: { single: () => 60000, chunk: () => 50000, clean: () => 9000, out: 8000 },
-  mistral: { single: () => 200000, chunk: () => 150000, clean: () => 9000, out: 8000 },
-  groq: { single: () => CONFIG.singleShotChars, chunk: () => CONFIG.chunkChars, clean: () => CONFIG.cleanChars, out: 2600 },
+  gemini: { single: () => CONFIG.gemSingleShotChars, chunk: () => CONFIG.gemChunkChars, clean: () => CONFIG.gemCleanChars, lecture: () => 14000, out: 8000 },
+  cerebras: { single: () => 60000, chunk: () => 50000, clean: () => 9000, lecture: () => 10000, out: 8000 },
+  mistral: { single: () => 200000, chunk: () => 150000, clean: () => 9000, lecture: () => 16000, out: 8000 },
+  groq: { single: () => CONFIG.singleShotChars, chunk: () => CONFIG.chunkChars, clean: () => CONFIG.cleanChars, lecture: () => 5000, out: 2600 },
 };
 
 // Si Gemini est indisponible, on refait l'étape avec Groq (découpage adapté à ses limites)
@@ -2060,7 +2086,7 @@ function renderNoteDate() {
 }
 
 async function startFile(file) {
-  if (busy || enhancing) { toast('Un traitement est déjà en cours'); return; }
+  if (busy || enhancing || writing) { toast('Un traitement est déjà en cours'); return; }
   if (!file || !file.size) { toast('Aucun fichier audio reçu'); return; }
   const now = Date.now();
   const note = {
@@ -2457,7 +2483,8 @@ async function renderTagAdmin() {
 function noteMarkdown(n) {
   const hasClean = !!(n.clean && n.clean.length);
   const tr = (hasClean ? n.clean : (n.segments || [])).map((s) => s.sep ? `### ${s.text}` : `[${hms(s.start)}] ${s.text}`).join('\n\n');
-  return `# ${n.title}\n\n*${fmtDate(n.created)}${n.duration ? ' · ' + dur(n.duration) : ''} · ${n.fileName}*\n\n${n.summary || ''}\n\n---\n\n## Transcription${hasClean ? ' (améliorée par IA)' : ''}\n\n${tr}\n`;
+  const lect = n.lecture && n.lecture.trim() ? `\n\n---\n\n# Cours rédigé\n\n${n.lecture}` : '';
+  return `# ${n.title}\n\n*${fmtDate(n.created)}${n.duration ? ' · ' + dur(n.duration) : ''} · ${n.fileName}*\n\n${n.summary || ''}${lect}\n\n---\n\n## Transcription${hasClean ? ' (améliorée par IA)' : ''}\n\n${tr}\n`;
 }
 
 // « - Question ? → Réponse » : la flèche est cherchée en dehors des formules LaTeX
@@ -2505,7 +2532,7 @@ function renderSummary(n) {
   return html;
 }
 
-let trMode = 'clean', enhancing = null;
+let trMode = 'clean', enhancing = null, writing = null;
 const hasClean = (n) => !!(n && n.clean && n.clean.length);
 const curSegs = (n) => (trMode === 'clean' && hasClean(n)) ? n.clean : (n.segments || []);
 function renderTranscript() {
@@ -2660,6 +2687,128 @@ async function enhance() {
   }
 }
 
+/* =================== Cours rédigé (texte long, remanié) =================== */
+/* À partir de la transcription, on rédige une version écrite, développée et structurée du cours.
+   Comme l'amélioration, on découpe en morceaux, on bascule de fournisseur si besoin, et on
+   peut reprendre là où ça s'est arrêté. La différence : ici on développe et on met en forme
+   (titres, paragraphes), au lieu de nettoyer phrase à phrase. */
+const P_LECTURE = (n, about, text, prev, part, total) => `Tu es un enseignant qui met par écrit son cours à partir de sa transcription orale, pour en faire un support de révision complet et agréable à lire.
+
+Cours : « ${n.title} ».${about ? ' Pour te repérer, voici le plan/résumé (ne le recopie pas) : ' + about : ''}
+${ctxLine()}À partir de l'extrait de transcription ci-dessous, rédige une version ÉCRITE, développée et bien structurée de cette partie du cours (partie ${part} sur environ ${total}).
+
+Consignes :
+- Écris en ${LANGS[settings.lang] || "la langue de l'extrait"}, en prose fluide et en phrases complètes, dans un style clair de manuel ou de polycopié.
+- DÉVELOPPE : explicite les raisonnements, explique chaque notion comme pour quelqu'un qui révise. Ne te contente pas de recopier l'oral, mais ne résume pas non plus : le texte doit être long, complet et fidèle.
+- Conserve absolument tout le contenu utile, dans l'ordre du cours : définitions, explications, exemples, démonstrations, chiffres, noms propres, remarques importantes.
+- Structure : des sous-titres « ## » pour les grandes parties et « ### » pour les sous-parties quand le sujet change, des paragraphes aérés, des listes à puces pour les énumérations, les termes clés en **gras**.
+- Formules mathématiques ou scientifiques en LaTeX : $…$ dans une phrase, $$…$$ pour une formule isolée (ex. « T de n moins un » → $T(n-1)$).
+- Laisse de côté ce qui n'a rien à voir avec le contenu du cours (bavardage, problèmes techniques, organisation pratique, digressions).
+- N'invente rien qui ne soit pas dans le cours.
+- Commence directement par le contenu : pas de titre de niveau 1 (« # »), pas de phrase d'introduction du type « Dans cette partie… », pas de conclusion générale.
+${prev ? `\nEnchaîne naturellement après la fin de la partie précédente déjà rédigée, sans la répéter (elle se terminait par : « …${prev} »).\n` : ''}
+Extrait de la transcription :
+"""
+${text}
+"""`;
+function cleanLecture(s) {
+  return String(s || '').replace(/^```[a-z]*\s*/i, '').replace(/\s*```\s*$/i, '').replace(/^\s*#\s+.*(?:\n|$)/, '').trim();
+}
+async function writeLectureChunk(n, about, text, prev, part, total, label) {
+  const outMax = LIM[provider()].out;
+  let out = cleanLecture(await llm(P_LECTURE(n, about, text, prev, part, total), outMax, label, true));
+  // garde-fou : si la réponse est bien plus courte que l'extrait, l'IA a résumé au lieu de développer
+  if (out.replace(/\s/g, '').length < text.replace(/\s/g, '').length * 0.5) {
+    const again = P_LECTURE(n, about, text, prev, part, total) + '\n\nATTENTION : ta réponse précédente était trop courte ou incomplète. Reprends TOUT le contenu de l\'extrait et développe-le vraiment, sans rien omettre ni résumer.';
+    const retry = cleanLecture(await llm(again, outMax, label + ' (nouvel essai)', true));
+    if (retry.length > out.length) out = retry;
+  }
+  return out;
+}
+function setLect(p, label) {
+  $('lectBar').style.width = Math.round(Math.max(0.04, Math.min(1, p)) * 100) + '%';
+  if (label != null && statusEl === 'lectStatus') status(label);
+}
+function renderLecture() {
+  const n = currentNote; if (!n) return;
+  const running = writing === n.id, has = !!(n.lecture && n.lecture.trim());
+  const part = n.lecturePartial && n.lecturePartial.total ? Math.round(100 * n.lecturePartial.si / n.lecturePartial.total) : 0;
+  $('lectBox').classList.toggle('hidden', !n.segments);
+  $('lectIntro').classList.toggle('hidden', has || running || !!part);
+  $('lectProg').classList.toggle('hidden', !running);
+  $('lectNote').classList.toggle('hidden', !has || running);
+  $('lectNote').textContent = has ? `Rédigé par ${(n.lectureBy || 'l\'IA').replace(/^openai\//, '')}, à partir de la transcription. C'est une reformulation : vérifie les points importants avant un examen.` : '';
+  $('lectBtn').classList.toggle('hidden', running || (!!writing && !running));
+  $('lectBtn').className = 'btn block ' + (has && !part ? 'ghost' : 'primary') + ($('lectBtn').classList.contains('hidden') ? ' hidden' : '');
+  $('lectBtn').innerHTML = part ? `${ICONS.refresh}Reprendre la rédaction (${part} % fait)` : has ? `${ICONS.refresh}Refaire le cours rédigé` : `${ICONS.defs}Rédiger le cours`;
+  if (running) $('lectErr').classList.add('hidden');
+  const box = $('noteLect');
+  if (has && !running) { box.classList.remove('hidden'); box.innerHTML = `<div class="md lect">${md(n.lecture, { i: 0, noEdit: true })}</div>`; renderMath(box); }
+  else box.classList.add('hidden');
+}
+async function generateLecture() {
+  const n = currentNote;
+  if (!n || !n.segments || !n.segments.length) return;
+  if (busy || enhancing || writing) { toast('Un traitement est déjà en cours'); return; }
+  if (!hasKey(provider())) { toast('Ajoute d\'abord une clé d\'IA dans les réglages'); return; }
+  const segs = n.segments;
+  let si = 0, parts = [], prev = '';
+  const saved = n.lecturePartial;
+  if (saved && saved.total === segs.length && saved.si > 0 && saved.si < segs.length) ({ si, parts, prev } = { si: saved.si, parts: saved.parts.slice(), prev: saved.prev || '' });
+  writing = n.id; statusEl = 'lectStatus'; cancelReq = false; provFailed = new Set(); provOverride = null; keepAwake(true);
+  renderLecture(); setLect(0.04 + 0.92 * (si / segs.length), si ? 'Reprise là où ça s\'était arrêté' : 'Rédaction en cours');
+  const about = excerpt(n).slice(0, 800);
+  const totalChars = segs.reduce((a, x) => a + (x.sep ? 0 : x.text.length + 1), 0);
+  const save = async (extra) => {
+    const fresh = (await db.get(n.id)) || n;
+    Object.assign(fresh, extra);
+    if (!extra.lecturePartial) delete fresh.lecturePartial;
+    await db.put(fresh);
+    if (currentNote && currentNote.id === n.id) { Object.assign(currentNote, extra); if (!extra.lecturePartial) delete currentNote.lecturePartial; }
+  };
+  try {
+    let partNo = parts.length;
+    while (si < segs.length) {
+      if (cancelReq) throw new Cancelled('Arrêté.');
+      if (segs[si].sep) { prev = ''; si++; continue; }     // frontière d'un enregistrement fusionné : on repart proprement
+      const pv = provider();
+      const size = LIM[pv].lecture();
+      const estTotal = Math.max(partNo + 1, Math.ceil(totalChars / size));
+      let text = '', j = si;
+      while (j < segs.length && !segs[j].sep) {
+        if (text && text.length + segs[j].text.length > size) break;
+        text += segs[j].text + ' '; j++;
+      }
+      partNo++;
+      const pct = si / segs.length;
+      const label = `${Math.round(pct * 100)} % · ${PNAME[pv]}`;
+      setLect(0.04 + 0.92 * pct, label);
+      let outText;
+      try { outText = await writeLectureChunk(n, about, text.trim(), prev, partNo, estTotal, label); }
+      catch (e) {
+        const nx = fallBack(e);
+        if (nx) { toast(`${PNAME[pv]} ne répond pas : je continue avec ${PNAME[nx]}`); partNo--; continue; }
+        throw e;
+      }
+      if (outText) { parts.push(outText); prev = outText.replace(/\s+/g, ' ').slice(-350); }
+      si = j;
+      if (si < segs.length) await save({ lecturePartial: { total: segs.length, si, parts, prev } });
+    }
+    if (!parts.join('').trim()) throw new ApiError('L\'IA n\'a renvoyé aucun texte. Réessaie.');
+    setLect(1, 'Terminé');
+    await save({ lecture: parts.join('\n\n'), lectureBy: lastModel, lectureAt: Date.now(), lecturePartial: null });
+    toast('Cours rédigé');
+  } catch (e) {
+    const resumable = !!(currentNote && currentNote.lecturePartial);
+    $('lectErr').textContent = (e instanceof Cancelled ? 'Rédaction arrêtée.' : e instanceof ApiError ? e.message : 'Erreur inattendue : ' + e.message)
+      + (resumable ? ' Le travail déjà fait est gardé : « Reprendre » continuera là où ça s\'est arrêté.' : '');
+    $('lectErr').classList.remove('hidden');
+  } finally {
+    writing = null; provOverride = null; cancelReq = false; statusEl = 'jobStatus'; keepAwake(false);
+    if (currentNote && currentNote.id === n.id) renderLecture();
+  }
+}
+
 async function openNote(id) {
   if (id === runningId) { show('job'); return; }
   const n = await db.get(id);
@@ -2681,8 +2830,10 @@ async function openNote(id) {
   $('trSearch').value = '';
   trMode = 'clean';
   $('enhErr').classList.add('hidden');
+  $('lectErr').classList.add('hidden');
   renderEnh();
   renderTranscript();
+  renderLecture();
   $('resumAgain').classList.toggle('hidden', !n.segments);
   $('resumAgain').querySelector('span').textContent = n.summary ? 'Refaire le résumé' : 'Générer le résumé';
   setTab('sum');
@@ -2692,6 +2843,8 @@ function setTab(t) {
   document.querySelectorAll('.tabs-wrap .tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
   $('noteSum').classList.toggle('hidden', t !== 'sum');
   $('noteTrWrap').classList.toggle('hidden', t !== 'tr');
+  $('noteLectWrap').classList.toggle('hidden', t !== 'lecture');
+  if (t === 'lecture') renderLecture();
 }
 // cocher une action : on met à jour le Markdown de la note (et donc les exports)
 $('noteSum').addEventListener('change', async (e) => {
@@ -3406,8 +3559,9 @@ document.querySelectorAll('.tabs-wrap .tabs button').forEach((b) => b.onclick = 
 $('aCopy').onclick = async () => {
   const n = currentNote; if (!n) return;
   const onTr = !$('noteTrWrap').classList.contains('hidden');
-  const txt = onTr ? curSegs(n).map((s) => s.sep ? `\n— ${s.text} —` : `[${hms(s.start)}] ${s.text}`).join(trMode === 'clean' && hasClean(n) ? '\n\n' : '\n') : `# ${n.title}\n\n${n.summary}`;
-  try { await navigator.clipboard.writeText(txt); toast(onTr ? 'Transcription copiée' : 'Résumé copié'); }
+  const onLect = !$('noteLectWrap').classList.contains('hidden');
+  const txt = onLect ? `# ${n.title}\n\n${n.lecture || ''}` : onTr ? curSegs(n).map((s) => s.sep ? `\n— ${s.text} —` : `[${hms(s.start)}] ${s.text}`).join(trMode === 'clean' && hasClean(n) ? '\n\n' : '\n') : `# ${n.title}\n\n${n.summary}`;
+  try { await navigator.clipboard.writeText(txt); toast(onLect ? 'Cours copié' : onTr ? 'Transcription copiée' : 'Résumé copié'); }
   catch (e) { toast('Copie impossible'); }
 };
 $('aShare').onclick = async () => {
@@ -3436,6 +3590,11 @@ $('delNote').onclick = async () => {
   await db.del(currentNote.id); currentNote = null; toast('Note supprimée'); show('home');
 };
 $('enhStop').onclick = () => { cancelAll(); $('enhStatus').textContent = 'Arrêt en cours…'; };
+$('lectStop').onclick = () => { cancelAll(); $('lectStatus').textContent = 'Arrêt en cours…'; };
+$('lectBtn').onclick = () => {
+  if (currentNote && currentNote.lecture && !currentNote.lecturePartial && !confirm('Refaire le cours rédigé ? La version actuelle sera remplacée.')) return;
+  generateLecture();
+};
 $('enhBtn').onclick = () => {
   if (hasClean(currentNote) && !currentNote.cleanPartial && !confirm('Refaire l\'amélioration ? La version améliorée actuelle sera remplacée.')) return;
   enhance();
@@ -3447,7 +3606,7 @@ $('notifHintBtn').onclick = askNotif;
 if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.open) { if (e.data.open === ':tasks') show('tasks'); else openNote(e.data.open); } });
 // Reprend automatiquement un traitement interrompu (app fermée ou mise en pause par Android)
 async function resumeInterrupted() {
-  if (busy || enhancing) return;
+  if (busy || enhancing || writing) return;
   let notes = [];
   try { notes = (await db.all()).sort((a, b) => b.created - a.created); } catch (e) { return; }
   const n = [...notes].reverse().find((x) => (x.status === 'transcription' && x.audio) || (x.status === 'resume' && x.segments));   // la plus ancienne d'abord
@@ -3457,7 +3616,7 @@ async function resumeInterrupted() {
     run(n, { background: current !== 'job' });
   }
 }
-window.addEventListener('beforeunload', (e) => { if (busy || enhancing) { e.preventDefault(); e.returnValue = ''; } });
+window.addEventListener('beforeunload', (e) => { if (busy || enhancing || writing) { e.preventDefault(); e.returnValue = ''; } });
 
 /* =================== Démarrage =================== */
 (async function init() {

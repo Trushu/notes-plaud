@@ -446,6 +446,15 @@
   .chkline { display: flex; gap: 10px; align-items: center; margin: 14px 2px; font-size: 14.5px; cursor: pointer; }
   .selbar .bar3 { grid-template-columns: 46px 1fr 1fr 1fr !important; }
   .selbar #selCancel { padding: 0; }
+  .plaud-imp { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 13px 14px; margin-top: 10px; cursor: pointer; font: inherit; color: inherit; }
+  .plaud-imp .sec-ic { flex: none; background: var(--blue-soft); color: var(--blue); }
+  .plaud-imp > div { flex: 1; min-width: 0; }
+  .plaud-imp b { display: block; font-weight: 600; }
+  .plaud-imp small { color: var(--muted); font-size: 13px; }
+  .plaud-imp .pill:empty { display: none; }
+  .steps-mini { margin: 8px 0 0; padding-left: 20px; font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
+  .steps-mini li { margin: 4px 0; }
+  .steps-mini code { font-size: 12.5px; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; overflow-wrap: anywhere; }
   .note-foot { display: flex; gap: 8px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
   .actions {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
@@ -549,6 +558,11 @@
         <div><strong>Nouvel enregistrement</strong><span>Choisir un fichier audio, ou partager depuis Plaud</span></div>
       </div>
     </label>
+    <button class="card plaud-imp hidden" id="plaudBtn">
+      <span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-.5-9A6 6 0 0 1 18 8.5a4 4 0 0 1-.5 9.5"/><path d="M12 12v8M9 17l3 3 3-3"/></svg></span>
+      <div><b>Importer depuis Plaud</b><small>Enregistrements synchronisés par l'app Plaud</small></div>
+      <span class="pill" id="plaudCount"></span>
+    </button>
     <input type="file" id="fileInput" accept="audio/*,video/*,.mp3,.m4a,.wav,.ogg,.opus,.aac,.flac,.amr" class="hidden">
 
     <div id="browse" class="hidden">
@@ -803,6 +817,33 @@
     </div>
 
     <div class="set-group">
+      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-.5-9A6 6 0 0 1 18 8.5a4 4 0 0 1-.5 9.5"/><path d="M12 12v8M9 17l3 3 3-3"/></svg></span><div><b>Import depuis Plaud</b><small>Sans exporter à la main (facultatif)</small></div></div>
+      <div class="card pad stack">
+        <div>
+          <label class="f" for="sPRelay">Adresse de ton relais Cloudflare</label>
+          <input type="text" id="sPRelay" spellcheck="false" autocomplete="off" placeholder="https://plaud-relais.ton-pseudo.workers.dev">
+        </div>
+        <div>
+          <label class="f" for="sPToken">Jeton Plaud</label>
+          <div class="keyrow">
+            <input type="password" id="sPToken" autocomplete="off" spellcheck="false" placeholder="bearer eyJ…">
+            <button class="btn" id="sPTokenShow" type="button">Voir</button>
+          </div>
+          <ol class="steps-mini">
+            <li>Sur un ordinateur, connecte-toi à <a href="https://web.plaud.ai" target="_blank" rel="noopener">web.plaud.ai</a>.</li>
+            <li>Ouvre la console (touche F12, onglet « Console ») et tape : <code>localStorage.getItem("tokenstr")</code></li>
+            <li>Copie le texte affiché (il commence par <code>bearer eyJ…</code>) et colle-le ici.</li>
+          </ol>
+          <div class="f-help"><b>Sans ordinateur</b> (Chrome Android) : touche <button class="linkbtn" id="pBm" type="button">Copier le code du favori</button>, crée un favori dans Chrome et remplace son adresse par ce code. Ouvre ensuite web.plaud.ai, connecte-toi, tape le nom du favori dans la barre d'adresse et touche-le : le jeton s'affiche, prêt à copier.</div>
+          <div class="f-help">Le jeton reste dans ce téléphone. Il expire au bout de quelques semaines ou mois : il suffira de le recopier. L'API de Plaud n'est pas officielle et peut changer sans prévenir.</div>
+        </div>
+        <label class="chkline" style="margin:0"><input type="checkbox" class="tck" id="sPAuto"><span>Importer automatiquement les nouveaux enregistrements à l'ouverture de l'app</span></label>
+        <div class="row"><button class="btn" id="pTest" type="button">Tester la connexion</button></div>
+        <div class="f-help" id="pTestState"></div>
+      </div>
+    </div>
+
+    <div class="set-group">
       <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12.5V4.5a1 1 0 0 1 1-1h8l8 8-9 9z"/><circle cx="8" cy="8" r="1.4" fill="currentColor"/></svg></span><div><b>Tags</b><small>Renommer ou supprimer</small></div></div>
       <div class="card pad" id="tagAdmin"></div>
     </div>
@@ -860,7 +901,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '16 · 26 sept. 2026';
+const APP_VERSION = '17 · 27 sept. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -2114,6 +2155,7 @@ async function run(note, opts = {}) {
     scheduleReminders(); updateBadge();
     if (current === 'job') { await sleep(350); openNote(note.id); }
     else { toast('Note prête : ' + note.title); if (current === 'home') renderHome(); }
+    setTimeout(resumeInterrupted, 800);   // note suivante en attente (import Plaud)
   } catch (e) {
     busy = false; runningId = null;
     keepAwake(false);
@@ -2129,6 +2171,7 @@ async function run(note, opts = {}) {
     notify('Échec du traitement', $('jobErrorMsg').textContent, note.id);
     if (current === 'job') show('job', true);
     else { toast('Échec du traitement : ouvre la note pour voir le détail'); if (current === 'home') renderHome(); }
+    setTimeout(resumeInterrupted, 800);
   }
 }
 
@@ -2187,6 +2230,7 @@ function excerpt(n) {
 const openTasks = (n) => ((n.summary || '').match(/^\s*[-*•]\s+\[ \]/gm) || []).length;
 
 async function renderHome() {
+  $('plaudBtn').classList.toggle('hidden', !plaudOn());
   $('runBanner').classList.toggle('hidden', !runningId);
   $('onboard').classList.toggle('hidden', !!settings.key);
   $('greet').textContent = greeting();
@@ -2661,6 +2705,191 @@ $('noteSum').addEventListener('click', async (e) => {
   if (t) taskSheet(t);
 });
 
+/* =================== Import depuis le cloud Plaud =================== */
+/* L'app Plaud envoie les enregistrements dans son cloud (synchronisation Bluetooth, gratuite).
+   On les récupère en MP3 via l'API web de Plaud (non officielle), en passant par un petit relais
+   Cloudflare, car le serveur de Plaud refuse les appels venant d'un autre site.
+   On utilise le jeton de la session web.plaud.ai : se connecter avec mot de passe créerait
+   une nouvelle session et déconnecterait l'app Plaud du téléphone. */
+const plaudOn = () => !!(settings.prelay && settings.ptoken);
+const plaudToken = () => String(settings.ptoken || '').trim().replace(/^["']|["']$/g, '').replace(/^bearer\s+/i, '');
+const relayBase = () => String(settings.prelay || '').trim().replace(/\/+$/, '');
+function jwtClaims(t) { try { const p = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); return JSON.parse(decodeURIComponent(escape(atob(p + '==='.slice((p.length + 3) % 4))))); } catch (e) { return {}; } }
+function plaudRegion() {
+  if (settings.pregion) return settings.pregion;
+  const r = String(jwtClaims(plaudToken()).region || '');
+  return r ? (/eu/i.test(r) ? 'eu' : 'us') : 'eu';
+}
+const importedIds = () => { try { return JSON.parse(localStorage.getItem('np-plaud-imported') || '[]'); } catch (e) { return []; } };
+const markImported = (ids) => lsSet('np-plaud-imported', JSON.stringify([...new Set([...importedIds(), ...ids])].slice(-3000)));
+async function plaudApi(path) {
+  if (!plaudOn()) throw new ApiError('Import Plaud non configuré : ajoute l\'adresse du relais et ton jeton dans les réglages.');
+  for (let i = 0; i < 3; i++) {
+    let r;
+    try {
+      r = await tfetch(`${relayBase()}/api${path}${path.includes('?') ? '&' : '?'}region=${plaudRegion()}`, { headers: { Authorization: 'Bearer ' + plaudToken() } }, 40000);
+    } catch (e) {
+      if (e instanceof Cancelled) throw e;
+      throw new ApiError('Relais Plaud injoignable. Vérifie son adresse dans les réglages (elle finit par .workers.dev).');
+    }
+    let j = null; try { j = JSON.parse(r.text); } catch (e) {}
+    if (r.status === 403 && j && /Origine/.test(j.error || '')) throw new ApiError('Le relais refuse cette app : vérifie la variable ALLOWED_ORIGIN dans Cloudflare (adresse de ton site, sans / à la fin).');
+    if (r.status === 401 || r.status === 403 || (j && j.status === 401)) throw new ApiError('Jeton Plaud refusé ou expiré : recopie-le depuis web.plaud.ai (voir Réglages → Import depuis Plaud).');
+    if (!r.ok) throw new ApiError(`Erreur du cloud Plaud (${r.status}).`);
+    if (!j) throw new ApiError('Réponse illisible du cloud Plaud.');
+    // compte hébergé dans l'autre région : Plaud indique le bon serveur
+    if (j.status === -302 && j.data && j.data.domains && j.data.domains.api) {
+      settings.pregion = /euc1|eu/.test(j.data.domains.api) ? 'eu' : 'us'; saveSettings(settings); continue;
+    }
+    if (typeof j.status === 'number' && j.status !== 0 && !j.data_file_list && !j.url && !j.data) throw new ApiError('Cloud Plaud : ' + (j.msg || 'erreur ' + j.status));
+    return j;
+  }
+  throw new ApiError('Le cloud Plaud redirige en boucle.');
+}
+async function plaudList() {
+  const j = await plaudApi('/file/simple/web');
+  const raw = j.data_file_list || (Array.isArray(j.data) ? j.data : j.data && j.data.data_file_list) || (Array.isArray(j.payload) ? j.payload : []) || [];
+  const ms = (t) => { t = +t || 0; return t && t < 1e12 ? t * 1000 : t; };
+  return raw.filter((r) => r && !r.is_trash).map((r) => ({
+    id: String(r.id || r.file_id), name: String(r.filename || r.fullname || r.file_name || 'Enregistrement Plaud').replace(/\.(mp3|opus|ogg|m4a|wav)$/i, ''),
+    start: ms(r.start_time), duration: (+r.duration || 0) / 1000, size: +r.filesize || 0,
+  })).filter((r) => r.id && r.id !== 'undefined').sort((a, b) => b.start - a.start);
+}
+// Format réel d'un fichier audio, d'après ses premiers octets
+async function audioKind(blob) {
+  const h = new Uint8Array(await blob.slice(0, 12).arrayBuffer());
+  const s = (a, b) => String.fromCharCode(...h.slice(a, b));
+  if (s(0, 3) === 'ID3' || (h[0] === 0xFF && (h[1] & 0xE0) === 0xE0)) return 'mp3';
+  if (s(0, 4) === 'OggS') return 'ogg';
+  if (s(0, 4) === 'RIFF' && s(8, 12) === 'WAVE') return 'wav';
+  if (s(4, 8) === 'ftyp') return 'm4a';
+  if (s(0, 4) === 'fLaC') return 'flac';
+  if (h[0] === 0x1A && h[1] === 0x45 && h[2] === 0xDF && h[3] === 0xA3) return 'webm';
+  return '';
+}
+const AUDIO_MIME = { mp3: 'audio/mpeg', ogg: 'audio/ogg', wav: 'audio/wav', m4a: 'audio/mp4', flac: 'audio/flac', webm: 'audio/webm' };
+class NotReady extends Error {}
+async function plaudDownload(rec) {
+  const safe = rec.name.replace(/[\\/:*?"<>|]/g, '').slice(0, 80) || 'plaud';
+  const asFile = async (b) => { const k = b.size > 1000 ? await audioKind(b) : ''; return k ? new File([b], `${safe}.${k}`, { type: AUDIO_MIME[k] }) : null; };
+  let hostRefused = '';
+  // 1) version MP3 (lien temporaire signé), téléchargée à travers le relais
+  try {
+    const j = await plaudApi(`/file/temp-url/${encodeURIComponent(rec.id)}?is_opus=false`);
+    const u = j.url || j.temp_url || (j.data && (typeof j.data === 'string' ? j.data : j.data.url || j.data.temp_url));
+    if (u) {
+      const r = await fetch(`${relayBase()}/audio?u=${encodeURIComponent(u)}`);
+      if (r.ok) { const f = await asFile(await r.blob()); if (f) return f; }
+      else if (r.status === 400) { try { hostRefused = new URL(u).hostname; } catch (e) {} }
+    }
+  } catch (e) { if (e instanceof Cancelled) throw e; }
+  // 2) sinon, le fichier d'origine… s'il est lisible (l'original de Plaud est souvent un .opus chiffré)
+  let r;
+  try { r = await fetch(`${relayBase()}/api/file/download/${encodeURIComponent(rec.id)}?region=${plaudRegion()}`, { headers: { Authorization: 'Bearer ' + plaudToken() } }); }
+  catch (e) { throw new ApiError('Relais Plaud injoignable pendant le téléchargement.'); }
+  if (r.status === 401) throw new ApiError('Jeton Plaud refusé ou expiré : recopie-le depuis web.plaud.ai (voir Réglages → Import depuis Plaud).');
+  if (r.ok) { const f = await asFile(await r.blob()); if (f) return f; }
+  if (hostRefused) throw new ApiError(`Le relais n'accepte pas l'hébergeur « ${hostRefused} » : ajoute-le à AUDIO_HOSTS dans le code du relais Cloudflare.`);
+  if (!r.ok && r.status !== 404) throw new ApiError(`Téléchargement impossible depuis Plaud (${r.status}).`);
+  throw new NotReady('version MP3 pas encore prête sur le cloud Plaud');
+}
+let plaudBusy = false;
+// Importe les enregistrements un par un. Ceux qui ne sont pas encore prêts sont sautés (et retentés plus tard).
+async function importPlaud(recs, onStep) {
+  const res = { done: 0, fails: [] };
+  if (plaudBusy) { toast('Import Plaud déjà en cours'); return res; }
+  plaudBusy = true;
+  try {
+    for (let i = 0; i < recs.length; i++) {
+      const rec = recs[i];
+      onStep && onStep(i, recs.length, rec);
+      let file;
+      try { file = await plaudDownload(rec); }
+      catch (e) {
+        if (e instanceof Cancelled) throw e;
+        res.fails.push({ rec, msg: e.message, notReady: e instanceof NotReady });
+        if (/Jeton|Relais/.test(e.message)) break;   // inutile d'insister pour les suivants
+        continue;
+      }
+      const now = Date.now();
+      await db.put({
+        id: 'n' + now.toString(36) + i, created: rec.start || dateFromName(rec.name) || now, addedAt: now, fileName: file.name, size: file.size,
+        title: rec.name, status: 'transcription', audio: file, segments: null, summary: '', duration: rec.duration || 0, plaudId: rec.id, queued: true,
+      });
+      markImported([rec.id]); res.done++;
+    }
+  } finally { plaudBusy = false; }
+  if (res.done && !busy && !enhancing) resumeInterrupted();
+  if (current === 'home') renderHome();
+  return res;
+}
+function failText(fails) {
+  const nr = fails.filter((f) => f.notReady), other = fails.filter((f) => !f.notReady);
+  const parts = [];
+  if (nr.length) parts.push(`${nr.map((f) => '« ' + f.rec.name + ' »').join(', ')} : la version MP3 n'est pas encore prête sur le cloud Plaud. Ouvre ${nr.length > 1 ? 'ces enregistrements' : 'cet enregistrement'} une fois dans l'app Plaud, puis réessaie dans quelques minutes.`);
+  for (const f of other) parts.push(`« ${f.rec.name} » : ${f.msg}`);
+  return parts.join('\n');
+}
+// Nouveaux enregistrements = pas encore importés et plus récents que la mise en service de l'import
+async function plaudNew(list) { const seen = new Set(importedIds()); return (list || await plaudList()).filter((r) => !seen.has(r.id) && r.start > (settings.psince || 0)); }
+async function plaudSheet() {
+  openSheet(`<h3>Importer depuis Plaud</h3><p class="sub">Tes enregistrements synchronisés dans le cloud Plaud par l'app Plaud.</p>
+    <div id="pList"><p class="muted" style="padding:10px 0">Chargement…</p></div>
+    <p class="enh-err hidden" id="pErr" style="white-space:pre-line"></p>
+    <button class="btn primary block" id="pGo" disabled style="margin-top:12px">Importer</button>`, async (body) => {
+    const q = (s) => body.querySelector(s);
+    let list = [];
+    try { list = await plaudList(); } catch (e) { q('#pList').innerHTML = ''; q('#pErr').textContent = e.message; q('#pErr').classList.remove('hidden'); return; }
+    const seen = new Set(importedIds()), picked = new Set(list.filter((r) => !seen.has(r.id) && r.start > (settings.psince || 0)).map((r) => r.id));
+    if (!list.length) { q('#pList').innerHTML = '<p class="muted" style="padding:10px 0">Aucun enregistrement dans ton cloud Plaud. Ouvre l\'app Plaud pour synchroniser ton appareil.</p>'; return; }
+    const upd = () => { const k = picked.size; q('#pGo').disabled = !k; q('#pGo').textContent = k ? `Importer ${k} enregistrement${k > 1 ? 's' : ''}` : 'Coche les enregistrements à importer'; };
+    q('#pList').innerHTML = list.map((r) => `<label class="mrow"><input type="checkbox" class="tck" data-id="${esc(r.id)}" ${picked.has(r.id) ? 'checked' : ''}>
+      <div><b>${esc(r.name)}</b><small>${r.start ? fmtDate(r.start) : ''}${r.duration ? ' · ' + dur(r.duration) : ''}${seen.has(r.id) ? ' · <span style="color:var(--green)">déjà importé</span>' : ''}</small></div></label>`).join('');
+    q('#pList').querySelectorAll('.tck').forEach((c) => c.onchange = () => { if (c.checked) picked.add(c.dataset.id); else picked.delete(c.dataset.id); upd(); });
+    upd();
+    q('#pGo').onclick = async () => {
+      const recs = list.filter((r) => picked.has(r.id));
+      q('#pGo').disabled = true;
+      try {
+        const { done: n, fails } = await importPlaud(recs, (i, t, r) => { q('#pGo').textContent = `Téléchargement ${i + 1}/${t} : ${r.name}`; });
+        if (n) toast(`${n} enregistrement${n > 1 ? 's' : ''} importé${n > 1 ? 's' : ''} : transcription en cours`);
+        if (!fails.length) { closeSheet(); return; }
+        const ok = new Set(recs.map((r) => r.id)); fails.forEach((f) => ok.delete(f.rec.id));
+        ok.forEach((id) => { picked.delete(id); const c = q(`.tck[data-id="${CSS.escape(id)}"]`); if (c) { c.checked = false; c.closest('.mrow').querySelector('small').insertAdjacentHTML('beforeend', ' · <span style="color:var(--green)">importé</span>'); } });
+        q('#pErr').textContent = failText(fails); q('#pErr').classList.remove('hidden'); upd();
+      } catch (e) { q('#pErr').textContent = e.message; q('#pErr').classList.remove('hidden'); upd(); }
+    };
+  });
+}
+let plaudChecked = 0;
+async function plaudAutoCheck(force) {
+  if (!plaudOn() || plaudBusy || (!force && Date.now() - plaudChecked < 5 * 60000)) return;
+  plaudChecked = Date.now();
+  try {
+    const fresh = await plaudNew();
+    $('plaudCount').textContent = fresh.length ? `${fresh.length} nouveau${fresh.length > 1 ? 'x' : ''}` : 'À jour';
+    if (fresh.length && settings.pauto !== false) {
+      const { done, fails } = await importPlaud(fresh);
+      if (done) toast(`${done} nouvel${done > 1 ? 's' : ''} enregistrement${done > 1 ? 's' : ''} Plaud importé${done > 1 ? 's' : ''} : transcription en cours`);
+      // ceux dont le MP3 n'est pas encore prêt seront retentés à la prochaine ouverture de l'app
+      $('plaudCount').textContent = fails.length ? `${fails.length} en attente` : 'À jour';
+      if (fails.some((f) => !f.notReady)) $('plaudCount').textContent = 'Erreur';
+    }
+  } catch (e) { $('plaudCount').textContent = 'Erreur'; }
+}
+async function plaudTest() {
+  $('pTestState').textContent = 'Test en cours…';
+  const keep = settings; settings = { ...settings, prelay: $('sPRelay').value.trim(), ptoken: $('sPToken').value.trim() };
+  try {
+    const list = await plaudList();
+    const exp = jwtClaims(plaudToken()).exp;
+    $('pTestState').innerHTML = `<span style="color:var(--green)">Connecté</span> : ${list.length} enregistrement${list.length > 1 ? 's' : ''} dans ton cloud Plaud (région ${plaudRegion().toUpperCase()}).`
+      + (exp ? ` Jeton valable jusqu'au ${new Date(exp * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}.` : '');
+    keep.pregion = settings.pregion;
+  } catch (e) { $('pTestState').innerHTML = `<span style="color:var(--err)">${esc(e.message)}</span>`; }
+  finally { settings = keep; }
+}
+
 /* =================== Fusion de plusieurs enregistrements =================== */
 /* Plusieurs enregistrements d'un même cours → une seule note : transcriptions mises bout à bout
    (avec un séparateur par enregistrement et des horodatages continus), puis un nouveau résumé
@@ -3064,6 +3293,7 @@ function showSettings() {
   $('sProv').value = settings.provider; $('sGKey').value = settings.gkey; $('sGModel').value = settings.gmodels;
   $('sCKey').value = settings.ckey || ''; $('sCModel').value = settings.cmodels || DEFAULTS.cmodels;
   $('sMKey').value = settings.mkey || ''; $('sMModel').value = settings.mmodels || DEFAULTS.mmodels;
+  $('sPRelay').value = settings.prelay || ''; $('sPToken').value = settings.ptoken || ''; $('sPAuto').checked = settings.pauto !== false; $('pTestState').textContent = '';
   provBoxes();
   show('settings');
 }
@@ -3119,7 +3349,7 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) applyUpdate(); });
   document.addEventListener('visibilitychange', async () => {
     if (document.visibilityState !== 'visible') return;
-    fireReminders(); scheduleReminders(); updateBadge();
+    fireReminders(); scheduleReminders(); updateBadge(); plaudAutoCheck(false);
     if (current === 'tasks') renderTasks();
     if (updatePending && !busy && !enhancing) return applyUpdate();
     try { const reg = await navigator.serviceWorker.getRegistration(); if (reg) reg.update(); } catch (e) {}
@@ -3148,14 +3378,27 @@ $('sGKeyShow').onclick = toggleKey('sGKey', 'sGKeyShow');
 $('sCKeyShow').onclick = toggleKey('sCKey', 'sCKeyShow');
 $('sMKeyShow').onclick = toggleKey('sMKey', 'sMKeyShow');
 $('sKeyShow').onclick = toggleKey('sKey', 'sKeyShow');
+$('sPTokenShow').onclick = toggleKey('sPToken', 'sPTokenShow');
+$('pTest').onclick = plaudTest;
+$('pBm').onclick = async () => {
+  const code = `javascript:void(prompt('Jeton Plaud (copie tout)',localStorage.getItem('tokenstr')||'Aucun jeton : connecte-toi sur web.plaud.ai puis recommence'))`;
+  try { await navigator.clipboard.writeText(code); toast('Code du favori copié'); } catch (e) { prompt('Copie ce code :', code); }
+};
+$('plaudBtn').onclick = plaudSheet;
 $('sSave').onclick = () => {
   settings = { key: $('sKey').value.trim(), lang: $('sLang').value, whisper: $('sWhisper').value,
     llms: $('sLlm').value.trim() || DEFAULTS.llms, ctx: $('sCtx').value,
     provider: $('sProv').value, gkey: $('sGKey').value.trim(), gmodels: $('sGModel').value.trim() || DEFAULTS.gmodels,
     ckey: $('sCKey').value.trim(), cmodels: $('sCModel').value.trim() || DEFAULTS.cmodels,
     mkey: $('sMKey').value.trim(), mmodels: $('sMModel').value.trim() || DEFAULTS.mmodels, kind: $('sKind').value, autoRemind: $('sRemind').value };
+  const prev = loadSettings();
+  const nt = $('sPToken').value.trim(), nr = $('sPRelay').value.trim();
+  Object.assign(settings, { prelay: nr, ptoken: nt, pauto: $('sPAuto').checked,
+    pregion: nt === prev.ptoken ? prev.pregion : undefined,
+    psince: prev.psince || (nt && nr ? Date.now() : undefined) });   // l'import auto ne concerne que les enregistrements à venir
   toast(saveSettings(settings) ? 'Réglages enregistrés' : 'Impossible d\'enregistrer (navigation privée ?)');
   show('home');
+  if (plaudOn()) setTimeout(() => plaudAutoCheck(true), 300);
 };
 $('fileInput').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) startFile(f); };
 document.querySelectorAll('.tabs-wrap .tabs button').forEach((b) => b.onclick = () => setTab(b.dataset.tab));
@@ -3207,8 +3450,12 @@ async function resumeInterrupted() {
   if (busy || enhancing) return;
   let notes = [];
   try { notes = (await db.all()).sort((a, b) => b.created - a.created); } catch (e) { return; }
-  const n = notes.find((x) => (x.status === 'transcription' && x.audio) || (x.status === 'resume' && x.segments));
-  if (n) { toast('Reprise du traitement : ' + baseName(n.title || n.fileName)); run(n, { background: current !== 'job' }); }
+  const n = [...notes].reverse().find((x) => (x.status === 'transcription' && x.audio) || (x.status === 'resume' && x.segments));   // la plus ancienne d'abord
+  if (n) {
+    toast((n.queued ? 'Traitement : ' : 'Reprise du traitement : ') + baseName(n.title || n.fileName));
+    if (n.queued) { delete n.queued; await db.put(n); }
+    run(n, { background: current !== 'job' });
+  }
 }
 window.addEventListener('beforeunload', (e) => { if (busy || enhancing) { e.preventDefault(); e.returnValue = ''; } });
 
@@ -3228,6 +3475,7 @@ window.addEventListener('beforeunload', (e) => { if (busy || enhancing) { e.prev
   if (params.has('note')) { const id = params.get('note'); history.replaceState(null, '', location.pathname); if (id === ':tasks') show('tasks'); else openNote(id); }
   resumeInterrupted();
   updateBadge(); scheduleReminders(); fireReminders(); setupPeriodicCheck();
+  setTimeout(() => plaudAutoCheck(true), 1500);
   if (params.has('shared') || pending) {
     const i = (pending && pending.info) || {};
     const lines = [];

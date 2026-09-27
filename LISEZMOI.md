@@ -52,9 +52,47 @@ Si Gemini est saturé, l'app peut passer toute seule à d'autres IA gratuites, d
 
 Colle-les dans Réglages → Résumé. Tu peux aussi choisir l'une d'elles comme IA principale.
 
+## Étape 6 (facultative) : importer directement depuis le cloud Plaud
+
+Plus besoin d'exporter chaque enregistrement à la main : l'app Plaud envoie déjà tes enregistrements dans son cloud (c'est gratuit, seule la transcription est limitée), et Notes Plaud va les y chercher en MP3.
+
+Le serveur de Plaud refuse les appels venant d'un autre site. Il faut donc un petit **relais** : un programme de 75 lignes que tu héberges gratuitement chez Cloudflare. Il ne transmet que les 5 requêtes utiles à l'import, n'accepte que ton site, et ne stocke rien.
+
+**A. Créer le relais (10 min, plus simple sur PC)**
+
+1. Crée un compte gratuit sur **https://dash.cloudflare.com/sign-up**.
+2. Menu **Compute (Workers)** → **Workers & Pages** → **Create** → **Start with Hello World** (ou « Create Worker »). Donne-lui un nom, par exemple `plaud-relais`, puis **Deploy**.
+3. Touche **Edit code**, efface tout le code, colle le contenu du fichier **`relais-plaud-cloudflare.js`** fourni avec l'app, puis **Deploy**.
+4. Retourne sur la page du Worker → **Settings** → **Variables and Secrets** → **Add** : type *Text*, nom `ALLOWED_ORIGIN`, valeur l'adresse de ton site **sans / à la fin**, par exemple `https://ton-pseudo.github.io`. Enregistre (**Deploy**).
+5. Copie l'adresse du relais, affichée sur la page du Worker : `https://plaud-relais.ton-compte.workers.dev`.
+
+L'offre gratuite de Cloudflare permet 100 000 requêtes par jour : un import en utilise 2 ou 3 par enregistrement.
+
+**B. Récupérer ton jeton Plaud**
+
+Le jeton est la « clé de session » du site web de Plaud. L'app ne te demande pas ton mot de passe exprès : une connexion par mot de passe ouvrirait une nouvelle session et **déconnecterait l'app Plaud de ton téléphone**.
+
+- *Sur ordinateur :* connecte-toi à **https://web.plaud.ai**, appuie sur **F12**, onglet **Console**, tape `localStorage.getItem("tokenstr")` puis Entrée. Copie le texte affiché, sans les guillemets (il commence par `bearer eyJ…`).
+- *Sur le téléphone seulement :* dans Notes Plaud, Réglages → Import depuis Plaud → **Copier le code du favori**. Dans Chrome, ajoute n'importe quelle page aux favoris, modifie ce favori, nomme-le `jeton` et remplace son adresse par le code copié. Ouvre **web.plaud.ai** et connecte-toi (si le site ne s'affiche pas bien, menu ⋮ → **Version pour ordinateur**). Tape ensuite `jeton` dans la barre d'adresse et touche le favori proposé : le jeton s'affiche dans une fenêtre, sélectionne-le entièrement et copie-le.
+
+**C. Brancher l'app**
+
+Réglages → **Import depuis Plaud** : colle l'adresse du relais et le jeton, touche **Tester la connexion** (tu dois voir « Connecté : N enregistrements… » et la date d'expiration du jeton), puis **Enregistrer**.
+
+**Comment ça marche ensuite**
+
+- Enregistre avec ton Plaud, puis ouvre l'app Plaud pour qu'elle synchronise (Bluetooth → cloud). Pas besoin de lancer la transcription Plaud.
+- À chaque ouverture de Notes Plaud (au plus toutes les 5 min), les **nouveaux** enregistrements sont importés et traités automatiquement, l'un après l'autre. La note prend la date de l'enregistrement.
+- Seuls les enregistrements faits **après** la mise en service sont importés tout seuls. Pour les anciens : bouton **Importer depuis Plaud** sur l'accueil, coche ceux que tu veux. Ceux déjà importés sont marqués.
+- Si Plaud n'a pas encore préparé la version MP3 d'un enregistrement tout juste synchronisé, il est marqué « en attente » et retenté à la prochaine ouverture. Si ça dure, ouvre-le une fois dans l'app Plaud.
+- Tu peux désactiver l'import automatique (case à cocher dans les réglages) et ne garder que le bouton.
+- Le jeton expire au bout de quelques semaines ou mois (la date s'affiche au test). L'app te le dira : il suffit de le recopier.
+
+⚠️ Cette API de Plaud n'est **pas officielle** : Plaud peut la modifier ou la bloquer du jour au lendemain. Dans ce cas, le partage manuel (Exporter → MP3 → Partager) continue de fonctionner.
+
 ## Utilisation
 
-- **Depuis Plaud :** ouvre l'enregistrement, puis **Exporter → Audio → MP3 → Partager → Notes Plaud**.
+- **Depuis Plaud :** automatiquement si l'import depuis le cloud est configuré (étape 6). Sinon, ouvre l'enregistrement, puis **Exporter → Audio → MP3 → Partager → Notes Plaud**.
 - **Depuis un fichier :** dans l'app, touche **Choisir un fichier audio**.
 - **Pendant le traitement :** garde l'app au premier plan. L'écran reste allumé tout seul.
 - **Sur une note :** **Copier**, **Partager** (vers Keep, Gmail, WhatsApp, Drive…) ou **.md** (téléchargement).
@@ -102,7 +140,7 @@ Ces limites peuvent changer. Si un modèle disparaît, remplace-le dans les **R�
 
 ## Confidentialité
 
-L'audio est envoyé uniquement à Groq, pour la transcription. L'app supprime sa copie de l'audio une fois la note terminée. Pour le résumé, seule la transcription écrite est envoyée, à Gemini ou à Groq selon ton réglage. Sur l'offre gratuite de Gemini, Google peut utiliser ces textes pour améliorer ses modèles. Pour les conversations vraiment sensibles, utilise plutôt le script PC 100 % local (`plaud_local.py`).
+Avec l'import depuis le cloud (étape 6), l'audio passe par ton relais Cloudflare, qui ne garde rien. Ton jeton Plaud reste dans le téléphone et n'est envoyé qu'au relais puis à Plaud. L'audio est envoyé uniquement à Groq, pour la transcription. L'app supprime sa copie de l'audio une fois la note terminée. Pour le résumé, seule la transcription écrite est envoyée, à Gemini ou à Groq selon ton réglage. Sur l'offre gratuite de Gemini, Google peut utiliser ces textes pour améliorer ses modèles. Pour les conversations vraiment sensibles, utilise plutôt le script PC 100 % local (`plaud_local.py`).
 
 Rappel : en France, enregistrer une conversation privée à l'insu des personnes est interdit. Préviens les participants.
 
@@ -117,4 +155,9 @@ Rappel : en France, enregistrer une conversation privée à l'insu des personnes
 | « Impossible de joindre Groq » | Vérifie ta connexion Internet, puis touche **Réessayer**. |
 | Un modèle n'existe plus | Change-le dans Réglages → Modèles de résumé. |
 | Une note est marquée « Résumé à refaire » | Ouvre-la, puis touche **Générer le résumé**. La transcription est déjà enregistrée. |
+| « Relais Plaud injoignable » | Vérifie l'adresse du relais dans les réglages (elle finit par `.workers.dev`), et que le Worker est bien déployé. |
+| « Le relais refuse cette app » | La variable `ALLOWED_ORIGIN` du Worker doit être exactement l'adresse de ton site (`https://ton-pseudo.github.io`, sans / final). |
+| « Jeton Plaud refusé ou expiré » | Recopie le jeton depuis web.plaud.ai (étape 6 B). |
+| « La version MP3 n'est pas encore prête » | Ouvre l'enregistrement dans l'app Plaud, attends quelques minutes, puis réessaie. |
+| « Le relais n'accepte pas l'hébergeur … » | Plaud a changé d'hébergeur de fichiers : ajoute le nom indiqué à la ligne `AUDIO_HOSTS` du relais, puis **Deploy**. |
 | Mettre l'app à jour | Remplace les fichiers sur GitHub. Le téléphone reçoit la nouvelle version à la prochaine ouverture. |

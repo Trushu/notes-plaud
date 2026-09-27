@@ -6,7 +6,7 @@
 <title>Notes Plaud</title>
 <meta name="description" content="Transcription et résumé de tes enregistrements Plaud">
 <meta id="tc" name="theme-color" content="#f7f4ee">
-<script>try{var _t=(JSON.parse(localStorage.getItem('np-settings')||'{}').theme);if(_t&&_t!=='auto')document.documentElement.dataset.theme=_t;}catch(e){}</script>
+<script>try{var _t=(JSON.parse(localStorage.getItem('np-settings')||'{}').theme);if(_t&&_t!=='auto')document.documentElement.dataset.theme=_t;var _f=(JSON.parse(localStorage.getItem('np-settings')||'{}').fs);if(_f&&_f!=='m')document.documentElement.dataset.fs=_f;}catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -117,7 +117,7 @@
   .logo { width: 34px; height: 34px; border-radius: 10px; background: var(--grad); display: grid; place-items: center; box-shadow: 0 6px 14px -6px rgba(207,61,58,.6); flex: none; }
   .logo svg { width: 20px; height: 20px; }
   .brand b { font: 600 19px/1 var(--serif); letter-spacing: -.01em; }
-  #title { flex: 1; font: 600 17px/1.2 var(--sans); margin: 0; text-align: center; }
+  #title { flex: 1; min-width: 0; font: 600 17px/1.2 var(--sans); margin: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .iconbtn {
     width: 42px; height: 42px; border-radius: 13px; border: 0; background: transparent; color: var(--ink);
     display: grid; place-items: center; cursor: pointer; flex: none; transition: background .15s;
@@ -269,7 +269,7 @@
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .tabs-wrap { position: sticky; top: 66px; z-index: 5; padding: 4px 0 12px; background: var(--bg); }
   .tabs { display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 14px; }
-  .tabs button { flex: 1; min-height: 40px; border: 0; border-radius: 11px; background: transparent; cursor: pointer; font-weight: 600; font-size: 13.5px; letter-spacing: -.01em; padding: 0 4px; color: var(--muted); transition: color .2s, background .2s, box-shadow .2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tabs button { flex: 1 1 auto; min-width: 0; min-height: 40px; border: 0; border-radius: 11px; background: transparent; cursor: pointer; font-weight: 600; font-size: 13.5px; letter-spacing: -.01em; padding: 0 4px; color: var(--muted); transition: color .2s, background .2s, box-shadow .2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); font-weight: 700; }
   .secs { display: flex; flex-direction: column; gap: 12px; }
   .sec { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 0; overflow: hidden; --k: var(--accent); --ks: var(--accent-soft); }
@@ -304,6 +304,8 @@
   .md > :first-child { margin-top: 0; } .md > :last-child { margin-bottom: 0; }
   .md h1, .md h2, .md h3 { font: 600 17px/1.3 var(--serif); margin: 14px 0 6px; text-transform: none; letter-spacing: 0; color: var(--ink); display: block; }
   .md p { margin: 6px 0; }
+  .md pre.code { font-size: 12.5px; line-height: 1.45; margin: 10px 0; padding: 12px 14px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .md pre.code code { font: 12.5px/1.45 ui-monospace, "SF Mono", Menlo, Consolas, "Roboto Mono", monospace; white-space: pre; color: var(--ink); background: none; padding: 0; }
   .md .tbl-wrap { overflow-x: auto; margin: 12px 0; border-radius: 10px; -webkit-overflow-scrolling: touch; }
   .md table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
   .md th, .md td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; white-space: nowrap; }
@@ -325,6 +327,8 @@
     #printRoot .md li { margin: 2pt 0; }
     #printRoot .md code { background: #eee; padding: 0 3px; border-radius: 3px; }
     #printRoot .tbl-wrap { overflow: visible; margin: 8pt 0; }
+    #printRoot pre.code { font-size: 8.5pt; line-height: 1.3; background: #f5f5f5; border: 1px solid #ddd; padding: 6pt 8pt; overflow: visible; break-inside: avoid; }
+    #printRoot pre.code code { font-size: 8.5pt; line-height: 1.35; white-space: pre; color: #111; }
     #printRoot table { border-collapse: collapse; width: 100%; font-size: 10.5pt; }
     #printRoot th, #printRoot td { border: 1px solid #999; padding: 3pt 6pt; text-align: left; }
     #printRoot th { background: #f0f0f0; }
@@ -336,6 +340,8 @@
     #printRoot h1, #printRoot h2, #printRoot h3 { break-after: avoid; }
     #printRoot table, #printRoot tr, #printRoot li, #printRoot .katex-display { break-inside: avoid; }
     @page { margin: 16mm 14mm; }
+    html { --rd: 1 !important; }
+    #toTop { display: none !important; }
   }
   .md.lect h2 { font-size: 19px; margin: 22px 0 6px; }
   .md.lect h2:first-child, .md.lect h3:first-child { margin-top: 2px; }
@@ -421,6 +427,11 @@
   .seg2 button svg { width: 16px; height: 16px; }
   .seg2 button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
   .toolbar .grow { flex: 1; }
+  .toolbar .seg2 button { padding: 0 10px; gap: 5px; }
+  .toolbar .tbtn { padding: 0 11px; white-space: nowrap; flex: none; }
+  .toolbar .iconbtn { flex: none; }
+  @media (max-width: 380px) { .toolbar .seg2 button { padding: 0 8px; font-size: 13.5px; } }
+  @media (max-width: 350px) { .toolbar .seg2 button svg { display: none; } }
   .tbtn { min-height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); font-weight: 600; font-size: 14px; cursor: pointer; }
   .tbtn.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
   .toolbar + .search { margin-top: 12px; }
@@ -605,6 +616,155 @@
     transition: .25s cubic-bezier(.2,.8,.2,1); pointer-events: none; width: max-content; max-width: calc(100% - 36px); text-align: center; box-shadow: 0 10px 30px -10px rgba(0,0,0,.4);
   }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast.act { pointer-events: auto; display: flex; align-items: center; gap: 14px; padding: 8px 8px 8px 18px; }
+  .toast-act { border: 0; background: color-mix(in srgb, var(--bg) 16%, transparent); color: var(--bg); font: inherit; font-weight: 700; padding: 7px 14px; border-radius: 99px; cursor: pointer; }
+  /* Taille du texte de lecture */
+  :root { --rd: 1; }
+  html[data-fs="s"] { --rd: .9; } html[data-fs="l"] { --rd: 1.12; } html[data-fs="xl"] { --rd: 1.26; }
+  .sec .md { font-size: calc(16px * var(--rd)); }
+  .sec.k-resume .md { font-size: calc(16.5px * var(--rd)); }
+  .md.lect { font-size: calc(16.5px * var(--rd)) !important; }
+  .tr-list .seg { font-size: calc(16px * var(--rd)); }
+  .fs-row { display: flex; gap: 8px; margin-top: 14px; }
+  .fs-row button { flex: 1; min-height: 46px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink-2); font-family: var(--serif); font-weight: 600; cursor: pointer; }
+  .fs-row button[aria-selected="true"] { border-color: var(--accent); color: var(--ink); box-shadow: 0 0 0 1px var(--accent); }
+  /* Épingles, extraits de recherche, sommaire, remonter */
+  .item .pin { display: inline-flex; color: var(--accent); margin-right: 6px; vertical-align: -2px; }
+  .item .pin svg { width: 15px; height: 15px; }
+  .item .snip { display: block; margin-top: 6px; font-size: 13.5px; line-height: 1.45; color: var(--ink-2); background: var(--surface-2); border-radius: 10px; padding: 7px 10px; overflow-wrap: anywhere; }
+  .item .snip b { color: var(--accent-ink); font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; margin-right: 6px; }
+  .item .snip mark, mark.hit { background: color-mix(in srgb, var(--accent) 30%, transparent); color: var(--ink); border-radius: 3px; padding: 0 1px; }
+  mark.hit.cur { outline: 2px solid var(--accent); }
+  .hdr-acts { display: flex; gap: 2px; }
+  #pinBtn[aria-pressed="true"] { color: var(--accent); }
+  #pinBtn[aria-pressed="true"] svg { fill: currentColor; }
+  .toc { margin-bottom: 12px; }
+  .toc summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; align-items: center; gap: 8px; }
+  .toc summary::-webkit-details-marker { display: none; }
+  .toc summary::after { content: ""; margin-left: auto; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); transition: transform .2s; }
+  .toc[open] summary::after { transform: rotate(225deg); }
+  .toc ol { margin: 10px 0 2px; padding-left: 20px; }
+  .toc li { margin: 5px 0; }
+  .toc li.l3 { margin-left: 14px; list-style: circle; font-size: 14.5px; }
+  .toc a { color: var(--ink); text-decoration: none; }
+  .toc a:hover { color: var(--accent-ink); text-decoration: underline; }
+  .md h2, .md h3 { scroll-margin-top: 130px; }
+  #toTop { position: fixed; right: 16px; bottom: 96px; z-index: 12; width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); box-shadow: var(--shadow); display: grid; place-items: center; cursor: pointer; opacity: 0; transform: translateY(10px); pointer-events: none; transition: .2s; }
+  #toTop.show { opacity: 1; transform: none; pointer-events: auto; }
+  #toTop svg { width: 22px; height: 22px; }
+  /* ---- Questions (chat) ---- */
+  .ask-head { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
+  .ask-head .seg2 { flex: 1; min-width: 0; display: grid; grid-template-columns: 1fr 1fr; }
+  .ask-head .seg2 button { justify-content: center; padding: 0 6px; }
+  .ask-head .iconbtn { flex: none; }
+  .ask-list { display: flex; flex-direction: column; gap: 12px; padding-bottom: 150px; }
+  .msg { max-width: 92%; border-radius: 18px; padding: 11px 15px; line-height: 1.55; overflow-wrap: anywhere; }
+  .msg.me { align-self: flex-end; background: var(--grad); color: #fff; border-bottom-right-radius: 6px; white-space: pre-wrap; font-size: calc(15.5px * var(--rd)); }
+  .msg.ai { align-self: flex-start; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); border-bottom-left-radius: 6px; }
+  .msg.ai .md { font-size: calc(15.5px * var(--rd)); }
+  .msg.ai .md p:first-child { margin-top: 0; } .msg.ai .md p:last-child { margin-bottom: 0; }
+  .msg.ai small { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; }
+  .msg.err { border-color: color-mix(in srgb, var(--err) 40%, var(--line)); color: var(--err); }
+  .typing { display: inline-flex; gap: 4px; padding: 4px 0; }
+  .typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite ease-in-out; }
+  .typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: .25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+  .ask-st { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .ts { display: inline-flex; align-items: center; gap: 3px; border: 0; background: var(--accent-soft); color: var(--accent-ink); font: 600 12.5px/1.2 var(--sans); padding: 3px 8px; border-radius: 99px; cursor: pointer; margin: 0 2px; vertical-align: 1px; font-variant-numeric: tabular-nums; }
+  .ts svg { width: 11px; height: 11px; }
+  .ask-sugg { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+  .ask-sugg button { border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); border-radius: 14px; padding: 9px 13px; font: 500 14px/1.35 var(--sans); cursor: pointer; text-align: left; }
+  .ask-empty { text-align: center; color: var(--muted); padding: 18px 10px 8px; }
+  .ask-empty b { display: block; color: var(--ink); font: 600 19px/1.3 var(--serif); margin-bottom: 4px; }
+  .ask-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 11; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-top: 1px solid var(--line); }
+  .ask-bar > div { max-width: 640px; margin: 0 auto; display: flex; gap: 8px; align-items: flex-end; }
+  .ask-bar textarea { flex: 1; resize: none; min-height: 46px; max-height: 140px; border: 1.5px solid var(--line); border-radius: 16px; padding: 11px 14px; background: var(--surface); font: inherit; line-height: 1.4; }
+  .ask-bar textarea:focus { outline: none; border-color: var(--accent); }
+  .ask-bar .btn { min-height: 46px; width: 50px; padding: 0; border-radius: 16px; }
+  .seg.flash { background: color-mix(in srgb, var(--accent) 16%, transparent); border-radius: 10px; transition: background .6s; }
+  /* ---- Étude sur la note ---- */
+  .study { padding: 6px 16px; margin-top: 12px; }
+  .study-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
+  .study-row + .study-row { border-top: 1px solid var(--line); }
+  .study-row > div { flex: 1; min-width: 0; }
+  .study-row b { display: block; font-weight: 600; }
+  .study-row small { display: block; color: var(--muted); font-size: 13px; margin-top: 1px; }
+  .study-row .sec-ic { background: var(--violet-soft); color: var(--violet); flex: none; }
+  .study-row .btn { min-height: 40px; }
+  /* ---- Réviser ---- */
+  .rv-start { padding: 18px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+  .rv-num { font: 600 40px/1 var(--serif); color: var(--accent-ink); }
+  .rv-sub { color: var(--muted); font-size: 14px; }
+  .deck { display: flex; align-items: center; gap: 12px; padding: 14px 16px; margin-bottom: 10px; }
+  .deck > div { flex: 1; min-width: 0; }
+  .deck b { display: block; font: 600 16px/1.3 var(--serif); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+  .deck small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .deck .lvl { height: 5px; border-radius: 9px; background: var(--surface-3); margin-top: 8px; overflow: hidden; }
+  .deck .lvl i { display: block; height: 100%; background: var(--green); border-radius: 9px; }
+  .deck .btn { min-height: 40px; }
+  .rv-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
+  .rv-bar { height: 6px; border-radius: 9px; background: var(--surface-3); overflow: hidden; margin-bottom: 16px; }
+  .rv-bar i { display: block; height: 100%; width: 0; background: var(--grad); transition: width .3s; }
+  .rv-card { padding: 22px 20px; min-height: 260px; cursor: pointer; display: flex; flex-direction: column; gap: 14px; }
+  .rv-deck { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-ink); }
+  .rv-q { font: 600 calc(20px * var(--rd))/1.35 var(--serif); }
+  .rv-q p { margin: 0 0 6px; }
+  .rv-a { border-top: 1px dashed var(--line); padding-top: 14px; font-size: calc(16.5px * var(--rd)); }
+  .rv-a p { margin: 0 0 6px; }
+  .rv-hint { color: var(--muted); font-size: 13px; margin-top: auto; }
+  .rv-grade { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+  .rv-grade .btn { flex-direction: column; gap: 1px; min-height: 58px; font-weight: 700; padding: 0 4px; white-space: nowrap; }
+  .rv-grade .btn small { font-weight: 500; font-size: 12px; opacity: .8; }
+  .rv-grade [data-g="0"] { color: var(--err); }
+  .rv-grade [data-g="2"] { color: var(--green); }
+  .rv-done { text-align: center; padding: 26px 18px; }
+  .rv-done b { display: block; font: 600 24px/1.2 var(--serif); margin: 8px 0 6px; }
+  .rv-done .big { font-size: 44px; }
+  /* ---- Lecteur audio ---- */
+  .player { max-width: 640px; margin: 0 auto 10px; display: flex; align-items: center; gap: 8px; }
+  .pl-play { width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--grad); color: #fff; display: grid; place-items: center; flex: none; cursor: pointer; box-shadow: var(--shadow-lg); }
+  .pl-play svg { width: 20px; height: 20px; }
+  .pl-mid { flex: 1; min-width: 0; }
+  .pl-seek { display: block; width: 100%; margin: 0; height: 22px; accent-color: var(--accent); cursor: pointer; }
+  .pl-times { display: flex; justify-content: space-between; font-size: 11.5px; line-height: 1.2; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .pl-sm { flex: none; min-width: 40px; height: 36px; padding: 0 6px; border-radius: 11px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); font: 700 12.5px/1 var(--sans); cursor: pointer; font-variant-numeric: tabular-nums; }
+  .pl-rate { min-width: 48px; }
+  body.has-player .wrap { padding-bottom: 190px; }
+  body.has-player #toTop { bottom: 150px; }
+  .tr-list.can-play .seg[data-t] { cursor: pointer; }
+  .seg.now { margin: 0 -16px; padding-left: 16px; padding-right: 16px; background: color-mix(in srgb, var(--accent) 11%, transparent); }
+  .seg.now time { background: var(--accent); color: #fff; }
+  .seg.mark time::before { content: '★ '; color: var(--amber); }
+  .seg.now.mark time::before { color: #fff; }
+  .pl-hint { display: flex; align-items: center; gap: 6px; margin: 0 4px 10px; }
+  .pl-hint svg { width: 14px; height: 14px; flex: none; }
+  .marks-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 2px 12px; font-size: 13px; font-weight: 600; color: var(--muted); }
+  /* ---- Enregistrer ---- */
+  .rec-imp .sec-ic { background: var(--err-soft); color: var(--err); }
+  .rec-dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; background: var(--err); flex: none; animation: recpulse 1.6s infinite; }
+  .rec-dot.paused { animation: none; background: var(--muted); }
+  @keyframes recpulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--err) 45%, transparent); } 70% { box-shadow: 0 0 0 12px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+  .rec-banner .rec-dot { margin: 0 6px; }
+  .rec { text-align: center; padding: 22px 0 10px; }
+  .rec-top { display: inline-flex; align-items: center; gap: 9px; font-weight: 600; color: var(--ink-2); font-size: 15px; }
+  .rec-time { font: 600 66px/1 var(--serif); letter-spacing: -.02em; margin: 24px 0 20px; font-variant-numeric: tabular-nums; }
+  .rec-wave { height: 96px; display: flex; align-items: center; justify-content: center; gap: 3px; margin: 0 auto 14px; max-width: 420px; }
+  .rec-wave i { flex: 1; max-width: 6px; height: 6%; min-height: 4px; border-radius: 3px; background: var(--grad); transition: height .12s linear; }
+  .rec-marks { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; min-height: 28px; margin: 0 10px 12px; }
+  .rec-ctrl { display: flex; align-items: flex-start; justify-content: center; gap: 30px; margin: 6px 0 12px; }
+  .rec-main { width: 86px; height: 86px; border-radius: 50%; border: 0; background: var(--err); color: #fff; display: grid; place-items: center; cursor: pointer; box-shadow: 0 14px 30px -12px color-mix(in srgb, var(--err) 80%, transparent); }
+  .rec-main svg { width: 30px; height: 30px; }
+  .rec-side { width: 70px; display: flex; flex-direction: column; align-items: center; gap: 7px; border: 0; background: none; color: var(--ink-2); font: 600 13px/1.1 var(--sans); cursor: pointer; padding: 9px 0 0; }
+  .rec-side svg { width: 54px; height: 54px; padding: 15px; border-radius: 50%; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
+  .rec-hint { color: var(--muted); font-size: 14px; margin: 0 24px 18px; }
+  .rec-foot { display: flex; justify-content: center; align-items: center; gap: 18px; }
+  .rec-foot .tbtn[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .rec-tip { color: var(--muted); font-size: 12.5px; margin: 18px 26px 0; }
+  .bk-remind { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; margin-bottom: 14px; }
+  .bk-remind > div { flex: 1; min-width: 0; }
+  .bk-remind b { display: block; font-size: 14.5px; }
+  .bk-remind small { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .bk-remind .sec-ic { background: var(--amber-soft); color: var(--amber); flex: none; }
   /* --- Finitions visuelles --- */
   :where(button, a, .item, [role="button"], input, select, textarea):focus-visible {
     outline: 2.5px solid var(--accent); outline-offset: 2px; border-radius: 10px;
@@ -652,6 +812,10 @@
     <button class="iconbtn" id="settingsBtn" aria-label="Réglages">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg>
     </button>
+    <span class="hdr-acts hidden" id="noteHdr">
+      <button class="iconbtn" id="askBtn" aria-label="Poser une question sur cette note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a7.5 7.5 0 0 1-11.1 6.6L4 19.5l1.4-4.3A7.5 7.5 0 1 1 20 11.5z"/><path d="M10.2 9.6a2 2 0 1 1 2.8 1.8c-.6.3-1 .8-1 1.4M12 15.2h.01"/></svg></button>
+      <button class="iconbtn" id="pinBtn" aria-label="Épingler la note" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3.5h6l-1.2 5.5 3.7 3.4V14H6.5v-1.6L10.2 9z"/><path d="M12 14v6.5"/></svg></button>
+    </span>
     <span class="spacer hidden" id="spacer"></span>
   </header>
 
@@ -678,6 +842,16 @@
       <button class="btn" id="shareDiagClose" style="margin-top:12px">Fermer</button>
     </div>
 
+    <div class="card bk-remind hidden" id="bkRemind">
+      <span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg></span>
+      <div><b>Sauvegarde tes notes</b><small id="bkRemindTxt"></small>
+        <div class="row" style="margin-top:10px"><button class="btn primary" id="bkRemindGo" style="min-height:38px">Sauvegarder</button><button class="btn ghost" id="bkRemindX" style="min-height:38px">Plus tard</button></div></div>
+    </div>
+    <button class="card run-banner rec-banner hidden" id="recBanner">
+      <span class="rec-dot"></span>
+      <div><b>Enregistrement en cours</b><small id="recBannerTime"></small></div>
+      <span class="pct2">Ouvrir</span>
+    </button>
     <button class="card run-banner hidden" id="runBanner">
       <span class="spin"></span>
       <div><b>Traitement en cours</b><small id="runBannerName"></small></div>
@@ -690,6 +864,10 @@
         <div><strong>Nouvel enregistrement</strong><span>Choisir un fichier audio, ou partager depuis Plaud</span></div>
       </div>
     </label>
+    <button class="card plaud-imp rec-imp" id="recBtn" type="button">
+      <span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/></svg></span>
+      <div><b>Enregistrer avec le téléphone</b><small>Un cours, une réunion… sans le Plaud</small></div>
+    </button>
     <button class="card plaud-imp hidden" id="plaudBtn">
       <span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-.5-9A6 6 0 0 1 18 8.5a4 4 0 0 1-.5 9.5"/><path d="M12 12v8M9 17l3 3 3-3"/></svg></span>
       <div><b>Importer depuis Plaud</b><small>Enregistrements synchronisés par l'app Plaud</small></div>
@@ -768,6 +946,10 @@
       </div>
     </div>
     <div class="secs" id="noteSum"></div>
+    <div class="card study hidden" id="noteStudy">
+      <div class="study-row"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a7.5 7.5 0 0 1-11.1 6.6L4 19.5l1.4-4.3A7.5 7.5 0 1 1 20 11.5z"/></svg></span><div><b>Poser une question</b><small>Réponses avec renvois aux passages</small></div><button class="btn" id="stAsk" type="button">Demander</button></div>
+      <div class="study-row"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="14" rx="2.5"/><path d="M7 3h11.5A2.5 2.5 0 0 1 21 5.5V17"/></svg></span><div><b>Fiches de révision</b><small id="stCardsInfo"></small></div><button class="btn" id="stCards" type="button"></button></div>
+    </div>
     <div id="noteTrWrap" class="hidden">
       <div class="card enh" id="enhBox">
         <div class="enh-intro" id="enhIntro">
@@ -794,6 +976,8 @@
           <input type="search" id="trSearch" placeholder="Rechercher dans la transcription" autocomplete="off">
         </div>
       </div>
+      <div class="marks-row hidden" id="trMarks"></div>
+      <p class="f-help pl-hint hidden" id="trPlayHint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5.5v13l10.5-6.5z"/></svg>Touche un passage pour l'écouter.</p>
       <div class="card tr-list" id="noteTr"></div>
     </div>
     <div id="noteLectWrap" class="hidden">
@@ -819,8 +1003,52 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A2.5 2.5 0 0 1 7.5 2H19v16H7.5A2.5 2.5 0 0 0 5 20.5z"/><path d="M12.5 20.5H19v0"/><path d="M12 13.5V7M9.2 9.8 12 7l2.8 2.8"/></svg><span>Envoyer vers NotebookLM (PDF)</span></button>
       <button class="btn ghost" id="resumAgain">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg><span>Refaire le résumé</span></button>
+      <button class="btn ghost hidden" id="audDelNote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>Supprimer l'audio</button>
       <button class="btn ghost danger" id="delNote">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Supprimer</button>
+    </div>
+  </section>
+
+  <!-- ===== Enregistrement ===== -->
+  <section id="v-rec" class="view hidden">
+    <div class="rec">
+      <div class="rec-top"><span class="rec-dot" id="recDot"></span><span id="recState">Enregistrement en cours</span></div>
+      <div class="rec-time" id="recTime">0:00</div>
+      <div class="rec-wave" id="recWave" aria-hidden="true"></div>
+      <div class="rec-marks" id="recMarks"></div>
+      <div class="rec-ctrl">
+        <button class="rec-side" id="recMark" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg><span>Marquer</span></button>
+        <button class="rec-main" id="recStop" type="button" aria-label="Terminer et transcrire"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="3" fill="currentColor"/></svg></button>
+        <button class="rec-side" id="recPause" type="button"></button>
+      </div>
+      <p class="rec-hint">Touche le carré pour terminer : la transcription et le résumé se lancent tout seuls. « Marquer » signale un passage important.</p>
+      <div class="rec-foot">
+        <button class="tbtn" id="recScreen" type="button" aria-pressed="true">Écran allumé</button>
+        <button class="linkbtn" id="recCancel" type="button" style="color:var(--muted);font-weight:500">Annuler l'enregistrement</button>
+      </div>
+      <p class="rec-tip">L'enregistrement est sauvegardé au fur et à mesure : si l'app se ferme, il est récupéré à la réouverture. Pour un long cours, laisse l'app ouverte au premier plan.</p>
+    </div>
+  </section>
+
+  <!-- ===== Questions ===== -->
+  <section id="v-ask" class="view hidden">
+    <div class="ask-head">
+      <div class="seg2" id="askScope" role="tablist"><button data-s="note" aria-selected="true">Cette note</button><button data-s="all" aria-selected="false">Toutes mes notes</button></div>
+      <button class="iconbtn" id="askClear" type="button" aria-label="Effacer la conversation" title="Effacer la conversation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button>
+    </div>
+    <div class="ask-list" id="askList"></div>
+  </section>
+
+  <!-- ===== Réviser ===== -->
+  <section id="v-review" class="view hidden">
+    <div id="rvHome">
+      <div class="hello"><h1>Réviser</h1><p id="rvStats"></p></div>
+      <div id="rvBody"></div>
+    </div>
+    <div id="rvSession" class="hidden">
+      <div class="rv-top"><button class="tbtn" id="rvQuit" type="button">Terminer</button><span id="rvProg"></span></div>
+      <div class="rv-bar"><i id="rvBar"></i></div>
+      <div id="rvStage"></div>
     </div>
   </section>
 
@@ -859,6 +1087,13 @@
       <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/></svg></span><div><b>Apparence</b><small>Thème de l'application</small></div></div>
       <div class="card pad">
         <div class="themes" id="themeGrid"></div>
+        <div class="f" style="margin-top:18px">Taille du texte des notes</div>
+        <div class="fs-row" id="fsRow" role="radiogroup" aria-label="Taille du texte">
+          <button type="button" data-fs="s" style="font-size:14px">A</button>
+          <button type="button" data-fs="m" style="font-size:17px">A</button>
+          <button type="button" data-fs="l" style="font-size:20px">A</button>
+          <button type="button" data-fs="xl" style="font-size:23px">A</button>
+        </div>
       </div>
     </div>
     <div class="set-group">
@@ -1018,6 +1253,9 @@
         <label class="chkline" style="margin:0"><input type="checkbox" class="tck" id="sBg"><span><b>Continuer les traitements en arrière-plan</b><small style="display:block;color:var(--muted);font-weight:400;margin-top:2px">Garde l'app active (via un son silencieux) pour finir transcription et résumé même réduite. Selon l'économie de batterie d'Android, ça peut ne pas toujours tenir : dans ce cas tout reprend à la réouverture.</small></span></label>
       </div>
       <div class="card pad" style="margin-top:10px">
+        <label class="chkline" style="margin:0"><input type="checkbox" class="tck" id="sKeepAudio"><span><b>Garder l'audio après la transcription</b><small style="display:block;color:var(--muted);font-weight:400;margin-top:2px">Pour réécouter un passage en le touchant dans la transcription. Prend de la place (environ 30 Mo par heure) ; tu peux tout effacer dans « Mes données ».</small></span></label>
+      </div>
+      <div class="card pad" style="margin-top:10px">
         <label class="f" for="sRemind">Rappel automatique des tâches avec échéance</label>
         <select id="sRemind">
           <option value="eve">La veille à 18 h</option>
@@ -1028,16 +1266,35 @@
       </div>
     </div>
 
+    <div class="set-group">
+      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v6.5c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V5.5"/><path d="M4.5 12v6.5c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V12"/></svg></span><div><b>Mes données</b><small>Sauvegarde et stockage</small></div></div>
+      <div class="card pad stack">
+        <div class="notif-row"><div><b id="stoLine">Stockage</b><small id="stoState"></small></div><button class="btn hidden" id="persistBtn" type="button">Protéger</button></div>
+        <div class="notif-row"><div><b id="audLine">Audio</b><small>Supprimer l'audio garde les transcriptions, résumés, cours et fiches.</small></div><button class="btn hidden" id="audDelAll" type="button">Supprimer</button></div>
+        <div class="row"><button class="btn primary" id="bkBtn" type="button" style="flex:1">Sauvegarder</button><button class="btn" id="rsBtn" type="button" style="flex:1">Restaurer</button></div>
+        <label class="chkline" style="margin-bottom:0"><input type="checkbox" class="tck" id="bkKeys"><span>Inclure mes clés d'API et mon jeton Plaud (garde alors le fichier pour toi)</span></label>
+        <div class="f-help" id="bkLast"></div>
+        <input type="file" id="rsInput" accept=".json,application/json" class="hidden">
+      </div>
+    </div>
+
     <div class="save-bar"><button class="btn primary block" id="sSave">Enregistrer</button></div>
     <div class="card pad notif-row" style="margin-top:18px">
       <div><b>Version <span id="appVersion"></span></b><small id="updState">L'app se met à jour toute seule quand tu la rouvres.</small></div>
       <button class="btn" id="updBtn" type="button">Vérifier</button>
     </div>
-    <p class="privacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span>Tes clés et tes notes restent dans ce téléphone. L'audio est envoyé à Groq pour la transcription, puis supprimé de l'app une fois la note terminée. Seule la transcription écrite est envoyée pour le résumé.</span></p>
+    <p class="privacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span>Tes clés et tes notes restent dans ce téléphone. L'audio est envoyé à Groq pour la transcription, puis gardé uniquement dans ce téléphone pour la réécoute (réglable ci-dessus). Seule la transcription écrite est envoyée pour le résumé.</span></p>
   </section>
 </div>
 
 <div class="actions hidden" id="noteActions">
+  <div class="player hidden" id="player">
+    <button class="pl-play" id="plPlay" type="button" aria-label="Lire"></button>
+    <button class="pl-sm" id="plBack" type="button" aria-label="Reculer de 10 secondes">−10</button>
+    <div class="pl-mid"><input type="range" class="pl-seek" id="plSeek" min="0" max="1000" value="0" step="1" aria-label="Position dans l'enregistrement"><div class="pl-times"><span id="plCur">0:00</span><span id="plDur">--:--</span></div></div>
+    <button class="pl-sm" id="plFwd" type="button" aria-label="Avancer de 30 secondes">+30</button>
+    <button class="pl-sm pl-rate" id="plSpeed" type="button" aria-label="Vitesse de lecture">1×</button>
+  </div>
   <div class="bar3">
     <button class="btn" id="aCopy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="12" height="12" rx="2.5"/><path d="M15.5 8.5V6a2.5 2.5 0 0 0-2.5-2.5H6A2.5 2.5 0 0 0 3.5 6v7A2.5 2.5 0 0 0 6 15.5h2.5"/></svg>Copier</button>
     <button class="btn primary" id="aShare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Partager</button>
@@ -1047,8 +1304,13 @@
 <button class="fab hidden" id="fab" aria-label="Nouvelle tâche"></button>
 <nav class="tabbar hidden" id="tabbar">
   <button data-v="home" aria-selected="true"></button>
+  <button data-v="review" aria-selected="false"></button>
   <button data-v="tasks" aria-selected="false"></button>
 </nav>
+<div class="ask-bar hidden" id="askBar"><div>
+  <textarea id="askInput" rows="1" placeholder="Pose ta question…" enterkeyhint="send"></textarea>
+  <button class="btn primary" id="askSend" type="button" aria-label="Envoyer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+</div></div>
 <div class="actions selbar hidden" id="selBar">
   <div class="bar3">
     <div class="count" id="selCount"></div>
@@ -1062,10 +1324,11 @@
 <div class="sheet hidden" id="sheet" role="dialog" aria-modal="true"><div class="grab"></div><div id="sheetBody"></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div id="printRoot" aria-hidden="true"></div>
+<button id="toTop" aria-label="Remonter en haut"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
 
 <script>
 'use strict';
-const APP_VERSION = '25 · 27 sept. 2026';
+const APP_VERSION = '30 · 28 sept. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -1083,7 +1346,7 @@ window.CONFIG = {
 const DEFAULTS = {
   key: '', lang: 'fr', whisper: 'whisper-large-v3',
   llms: 'openai/gpt-oss-120b, openai/gpt-oss-20b', ctx: '', kind: 'auto',
-  autoRemind: 'eve', theme: 'auto', bg: true,
+  autoRemind: 'eve', theme: 'auto', bg: true, fs: 'm', keepAudio: true,
   provider: 'auto', ckey: '', cmodels: 'gpt-oss-120b, zai-glm-4.7', mkey: '', mmodels: 'mistral-large-latest, mistral-medium-latest, mistral-small-latest', gkey: '', gmodels: 'gemini-3.8-flash, gemini-flash-latest, gemini-3.5-flash',
 };
 function loadSettings() {
@@ -1107,22 +1370,27 @@ let provFailed = new Set();
 const nextProvider = () => { const cur = provider(); return [primary(), ...CHAIN].find((p) => p !== cur && hasKey(p) && !provFailed.has(p)) || null; };
 
 /* =================== IndexedDB =================== */
+let dbConn = null;
 function openDB() {
-  return new Promise((res, rej) => {
+  if (dbConn) return dbConn;
+  dbConn = new Promise((res, rej) => {
     const r = indexedDB.open('notes-plaud', 1);
     r.onupgradeneeded = () => {
       const db = r.result;
       if (!db.objectStoreNames.contains('notes')) db.createObjectStore('notes', { keyPath: 'id' });
       if (!db.objectStoreNames.contains('pending')) db.createObjectStore('pending');
     };
-    r.onsuccess = () => res(r.result);
-    r.onerror = () => rej(r.error);
+    r.onsuccess = () => { const d = r.result; d.onversionchange = () => { try { d.close(); } catch (e) {} dbConn = null; }; d.onclose = () => { dbConn = null; }; res(d); };
+    r.onerror = () => { dbConn = null; rej(r.error); };
   });
+  return dbConn;
 }
-async function dbRun(store, mode, fn) {
+async function dbRun(store, mode, fn, retry) {
   const db = await openDB();
+  let t;
+  try { t = db.transaction(store, mode); }
+  catch (e) { if (!retry) { dbConn = null; return dbRun(store, mode, fn, true); } throw e; }
   return new Promise((res, rej) => {
-    const t = db.transaction(store, mode);
     const req = fn(t.objectStore(store));
     t.oncomplete = () => res(req ? req.result : undefined);
     t.onerror = () => rej(t.error);
@@ -1136,8 +1404,17 @@ const db = {
   del: (id) => dbRun('notes', 'readwrite', (s) => s.delete(id)),
   takePending: async () => {
     const v = await dbRun('pending', 'readonly', (s) => s.get('shared'));
-    if (v) await dbRun('pending', 'readwrite', (s) => s.delete('shared'));
-    return v;
+    if (!v) return null;
+    await dbRun('pending', 'readwrite', (s) => s.delete('shared'));
+    let file = v.file || null;   // ancien format
+    if (!file && v.shared && v.shared.buf) file = new File([v.shared.buf], v.shared.name || 'partage.mp3', { type: v.shared.type || '' });
+    if (!file && v.info && v.info.cached && 'caches' in window) {
+      try {
+        const c = await caches.open('np-share'), r = await c.match('./__shared');
+        if (r) { file = new File([await r.blob()], decodeURIComponent(r.headers.get('X-Name') || 'partage.mp3'), { type: r.headers.get('Content-Type') || '' }); await c.delete('./__shared'); }
+      } catch (e) {}
+    }
+    return { file, info: v.info || {} };
   },
 };
 
@@ -1158,9 +1435,16 @@ function dur(sec) {
 }
 const mb = (b) => (b / 1024 / 1024).toFixed(1).replace('.', ',') + ' Mo';
 const fmtDate = (t) => new Date(t).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-function toast(msg) {
-  const t = $('toast'); t.textContent = msg; t.classList.add('show');
-  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2200);
+function toast(msg, opt) {
+  const t = $('toast'), act = opt && opt.action;
+  t.textContent = msg;
+  if (act) {
+    const b = document.createElement('button'); b.className = 'toast-act'; b.textContent = act;
+    b.onclick = () => { t.classList.remove('show'); clearTimeout(toast._t); opt.onAction(); };
+    t.appendChild(b);
+  }
+  t.classList.toggle('act', !!act); t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), act ? 6500 : 2200);
 }
 function extFor(file) {
   const m = /\.([a-z0-9]{2,5})$/i.exec(file.name || '');
@@ -1214,7 +1498,11 @@ async function renderMath(root) {
 
 // Mini rendu Markdown (titres, listes, cases à cocher, gras, italique, formules)
 function md(src, ctr = { i: 0 }) {
-  const maths = [];
+  const maths = [], codes = [];
+  // Blocs de code / schémas ``` : mis de côté avant tout le reste (pas de formules ni de gras dedans)
+  src = String(src || '').replace(/^[ \t]*```[^\n]*\n([\s\S]*?)^[ \t]*```[ \t]*$/gm, (m, body) => {
+    codes.push(body.replace(/\s+$/, '')); return `\u0000C${codes.length - 1}\u0000`;
+  }).replace(/^[ \t]*```[^\n]*$/gm, '');   // clôture orpheline : on retire juste la ligne
   src = protectMath(src, maths);
   const inline = (s) => esc(s)
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
@@ -1229,6 +1517,7 @@ function md(src, ctr = { i: 0 }) {
     const line = lines[li].replace(/\s+$/, '');
     let m;
     if (!line.trim()) { close(); continue; }
+    if ((m = /^\s*\u0000C(\d+)\u0000\s*$/.exec(line))) { close(); out.push(`<pre class="code"><code>${esc(codes[+m[1]])}</code></pre>`); continue; }
     // Tableau Markdown : ligne d'en-tête avec « | », suivie d'une ligne de séparation « |---|:--:| »
     if (line.includes('|') && !isSep(line) && li + 1 < lines.length && isSep(lines[li + 1])) {
       close();
@@ -1275,6 +1564,7 @@ const SILENCE = 'data:audio/wav;base64,UklGRmQfAABXQVZFZm10IBAAAAABAAEAQB8AAEAfA
 let bgAudio = null, bgOn = false;
 function setMedia(active) {
   if (!('mediaSession' in navigator)) return;
+  try { if (pl.el && pl.idx >= 0) return plMedia(); } catch (e) {}
   try {
     navigator.mediaSession.metadata = active && 'MediaMetadata' in window ? new MediaMetadata({ title: 'Traitement en cours…', artist: 'Notes Plaud' }) : null;
     navigator.mediaSession.playbackState = active ? 'playing' : 'none';
@@ -1289,6 +1579,7 @@ function keepAlive(on) {
       else { bgOn = true; setMedia(true); }
     } catch (e) { bgOn = false; }
   } else if (!on) {
+    if (rec.mr) return;   // l'enregistrement en cours en a encore besoin
     bgOn = false;
     try { if (bgAudio) bgAudio.pause(); } catch (e) {}
     setMedia(false);
@@ -2180,6 +2471,9 @@ function splitTitle(summary, fallback) {
 /* =================== Icônes =================== */
 const I = (d, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const ICONS = {
+  cards: I('<rect x="3" y="6" width="14" height="14" rx="2.5"/><path d="M7 3h11.5A2.5 2.5 0 0 1 21 5.5V17"/>'),
+  play: I('<path d="M8 5.5v13l10.5-6.5z"/>'),
+  pin: I('<path d="M9 3.5h6l-1.2 5.5 3.7 3.4V14H6.5v-1.6L10.2 9z"/><path d="M12 14v6.5"/>'),
   resume: I('<path d="M6 3.5h8l4 4V20a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 6 20z"/><path d="M14 3.5V8h4M9 12h6M9 16h4"/>'),
   points: I('<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2" fill="currentColor"/><circle cx="4.5" cy="12" r="1.2" fill="currentColor"/><circle cx="4.5" cy="18" r="1.2" fill="currentColor"/>'),
   decisions: I('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>'),
@@ -2282,14 +2576,20 @@ function renderNoteDate() {
     + I('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>');
 }
 
-async function startFile(file) {
-  if (busy || enhancing || writing) { toast('Un traitement est déjà en cours'); return; }
+async function startFile(file, extra) {
+  if (!extra && (busy || enhancing || writing)) { toast('Un traitement est déjà en cours'); return; }
   if (!file || !file.size) { toast('Aucun fichier audio reçu'); return; }
   const now = Date.now();
   const note = {
     id: 'n' + now.toString(36), created: dateFromName(file.name) || now, addedAt: now, fileName: file.name || 'audio.' + extFor(file),
     size: file.size, title: baseName(file.name), status: 'transcription', audio: file, segments: null, summary: '', duration: 0,
   };
+  if (extra) { for (const [k, v] of Object.entries(extra)) if (v !== undefined) note[k] = v; }
+  if (busy || enhancing || writing) {   // enregistrement fait pendant un autre traitement : il attend son tour
+    note.queued = true; await db.put(note);
+    toast('Enregistrement gardé : il sera transcrit juste après le traitement en cours');
+    show(lastTab); return;
+  }
   if (!settings.key) {
     // on garde le fichier pour ne pas le perdre : il sera traité en ouvrant la note
     Object.assign(note, { status: 'err', error: 'Clé Groq manquante. Ajoute-la dans les réglages, puis ouvre cette note pour lancer le traitement.' });
@@ -2365,7 +2665,10 @@ async function run(note, opts = {}) {
     meta.body = autoRemind(meta.body);
     const tags = [...new Set([...(note.tags || []), ...(note.tags && note.tags.length ? [] : meta.tags)])];
     Object.assign(note, { title: t.title, summary: meta.body, status: 'ok', summaryBy: lastModel, kind: meta.kind || (opts.kind !== 'auto' && opts.kind) || note.kind || null, tags });
-    delete note.audio; // plus besoin de l'audio, on libère de la place
+    if (note.audio) {   // l'audio quitte la note (liste plus légère) ; on le garde à part pour la réécoute
+      if (settings.keepAudio !== false) { try { await audioDB.put(note.id, note.audio); } catch (e) { toast('Pas assez de place : l\'audio n\'a pas été gardé'); } }
+      delete note.audio;
+    }
     delete note.error;
     await db.put(note);
     step('st-sum', 'done', 'Terminé');
@@ -2400,23 +2703,24 @@ async function run(note, opts = {}) {
 
 /* =================== Vues =================== */
 let current = 'home', currentNote = null, allNotes = [];
-const TITLES = { job: 'Traitement', note: '', settings: 'Réglages' };
+const TITLES = { job: 'Traitement', note: '', settings: 'Réglages', ask: 'Poser une question', rec: 'Enregistrer' };
 function show(v, keepScroll) {
   const changed = v !== current;
   current = v;
-  for (const id of ['home', 'tasks', 'job', 'note', 'settings']) {
+  for (const id of ['home', 'tasks', 'review', 'job', 'note', 'settings', 'ask', 'rec']) {
     const el = $('v-' + id);
     el.classList.toggle('hidden', id !== v);
     if (id === v && changed) { el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); }
   }
   const lockBack = false;
-  const tab = v === 'home' || v === 'tasks';
+  const tab = v === 'home' || v === 'tasks' || v === 'review';
   $('backBtn').classList.toggle('hidden', tab);
   $('brand').classList.toggle('hidden', !tab);
   $('title').classList.toggle('hidden', tab);
   $('title').textContent = TITLES[v] || '';
   $('settingsBtn').classList.toggle('hidden', !tab);
-  $('spacer').classList.toggle('hidden', tab || lockBack);
+  $('spacer').classList.toggle('hidden', tab || lockBack || v === 'note');
+  $('noteHdr').classList.toggle('hidden', v !== 'note');
   $('tabbar').classList.toggle('hidden', !tab || ui.sel);
   $('tabbar').querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.v === v)));
   $('fab').classList.toggle('hidden', v !== 'tasks');
@@ -2427,6 +2731,14 @@ function show(v, keepScroll) {
   if (!keepScroll) window.scrollTo(0, 0);
   if (v === 'home') renderHome();
   if (v === 'tasks') renderTasks();
+  if (v === 'review') renderReview();
+  $('askBar').classList.toggle('hidden', v !== 'ask');
+  if (v !== 'note' && pl.el && !pl.el.paused) pl.el.pause();
+  plUI(); renderRecBanner();
+  if (v === 'rec') renderRec();
+  if (backReady && !(history.state && history.state.np === 1)) { try { history.pushState({ np: 1 }, ''); } catch (e) {} }
+  if (v === 'ask') renderAsk();
+  updToTop();
 }
 let lastTab = 'home';
 
@@ -2474,6 +2786,7 @@ async function renderHome() {
     : 'Prêt pour ton premier enregistrement.';
   renderBrowse();
   renderList();
+  renderBkRemind();
 }
 
 const EMPTY = `
@@ -2507,8 +2820,50 @@ function filtered(ignoreDay) {
     else if (ui.mode === 'cal') notes = notes.filter((n) => monthStart(n.created) === ui.month);
   }
   const q = norm($('search').value.trim());
-  if (q) notes = notes.filter((n) => norm(`${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''} ${(n.segments || []).map((s) => s.text).join(' ')} ${(n.clean || []).map((s) => s.text).join(' ')}`).includes(q));
+  if (q) notes = notes.filter((n) => norm(`${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''} ${n.lecture || ''} ${(n.segments || []).map((s) => s.text).join(' ')} ${(n.clean || []).map((s) => s.text).join(' ')}`).includes(q));
+  // les notes épinglées d'abord (hors filtre par jour)
+  if (ui.day == null && ui.mode !== 'cal') notes = [...notes.filter((n) => n.pinned), ...notes.filter((n) => !n.pinned)];
   return notes;
+}
+// Où la recherche a trouvé le texte, avec un extrait surligné
+const plainMd = (t, dropHeads) => String(t || '').split('\n').filter((l) => !(dropHeads && /^#{1,6}\s/.test(l))).join('\n').replace(/^\s*[-*•]\s+\[[ xX]\]\s*/gm, '').replace(/^\s*[-*•]\s+/gm, '').replace(/[📅⏰⏫🔼🔽✅]\s*\d{4}-\d{2}-\d{2}(?:[ T]\d{1,2}:\d{2})?/gu, '').replace(/\$\$?|\\[()[\]]/g, '').replace(/[*_`#>|]/g, ' ').replace(/\s+/g, ' ').trim();
+function findSnippet(n, qRaw) {
+  const q = norm(qRaw); if (!q) return null;
+  const places = [
+    ['sum', 'Résumé', plainMd(n.summary, true)],
+    ['lecture', 'Cours', plainMd(n.lecture)],
+    ['tr', 'Transcription', (hasClean(n) ? n.clean : (n.segments || [])).map((x) => x.text).join(' ')],
+  ];
+  if (norm(n.title).includes(q)) return null;
+  for (const [where, label, text] of places) {
+    const i = norm(text).indexOf(q);
+    if (i < 0) continue;
+    const a = Math.max(0, i - 50), b = Math.min(text.length, i + q.length + 70);
+    const html = (a ? '…' : '') + esc(text.slice(a, i)) + '<mark>' + esc(text.slice(i, i + q.length)) + '</mark>' + esc(text.slice(i + q.length, b)) + (b < text.length ? '…' : '');
+    return { where, label, html };
+  }
+  return null;
+}
+// Surligne les occurrences dans un bloc déjà affiché, et fait défiler jusqu'à la première
+function highlightIn(root, qRaw) {
+  const q = norm(qRaw); if (!q || !root) return 0;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: (t) => t.parentElement.closest('.math, mark, script, style, button') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+  let count = 0, first = null;
+  for (const node of nodes) {
+    let txt = node.nodeValue, i = norm(txt).indexOf(q);
+    if (i < 0) continue;
+    const frag = document.createDocumentFragment();
+    let rest = node;
+    while (i >= 0 && count < 200) {
+      const after = rest.splitText(i), tail = after.splitText(q.length);
+      const m = document.createElement('mark'); m.className = 'hit'; m.textContent = after.nodeValue;
+      after.replaceWith(m); if (!first) first = m; count++;
+      rest = tail; txt = rest.nodeValue; i = norm(txt).indexOf(q);
+    }
+  }
+  if (first) { first.classList.add('cur'); setTimeout(() => first.scrollIntoView({ block: 'center', behavior: 'smooth' }), 80); }
+  return count;
 }
 function renderBrowse() {
   $('browse').classList.toggle('hidden', !allNotes.length);
@@ -2575,8 +2930,9 @@ function renderList() {
     return;
   }
   let html = '', g = '';
+  const qRaw = $('search').value.trim();
   for (const n of notes) {
-    const gg = ui.day != null ? '' : groupOf(n.created);
+    const gg = ui.day != null ? '' : (n.pinned && ui.mode !== 'cal' ? 'Épinglées' : groupOf(n.created));
     if (gg !== g) { html += `<div class="group">${gg}</div>`; g = gg; }
     const tasks = openTasks(n);
     const badge = n.id === runningId ? `<span class="pill run">${ICONS.clock}En cours…</span>` : n.status === 'ok' ? '' :
@@ -2586,8 +2942,9 @@ function renderList() {
     html += `
       <button class="item${ui.picked.has(n.id) ? ' picked' : ''}" data-id="${n.id}">
         <span class="ck"></span>
-        <span class="item-top"><span class="t">${esc(n.title)}</span><span class="time">${shortTime(n.created)}</span></span>
+        <span class="item-top"><span class="t">${n.pinned ? `<span class="pin">${ICONS.pin}</span>` : ''}${esc(n.title)}</span><span class="time">${shortTime(n.created)}</span></span>
         ${excerpt(n) ? `<span class="ex">${esc(excerpt(n))}</span>` : ''}
+        ${qRaw ? (() => { const sn = findSnippet(n, qRaw); return sn ? `<span class="snip" data-where="${sn.where}"><b>${sn.label}</b>${sn.html}</span>` : ''; })() : ''}
         <span class="m">${n.duration ? `<span class="pill">${ICONS.clock}${dur(n.duration)}</span>` : ''}${tasks ? `<span class="pill task">${ICONS.check}${tasks} à faire</span>` : ''}${badge}</span>
         ${tags ? `<span class="tags">${tags}</span>` : ''}
       </button>`;
@@ -2595,7 +2952,7 @@ function renderList() {
   list.innerHTML = html;
   list.querySelectorAll('.item').forEach((b) => b.onclick = () => {
     const id = b.dataset.id;
-    if (!ui.sel) return openNote(id);
+    if (!ui.sel) { const sn = b.querySelector('.snip'); return openNote(id, sn ? { q: $('search').value.trim(), where: sn.dataset.where } : null); }
     if (ui.picked.has(id)) ui.picked.delete(id); else ui.picked.add(id);
     b.classList.toggle('picked', ui.picked.has(id)); updSel();
   });
@@ -2747,13 +3104,19 @@ function renderTranscript() {
   const re = q ? new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi') : null;
   const para = trMode === 'clean' && hasClean(n);
   const segs = curSegs(n).filter((s) => !re || (!s.sep && s.text.match(re)));
+  const marked = new Set();
+  if (n.marks && n.marks.length) {
+    const flat = curSegs(n).filter((s) => !s.sep);
+    for (const m of n.marks) { let pick = null; for (const x of flat) { if (x.start <= m + 0.5) pick = x; else break; } if (pick) marked.add(pick); }
+  }
   $('noteTr').innerHTML = segs.map((s) => {
     if (s.sep) return `<div class="seg-sep">${ICONS.file}<span>${esc(s.text)}</span></div>`;
     let t = re ? esc(s.text) : mathify(s.text);
     if (re) t = t.replace(new RegExp(esc(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), (m) => `<mark>${m}</mark>`);
-    return `<div class="seg${para ? ' para' : ''}"><time>${hms(s.start)}</time><span>${t}</span></div>`;
+    return `<div class="seg${para ? ' para' : ''}${marked.has(s) ? ' mark' : ''}" data-t="${s.start}"><time>${hms(s.start)}</time><span>${t}</span></div>`;
   }).join('') || `<p class="muted" style="padding:10px 0">${n.segments ? 'Aucun passage ne correspond.' : 'Pas de transcription.'}</p>`;
   renderMath($('noteTr'));
+  pl.segEls = null; if (pl.noteId === n.id) plSync(true);
 }
 
 function renderEnh() {
@@ -2888,7 +3251,7 @@ async function enhance() {
       + (resumable ? ' Le travail déjà fait est gardé : « Reprendre » continuera là où ça s\'est arrêté.' : '');
     $('enhErr').classList.remove('hidden');
   } finally {
-    enhancing = null; provOverride = null; cancelReq = false; statusEl = 'jobStatus'; keepAwake(false);
+    enhancing = null; provOverride = null; cancelReq = false; statusEl = 'jobStatus'; keepAwake(false); setTimeout(resumeInterrupted, 800);
     if (currentNote && currentNote.id === n.id) { renderEnh(); renderTranscript(); }
   }
 }
@@ -2909,6 +3272,7 @@ Consignes :
 - Conserve absolument tout le contenu utile, dans l'ordre du cours : définitions, explications, exemples, démonstrations, chiffres, noms propres, remarques importantes.
 - Structure : des sous-titres « ## » pour les grandes parties et « ### » pour les sous-parties quand le sujet change, des paragraphes aérés, des listes à puces pour les énumérations, les termes clés en **gras**.
 - Formules mathématiques ou scientifiques en LaTeX : $…$ dans une phrase, $$…$$ pour une formule isolée (ex. « T de n moins un » → $T(n-1)$).
+- Si un schéma aide vraiment, mets-le dans un bloc de code délimité par trois accents graves \`\`\` (ouverture et fermeture), court et bien aligné ; sinon préfère une liste ou un tableau.
 - Laisse de côté ce qui n'a rien à voir avec le contenu du cours (bavardage, problèmes techniques, organisation pratique, digressions).
 - N'invente rien qui ne soit pas dans le cours.
 - Commence directement par le contenu : pas de titre de niveau 1 (« # »), pas de phrase d'introduction du type « Dans cette partie… », pas de conclusion générale.
@@ -2949,7 +3313,16 @@ function renderLecture() {
   $('lectBtn').innerHTML = part ? `${ICONS.refresh}Reprendre la rédaction (${part} % fait)` : has ? `${ICONS.refresh}Refaire le cours rédigé` : `${ICONS.defs}Rédiger le cours`;
   if (running) $('lectErr').classList.add('hidden');
   const box = $('noteLect');
-  if (has && !running) { box.classList.remove('hidden'); box.innerHTML = `<div class="md lect">${md(n.lecture, { i: 0, noEdit: true })}</div>`; renderMath(box); }
+  if (has && !running) {
+    box.classList.remove('hidden'); box.innerHTML = `<div class="md lect">${md(n.lecture, { i: 0, noEdit: true })}</div>`; renderMath(box);
+    // Sommaire cliquable quand le cours est long
+    const hs = [...box.querySelectorAll('.md h2, .md h3')];
+    if (hs.length >= 3) {
+      hs.forEach((h, i) => { h.id = 'lh' + i; });
+      box.insertAdjacentHTML('afterbegin', `<details class="toc card pad"><summary>${ICONS.list}Sommaire · ${hs.filter((h) => h.tagName === 'H2').length || hs.length} parties</summary><ol>${hs.map((h, i) => `<li class="${h.tagName === 'H3' ? 'l3' : ''}"><a href="#lh${i}" data-to="lh${i}">${esc(h.textContent)}</a></li>`).join('')}</ol></details>`);
+      box.querySelectorAll('.toc a').forEach((a) => a.onclick = (e) => { e.preventDefault(); const t = document.getElementById(a.dataset.to); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    }
+  }
   else box.classList.add('hidden');
 }
 async function generateLecture() {
@@ -3010,7 +3383,7 @@ async function generateLecture() {
       + (resumable ? ' Le travail déjà fait est gardé : « Reprendre » continuera là où ça s\'est arrêté.' : '');
     $('lectErr').classList.remove('hidden');
   } finally {
-    writing = null; provOverride = null; cancelReq = false; statusEl = 'jobStatus'; keepAwake(false);
+    writing = null; provOverride = null; cancelReq = false; statusEl = 'jobStatus'; keepAwake(false); setTimeout(resumeInterrupted, 800);
     if (currentNote && currentNote.id === n.id) renderLecture();
   }
 }
@@ -3025,7 +3398,7 @@ async function renameNote() {
   $('noteTitle').innerHTML = esc(t) + PEN;
   toast('Titre modifié');
 }
-async function openNote(id) {
+async function openNote(id, opts) {
   if (id === runningId) { show('job'); return; }
   const n = await db.get(id);
   if (!n) { show('home'); return; }
@@ -3050,14 +3423,33 @@ async function openNote(id) {
   renderEnh();
   renderTranscript();
   renderLecture();
+  renderStudy();
   $('resumAgain').classList.toggle('hidden', !n.segments);
   $('resumAgain').querySelector('span').textContent = n.summary ? 'Refaire le résumé' : 'Générer le résumé';
   setTab('sum');
+  $('pinBtn').setAttribute('aria-pressed', String(!!n.pinned));
+  $('pinBtn').setAttribute('aria-label', n.pinned ? 'Désépingler la note' : 'Épingler la note');
   show('note');
+  renderMarks(n);
+  preparePlayer(n);
+  if (opts && opts.q) {
+    if (opts.where === 'tr') { setTab('tr'); $('trSearch').value = opts.q; renderTranscript(); }
+    else if (opts.where === 'lecture') { setTab('lecture'); highlightIn($('noteLect'), opts.q); }
+    else highlightIn($('noteSum'), opts.q);
+  }
+}
+async function togglePin() {
+  const n = currentNote; if (!n) return;
+  n.pinned = !n.pinned;
+  const fresh = await db.get(n.id); if (fresh) { fresh.pinned = n.pinned; if (!n.pinned) delete fresh.pinned; await db.put(fresh); }
+  $('pinBtn').setAttribute('aria-pressed', String(n.pinned));
+  $('pinBtn').setAttribute('aria-label', n.pinned ? 'Désépingler la note' : 'Épingler la note');
+  toast(n.pinned ? 'Note épinglée en haut de la liste' : 'Note désépinglée');
 }
 function setTab(t) {
   document.querySelectorAll('.tabs-wrap .tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
   $('noteSum').classList.toggle('hidden', t !== 'sum');
+  $('noteStudy').classList.toggle('hidden', t !== 'sum' || !currentNote || !(currentNote.segments || currentNote.summary));
   $('noteTrWrap').classList.toggle('hidden', t !== 'tr');
   $('noteLectWrap').classList.toggle('hidden', t !== 'lecture');
   if (t === 'lecture') renderLecture();
@@ -3269,8 +3661,9 @@ async function mergeNotes(ids, del) {
   if (notes.length < 2) { toast('Il faut au moins 2 notes déjà transcrites'); return null; }
   if (busy) { toast('Un traitement est déjà en cours'); return null; }
   const segs = [], clean = [], allClean = notes.every(hasClean);
-  let off = 0;
+  let off = 0; const offs = [];
   notes.forEach((n, i) => {
+    offs[i] = off;
     const label = `Enregistrement ${i + 1} · ${fmtDate(n.created)}${n.title ? ' · ' + n.title : ''}`;
     segs.push({ start: off, end: off, text: label, sep: true });
     for (const x of n.segments) if (!x.sep) segs.push({ start: x.start + off, end: (x.end || x.start) + off, text: x.text });
@@ -3283,7 +3676,8 @@ async function mergeNotes(ids, del) {
     id: 'n' + now.toString(36), created: first.created, addedAt: now, fileName: `${notes.length} enregistrements`,
     size: notes.reduce((a, n) => a + (n.size || 0), 0), title: first.title, status: 'resume', segments: segs, summary: '', duration: off,
     tags: [...new Set(notes.flatMap((n) => n.tags || []))], kind: notes.map((n) => n.kind).find(Boolean) || null,
-    mergedFrom: notes.map((n) => ({ id: n.id, title: n.title, fileName: n.fileName, created: n.created, duration: n.duration })),
+    mergedFrom: notes.map((n, i) => ({ id: n.id, title: n.title, fileName: n.fileName, created: n.created, duration: n.duration, off: offs[i], parts: audioParts(n) })),
+    marks: notes.some((n) => n.marks) ? notes.flatMap((n, i) => (n.marks || []).map((x) => x + offs[i])) : undefined,
   };
   if (allClean) Object.assign(m, { clean, cleanBy: first.cleanBy, cleanAt: now });
   await db.put(m);
@@ -3381,6 +3775,11 @@ async function updateBadge() {
   try { const today = dayStart(Date.now()); n = (await allTasks()).filter((t) => !t.done && t.due && isoDay(t.due) <= today).length; } catch (e) {}
   const b = $('tabbar').querySelector('[data-v=tasks] .badge');
   if (b) { b.textContent = n; b.classList.toggle('hidden', !n); }
+  try {
+    const due = (await loadNotes()).reduce((a, x) => a + (x.cards || []).filter(isDue).length, 0);
+    const rb = $('tabbar').querySelector('[data-v=review] .badge');
+    if (rb) { rb.textContent = due > 99 ? '99+' : due; rb.classList.toggle('hidden', !due); rb.style.background = 'var(--violet)'; }
+  } catch (e) {}
 }
 async function renderTasks() {
   const all = await allTasks();
@@ -3652,6 +4051,781 @@ async function setupPeriodicCheck() {
   } catch (e) {}
 }
 
+/* =================== Poser une question =================== */
+/* On envoie à l'IA les passages utiles de la transcription (tout, si ça tient ; sinon les plus pertinents
+   pour la question), avec leurs horodatages. La réponse cite ces horodatages : on les rend cliquables. */
+let askScope = 'note', askFrom = 'note', asking = false, askAbort = false;
+const STOPW = new Set(('le la les un une des de du et ou en a au aux ce ces cet cette que qui quoi quel quelle quels quelles est sont ont pour par sur dans avec sans ne pas plus il elle ils elles on nous vous je tu me te se son sa ses leur leurs mon ma mes ton ta tes y qu comment pourquoi quand combien dit dire parle parler parlé prof professeur explique expliquer cours note notes enregistrement quoi fait faire etait était été avoir etre être tout tous toute toutes aussi comme mais donc alors peux peut quelque quelques chose choses').split(' '));
+const askTerms = (q) => [...new Set(norm(q).split(/[^a-z0-9]+/).filter((w) => w.length > 2 && !STOPW.has(w)))];
+function noteChunks(n, pre = '') {   // morceaux d'environ 1 100 caractères, avec un repère de temps toutes les 20 s environ
+  const src = hasClean(n) ? n.clean : (n.segments || []);
+  const out = []; let cur = null, mark = -1e9;
+  for (const x of src) {
+    if (x.sep) { cur = null; continue; }
+    if (!cur || cur.len > 1100) { cur = { noteId: n.id, t: x.start, text: '', len: 0 }; out.push(cur); mark = -1e9; }
+    const tag = x.start - mark >= 20 ? `[${pre}${hms(x.start)}] ` : '';
+    if (tag) mark = x.start;
+    cur.text += (cur.text ? ' ' : '') + tag + x.text; cur.len += x.text.length + 1;
+  }
+  return out;
+}
+function chunkScore(c, ts) {
+  if (!ts.length) return 0;
+  const t = norm(c.text); let sc = 0;
+  for (const w of ts) {
+    const stem = w.length > 5 ? w.slice(0, w.length - 2) : w;
+    let i = t.indexOf(stem), k = 0;
+    while (i >= 0 && k < 6) { k++; i = t.indexOf(stem, i + stem.length); }
+    if (k) sc += 1 + Math.log(1 + k);
+  }
+  return sc;
+}
+const askBudget = () => ({ gemini: 240000, mistral: 110000, cerebras: 32000, groq: 10000 })[provider()] || 10000;
+function buildAskContext(notes, q) {
+  const budget = askBudget(), ts = askTerms(q), multi = notes.length > 1;
+  let chunks = notes.flatMap((n, i) => noteChunks(n, multi ? '#' + (i + 1) + ' ' : ''));
+  const total = chunks.reduce((a, c) => a + c.text.length + 12, 0);
+  if (total > budget * 0.8) {
+    const scored = chunks.map((c, i) => ({ c, i, s: chunkScore(c, ts) })).sort((a, b) => b.s - a.s || a.i - b.i);
+    const keep = new Set(); let used = 0;
+    for (const x of scored) { if (used + x.c.text.length > budget * 0.8) continue; keep.add(x.i); used += x.c.text.length + 12; if (used > budget * 0.8) break; }
+    chunks = chunks.filter((c, i) => keep.has(i));
+  }
+  const head = notes.map((n, i) => `${multi ? '#' + (i + 1) + ' ' : ''}« ${n.title} » — ${new Date(n.created).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}` +
+    (n.summary ? `\nRésumé : ${plainMd(n.summary, true).slice(0, multi ? 500 : 3000)}` : '')).join('\n\n');
+  return { head, body: chunks.map((c) => c.text).join('\n'), multi };
+}
+const P_ASK = (ctx, q, history) => `Tu es un assistant d'étude. Réponds à la question en français, uniquement à partir des enregistrements ci-dessous (transcriptions automatiques : corrige mentalement les erreurs de reconnaissance vocale).
+${ctxLine()}
+Règles :
+- Réponse claire et directe, structurée en Markdown si utile (listes, **gras** pour les notions clés, formules en LaTeX $…$).
+- Après chaque information importante, cite sa source entre crochets en recopiant exactement l'horodatage du passage, par exemple ${ctx.multi ? '[#2 12:34]' : '[12:34]'}.
+- N'utilise que des horodatages présents dans les extraits. N'invente rien.
+- Si la réponse n'est pas dans les extraits, dis-le franchement, puis indique ce qui s'en rapproche le plus.
+${history ? `\nÉchanges précédents (pour le contexte) :\n${history}\n` : ''}
+Enregistrement${ctx.multi ? 's' : ''} :
+${ctx.head}
+
+Extraits horodatés :
+"""
+${ctx.body}
+"""
+
+Question : ${q}`;
+async function askLLM(prompt, label) {
+  provFailed = new Set(); provOverride = null;
+  try {
+    for (;;) {
+      try { return await llm(prompt, 1800, label, true); }
+      catch (e) { if (e instanceof Cancelled) throw e; const nx = fallBack(e); if (!nx) throw e; }
+    }
+  } finally { provOverride = null; provFailed = new Set(); }
+}
+const ALLCHAT = 'np-chat-all';
+const getAllChat = () => { try { return JSON.parse(lsGet(ALLCHAT, '[]')); } catch (e) { return []; } };
+function openAsk(scope, from) {
+  askScope = scope === 'all' || !currentNote ? 'all' : 'note';
+  askFrom = from || (currentNote ? 'note' : 'home');
+  show('ask');
+  setTimeout(() => $('askInput').focus({ preventScroll: true }), 250);
+}
+const SUGG = {
+  note: ['Quels sont les points à retenir pour l\'examen\u00a0?', 'Explique-moi simplement la notion la plus difficile.', 'Quels exemples ont été donnés\u00a0?', 'Qu\'est-ce que je dois faire ou rendre, et pour quand\u00a0?'],
+  all: ['De quoi ai-je parlé ces derniers jours\u00a0?', 'Dans quelles notes parle-t-on de ', 'Quelles tâches reviennent dans plusieurs notes\u00a0?'],
+};
+const TS_RE = /\[((?:#\d+\s+)?\d{1,2}:\d{2}(?::\d{2})?(?:\s*[,;]\s*(?:#\d+\s+)?\d{1,2}:\d{2}(?::\d{2})?)*)\]/g;
+function linkTimes(root, notes) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: (t) => t.parentElement.closest('.math, code, .ts') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
+  for (const node of nodes) {
+    const txt = node.nodeValue; if (!TS_RE.test(txt)) continue; TS_RE.lastIndex = 0;
+    const frag = document.createDocumentFragment(); let last = 0, m;
+    while ((m = TS_RE.exec(txt))) {
+      frag.append(txt.slice(last, m.index));
+      for (const part of m[1].split(/\s*[,;]\s*/)) {
+        const mm = /^(?:#(\d+)\s+)?((?:\d+:)?\d{1,2}:\d{2})$/.exec(part); if (!mm) continue;
+        const n = mm[1] ? notes[+mm[1] - 1] : notes[0]; if (!n) continue;
+        const b = document.createElement('button'); b.className = 'ts'; b.dataset.n = n.id; b.dataset.t = toSec(mm[2]);
+        b.innerHTML = ICONS.play + esc((mm[1] && notes.length > 1 ? n.title.slice(0, 22) + (n.title.length > 22 ? '…' : '') + ' · ' : '') + mm[2]);
+        b.title = `Aller au passage (${n.title}, ${mm[2]})`;
+        frag.append(b);
+      }
+      last = m.index + m[0].length;
+    }
+    frag.append(txt.slice(last));
+    node.replaceWith(frag);
+  }
+}
+async function jumpTo(noteId, sec) {
+  if (!currentNote || currentNote.id !== noteId || current !== 'note') await openNote(noteId);
+  if (!currentNote || currentNote.id !== noteId) return;
+  setTab('tr'); $('trSearch').value = ''; renderTranscript();
+  const segs = [...$('noteTr').querySelectorAll('.seg[data-t]')];
+  let pick = segs[0];
+  for (const el of segs) { if (+el.dataset.t <= sec + 1) pick = el; else break; }
+  if (pick) { pick.classList.add('flash'); pick.scrollIntoView({ block: 'center', behavior: 'smooth' }); setTimeout(() => pick.classList.remove('flash'), 2600); }
+  if (typeof playAt === 'function') playAt(noteId, sec);
+}
+async function askNotes() {
+  if (askScope === 'note' && currentNote) return [await db.get(currentNote.id) || currentNote];
+  return (await loadNotes()).filter((n) => n.segments && n.segments.length);
+}
+async function renderAsk() {
+  const noteOk = !!currentNote && askFrom === 'note';
+  if (!noteOk) askScope = 'all';
+  $('askScope').querySelector('[data-s=note]').disabled = !noteOk;
+  $('askScope').querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.s === askScope)));
+  $('title').textContent = askScope === 'note' && currentNote ? 'Question · ' + currentNote.title : 'Question · toutes mes notes';
+  const items = askScope === 'note' ? ((await db.get(currentNote.id)) || currentNote).chat || [] : getAllChat();
+  const notes = await askNotes();
+  $('askClear').classList.toggle('hidden', !items.length);
+  const list = $('askList');
+  if (!items.length && !asking) {
+    list.innerHTML = `<div class="ask-empty"><b>${askScope === 'note' ? 'Interroge cet enregistrement' : 'Interroge toutes tes notes'}</b>${askScope === 'note' ? 'Les réponses citent les passages : touche un horodatage pour y aller.' : `${notes.length} enregistrement${notes.length > 1 ? 's' : ''} consultables. Les réponses indiquent dans quelle note chercher.`}</div>
+      <div class="ask-sugg">${SUGG[askScope].map((q) => `<button type="button">${esc(q)}</button>`).join('')}</div>`;
+    list.querySelectorAll('.ask-sugg button').forEach((b) => b.onclick = () => { $('askInput').value = b.textContent; autoGrow(); if (/ $/.test(b.textContent)) $('askInput').focus(); else sendAsk(); });
+    return;
+  }
+  list.innerHTML = items.map((m) => `<div class="msg me">${esc(m.q)}</div><div class="msg ai${m.err ? ' err' : ''}">${m.err ? esc(m.a) : `<div class="md">${md(m.a, { i: 0, noEdit: true })}</div>`}<small>${m.err ? '' : esc((m.by || '').replace(/^openai\//, '')) + ' · '}${new Date(m.at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</small></div>`).join('');
+  const okItems = items.filter((x) => !x.err);
+  list.querySelectorAll('.msg.ai .md').forEach((el, i) => { const m = okItems[i]; linkTimes(el, m && m.notes ? m.notes.map((id) => notes.find((n) => n.id === id) || { id, title: 'note' }) : notes); });
+  renderMath(list);
+  list.querySelectorAll('.ts').forEach((b) => b.onclick = () => jumpTo(b.dataset.n, +b.dataset.t));
+}
+function autoGrow() { const t = $('askInput'); t.style.height = 'auto'; t.style.height = Math.min(140, t.scrollHeight) + 'px'; }
+async function sendAsk() {
+  const q = $('askInput').value.trim();
+  if (!q || asking) return;
+  if (busy || enhancing || writing || carding) { toast('Un traitement est en cours — pose ta question dès qu\'il sera fini'); return; }
+  if (!hasKey(provider())) { toast('Ajoute d\'abord une clé d\'IA dans les réglages'); return; }
+  const notes = await askNotes();
+  if (!notes.length) { toast('Aucune note transcrite à interroger'); return; }
+  asking = true; askAbort = false;
+  $('askInput').value = ''; autoGrow();
+  await renderAsk();
+  const list = $('askList');
+  if (list.querySelector('.ask-empty')) list.innerHTML = '';
+  list.insertAdjacentHTML('beforeend', `<div class="msg me">${esc(q)}</div><div class="msg ai" id="askPending"><span class="typing"><i></i><i></i><i></i></span><div class="ask-st" id="askStatus">Lecture des passages…</div></div>`);
+  $('askPending').scrollIntoView({ block: 'end', behavior: 'smooth' });
+  const prevEl = statusEl; statusEl = 'askStatus';
+  const prevItems = askScope === 'note' ? (notes[0].chat || []) : getAllChat();
+  const history = prevItems.filter((m) => !m.err).slice(-3).map((m) => `Q : ${m.q}\nR : ${m.a.slice(0, 600)}`).join('\n\n');
+  let entry;
+  try {
+    const ctx = buildAskContext(notes, q);
+    const a = await askLLM(P_ASK(ctx, q, history), 'Rédaction de la réponse');
+    entry = { q, a: a.trim(), at: Date.now(), by: lastModel, notes: notes.map((n) => n.id) };
+  } catch (e) {
+    entry = { q, a: e instanceof ApiError ? e.message : 'Erreur : ' + e.message, at: Date.now(), err: true };
+  } finally { statusEl = prevEl; asking = false; }
+  if (askScope === 'note') {
+    const fresh = (await db.get(notes[0].id)) || notes[0];
+    fresh.chat = [...(fresh.chat || []), entry].slice(-60); await db.put(fresh);
+    if (currentNote && currentNote.id === fresh.id) currentNote.chat = fresh.chat;
+  } else lsSet(ALLCHAT, JSON.stringify([...getAllChat(), entry].slice(-40)));
+  if (current === 'ask') { await renderAsk(); const last = $('askList').lastElementChild; if (last) last.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+}
+
+/* =================== Fiches de révision (révision espacée) =================== */
+/* Boîtes de Leitner : chaque bonne réponse éloigne la prochaine révision (1, 3, 7, 16, 35, 80 jours) ;
+   une erreur ramène la fiche au début. */
+const BOX_DAYS = [0, 1, 3, 7, 16, 35, 80];
+const isDue = (c) => !c.due || c.due <= Date.now();
+const nextBox = (c) => (c.box || 0) === 0 ? 2 : Math.min(6, c.box + 1);   // déjà sue du premier coup : on saute la révision du lendemain
+const nextDays = (c, g) => g === 2 ? BOX_DAYS[nextBox(c)] : g === 1 ? Math.max(1, Math.round(BOX_DAYS[Math.max(1, c.box || 0)] / 2)) : 0;
+let carding = null;
+const P_CARDS = (n, text, part, total, want) => `Tu crées des fiches de révision (question → réponse) pour un étudiant, à partir du cours ci-dessous (« ${n.title} »${total > 1 ? `, partie ${part} sur ${total}` : ''}).
+${ctxLine()}
+- Environ ${want} fiches, selon la richesse du contenu.
+- Chaque fiche porte sur UNE notion importante : définition, théorème ou règle, formule, raisonnement, date ou chiffre clé, exemple type, piège signalé par l'enseignant, point annoncé pour l'examen.
+- Question précise et autonome (compréhensible sans le cours). Réponse courte et exacte : 1 à 4 phrases, ou une formule.
+- Formules en LaTeX : $…$. Pas de questions triviales, pas de doublons. N'invente rien qui ne soit pas dans le cours.
+Réponds UNIQUEMENT avec un tableau JSON, sans aucun texte autour : [{"q": "…", "a": "…"}]
+
+Cours :
+"""
+${text}
+"""`;
+function parseCards(out) {
+  let arr = null;
+  const a = out.indexOf('['), b = out.lastIndexOf(']');
+  if (a >= 0 && b > a) { try { arr = JSON.parse(out.slice(a, b + 1)); } catch (e) {} }
+  if (!Array.isArray(arr)) {   // repli : on récupère les paires "q"/"a" une par une
+    arr = []; const re = /"q"\s*:\s*"((?:[^"\\]|\\.)*)"\s*,\s*"a"\s*:\s*"((?:[^"\\]|\\.)*)"/g; let m;
+    while ((m = re.exec(out))) { try { arr.push({ q: JSON.parse('"' + m[1] + '"'), a: JSON.parse('"' + m[2] + '"') }); } catch (e) {} }
+  }
+  return arr.filter((c) => c && typeof c.q === 'string' && typeof c.a === 'string' && c.q.trim() && c.a.trim()).map((c) => ({ q: c.q.trim(), a: c.a.trim() }));
+}
+function cardSource(n) {
+  const tr = (hasClean(n) ? n.clean : (n.segments || [])).filter((x) => !x.sep).map((x) => x.text).join(hasClean(n) ? '\n\n' : ' ');
+  return [n.summary ? 'RÉSUMÉ\n' + n.summary : '', n.lecture ? 'COURS RÉDIGÉ\n' + n.lecture : 'TRANSCRIPTION\n' + tr].filter(Boolean).join('\n\n');
+}
+async function makeCards(n) {
+  if (carding) { toast('Création de fiches déjà en cours'); return; }
+  if (busy || enhancing || writing || asking) { toast('Un traitement est en cours — réessaie dès qu\'il sera fini'); return; }
+  if (!hasKey(provider())) { toast('Ajoute d\'abord une clé d\'IA dans les réglages'); return; }
+  carding = n.id; renderStudy();
+  provFailed = new Set(); provOverride = null;
+  try {
+    const src = cardSource(n);
+    let size = ({ gemini: 90000, mistral: 60000, cerebras: 22000, groq: 7000 })[provider()] || 7000;
+    let parts = splitText(src, size);
+    const all = [], seen = new Set();
+    for (let i = 0; i < parts.length && all.length < 60; i++) {
+      $('stCardsInfo').textContent = parts.length > 1 ? `Création… partie ${i + 1} sur ${parts.length}` : 'Création des fiches…';
+      const want = parts.length > 1 ? 10 : Math.max(8, Math.min(20, Math.round(src.length / 1500)));
+      let out;
+      for (;;) {
+        try { out = await llm(P_CARDS(n, parts[i], i + 1, parts.length, want), 3500, 'Fiches de révision', true); break; }
+        catch (e) { const nx = fallBack(e); if (!nx) throw e; }
+      }
+      for (const c of parseCards(out)) { const k = norm(c.q).slice(0, 80); if (seen.has(k)) continue; seen.add(k); all.push(c); }
+    }
+    if (!all.length) throw new ApiError('L\'IA n\'a pas renvoyé de fiches exploitables. Réessaie.');
+    const fresh = (await db.get(n.id)) || n;
+    const t0 = Date.now();
+    fresh.cards = all.map((c, i) => ({ id: 'c' + t0.toString(36) + i, q: c.q, a: c.a, box: 0, due: 0 }));
+    fresh.cardsBy = lastModel; fresh.cardsAt = t0;
+    await db.put(fresh);
+    if (currentNote && currentNote.id === n.id) Object.assign(currentNote, { cards: fresh.cards, cardsBy: fresh.cardsBy, cardsAt: t0 });
+    toast(`${all.length} fiches créées — à réviser dans l'onglet « Réviser »`);
+    updateBadge();
+  } catch (e) {
+    toast(e instanceof ApiError ? e.message : 'Erreur : ' + e.message);
+  } finally { carding = null; provOverride = null; provFailed = new Set(); renderStudy(); }
+}
+function renderStudy() {
+  const n = currentNote; if (!n) return;
+  const cards = n.cards || [], due = cards.filter(isDue).length, mastered = cards.filter((c) => (c.box || 0) >= 4).length;
+  const show = !!(n.segments || n.summary);
+  $('noteStudy').classList.toggle('hidden', !show || $('noteSum').classList.contains('hidden'));
+  if (carding === n.id) { $('stCards').textContent = 'Création…'; $('stCards').disabled = true; if (!/Création/.test($('stCardsInfo').textContent)) $('stCardsInfo').textContent = 'Création des fiches…'; return; }
+  $('stCards').disabled = false;
+  if (cards.length) {
+    $('stCardsInfo').textContent = `${cards.length} fiches · ${due ? due + ' à réviser' : 'rien à réviser aujourd\'hui'} · ${mastered} maîtrisée${mastered > 1 ? 's' : ''}`;
+    $('stCards').textContent = due ? 'Réviser' : 'Revoir';
+  } else {
+    $('stCardsInfo').textContent = 'L\'IA prépare des questions-réponses à réviser';
+    $('stCards').textContent = 'Créer';
+  }
+}
+async function cardsMenu(n) {
+  const cards = n.cards || [];
+  if (!cards.length) return makeCards(n);
+  openSheet(`<h3>Fiches de révision</h3><p class="sub">${cards.length} fiches · créées par ${esc((n.cardsBy || 'l\'IA').replace(/^openai\//, ''))}</p>
+    <div class="stack">
+      <button class="btn primary block" id="cmGo">${cards.filter(isDue).length ? 'Réviser les fiches dues' : 'Revoir toutes les fiches'}</button>
+      <button class="btn block" id="cmList">Voir la liste des fiches</button>
+      <button class="btn ghost block" id="cmRedo">Recréer les fiches (la progression repart de zéro)</button>
+    </div>`, (body) => {
+    body.querySelector('#cmGo').onclick = () => { closeSheet(); startReview(n.id); };
+    body.querySelector('#cmRedo').onclick = () => { closeSheet(); makeCards(n); };
+    body.querySelector('#cmList').onclick = () => {
+      body.innerHTML = `<h3>${cards.length} fiches</h3><div class="md" style="max-height:60vh;overflow:auto">${cards.map((c, i) => `<p><b>${i + 1}.</b> ${md(c.q, { i: 0, noEdit: true }).replace(/^<p>|<\/p>$/g, '')}<br><span style="color:var(--muted)">→ ${md(c.a, { i: 0, noEdit: true }).replace(/^<p>|<\/p>$/g, '')}</span></p>`).join('')}</div><button class="btn block" id="cmClose" style="margin-top:12px">Fermer</button>`;
+      renderMath(body); body.querySelector('#cmClose').onclick = closeSheet;
+    };
+  });
+}
+/* ---- Écran « Réviser » ---- */
+const rv = { queue: [], i: 0, ok: 0, again: 0, shown: false, total: 0 };
+async function renderReview() {
+  $('tabbar').classList.toggle('hidden', !!rv.active || ui.sel);
+  $('rvSession').classList.toggle('hidden', !rv.active);
+  $('rvHome').classList.toggle('hidden', !!rv.active);
+  if (rv.active) return drawCard();
+  const notes = await loadNotes();
+  const decks = notes.filter((n) => (n.cards || []).length);
+  const due = decks.reduce((a, n) => a + n.cards.filter(isDue).length, 0), total = decks.reduce((a, n) => a + n.cards.length, 0);
+  $('rvStats').textContent = total ? `${total} fiches dans ${decks.length} note${decks.length > 1 ? 's' : ''}` : 'Tes fiches de révision apparaîtront ici.';
+  const cand = notes.filter((n) => !(n.cards || []).length && n.status === 'ok' && (n.summary || n.lecture)).slice(0, 3);
+  let html = `<div class="card rv-start"><div><div class="rv-num">${due}</div><div class="rv-sub">fiche${due > 1 ? 's' : ''} à réviser aujourd'hui</div></div>
+    ${due ? `<button class="btn primary block" id="rvAll">Commencer la révision</button>` : `<div class="rv-sub">${total ? 'Tout est à jour. Reviens demain !' : 'Crée des fiches depuis une note : onglet Résumé → « Fiches de révision ».'}</div>`}</div>`;
+  if (decks.length) html += `<div class="group">Mes fiches</div>` + decks.map((n) => {
+    const d = n.cards.filter(isDue).length, m = n.cards.filter((c) => (c.box || 0) >= 4).length;
+    return `<div class="card deck"><div><b data-open="${n.id}">${esc(n.title)}</b><small>${n.cards.length} fiches · ${d ? d + ' à réviser' : 'à jour'} · ${m} maîtrisée${m > 1 ? 's' : ''}</small><div class="lvl"><i style="width:${Math.round(100 * m / n.cards.length)}%"></i></div></div><button class="btn" data-rv="${n.id}">${d ? 'Réviser' : 'Revoir'}</button></div>`;
+  }).join('');
+  if (cand.length) html += `<div class="group">Notes sans fiches</div>` + cand.map((n) => `<div class="card deck"><div><b data-open="${n.id}">${esc(n.title)}</b><small>${fmtDate(n.created)}</small></div><button class="btn" data-mk="${n.id}">Créer</button></div>`).join('');
+  html += `<div class="card deck" style="margin-top:18px"><div><b>Interroger toutes mes notes</b><small>« Quand a-t-on parlé de…\u00a0? »</small></div><button class="btn" id="rvAsk">Demander</button></div>`;
+  $('rvBody').innerHTML = html;
+  const body = $('rvBody');
+  if ($('rvAll')) $('rvAll').onclick = () => startReview(null);
+  body.querySelectorAll('[data-rv]').forEach((b) => b.onclick = () => startReview(b.dataset.rv));
+  body.querySelectorAll('[data-open]').forEach((b) => b.onclick = () => openNote(b.dataset.open));
+  body.querySelectorAll('[data-mk]').forEach((b) => b.onclick = async () => { const n = await db.get(b.dataset.mk); currentNote = n; b.disabled = true; b.textContent = 'Création…'; await makeCards(n); renderReview(); });
+  $('rvAsk').onclick = () => { currentNote = null; openAsk('all', 'home'); };
+  updateBadge();
+}
+async function startReview(noteId) {
+  const notes = noteId ? [await db.get(noteId)].filter(Boolean) : await loadNotes();
+  let cards = notes.flatMap((n) => (n.cards || []).map((c) => ({ ...c, noteId: n.id, noteTitle: n.title })));
+  let q = cards.filter(isDue);
+  if (!q.length && noteId) q = cards;   // « Revoir » : toutes les fiches de la note
+  q.sort((a, b) => (a.due || 0) - (b.due || 0));
+  const fresh = q.filter((c) => !c.due), old = q.filter((c) => c.due);
+  for (let i = fresh.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [fresh[i], fresh[j]] = [fresh[j], fresh[i]]; }
+  q = [...old, ...fresh].slice(0, 40);
+  if (!q.length) { toast('Aucune fiche à réviser'); return; }
+  Object.assign(rv, { active: true, queue: q, i: 0, ok: 0, again: 0, shown: false, total: q.length });
+  show('review');
+}
+function drawCard() {
+  const st = $('rvStage');
+  const done = rv.i >= rv.queue.length;
+  $('rvProg').textContent = done ? '' : `${Math.min(rv.i + 1, rv.queue.length)} / ${rv.queue.length}`;
+  $('rvBar').style.width = Math.round(100 * Math.min(rv.i, rv.queue.length) / rv.queue.length) + '%';
+  if (done) {
+    const pct = rv.total ? Math.round(100 * rv.ok / rv.total) : 0;
+    st.innerHTML = `<div class="card rv-done"><div class="big">${pct >= 80 ? '🎉' : pct >= 50 ? '👏' : '💪'}</div><b>Session terminée</b><p class="muted">${rv.ok} sue${rv.ok > 1 ? 's' : ''} du premier coup sur ${rv.total} · ${rv.again} à revoir</p><button class="btn primary block" id="rvEnd">Retour</button></div>`;
+    $('rvEnd').onclick = () => { rv.active = false; renderReview(); updateBadge(); };
+    return;
+  }
+  const c = rv.queue[rv.i];
+  const lbl = (g) => { const d = nextDays(c, g); return d ? (d === 1 ? 'demain' : `dans ${d} j`) : 'dans 10 min'; };
+  st.innerHTML = `<div class="card rv-card" id="rvCard"><div class="rv-deck">${esc(c.noteTitle || '')}</div><div class="rv-q md">${md(c.q, { i: 0, noEdit: true })}</div>
+      <div class="rv-a md${rv.shown ? '' : ' hidden'}">${md(c.a, { i: 0, noEdit: true })}</div>${rv.shown ? '' : '<div class="rv-hint">Réfléchis, puis touche la carte pour voir la réponse.</div>'}</div>
+    ${rv.shown ? `<div class="rv-grade"><button class="btn" data-g="0">À revoir<small>${lbl(0)}</small></button><button class="btn" data-g="1">Difficile<small>${lbl(1)}</small></button><button class="btn" data-g="2">Je savais<small>${lbl(2)}</small></button></div>`
+      : `<button class="btn primary block" id="rvShow" style="margin-top:12px">Afficher la réponse</button>`}
+    <div style="text-align:center;margin-top:14px"><button class="linkbtn" id="rvDel" style="color:var(--muted);font-weight:500">Supprimer cette fiche</button></div>`;
+  renderMath(st);
+  const reveal = () => { if (!rv.shown) { rv.shown = true; drawCard(); } };
+  $('rvCard').onclick = reveal; if ($('rvShow')) $('rvShow').onclick = reveal;
+  st.querySelectorAll('[data-g]').forEach((b) => b.onclick = () => gradeCard(+b.dataset.g));
+  $('rvDel').onclick = async () => {
+    const n = await db.get(c.noteId); if (!n) return;
+    n.cards = (n.cards || []).filter((x) => x.id !== c.id); await db.put(n);
+    rv.queue.splice(rv.i, 1); rv.total--; rv.shown = false; toast('Fiche supprimée'); drawCard();
+  };
+}
+async function gradeCard(g) {
+  const c = rv.queue[rv.i], now = Date.now();
+  const n = await db.get(c.noteId);
+  const card = n && (n.cards || []).find((x) => x.id === c.id);
+  if (card) {
+    card.seen = (card.seen || 0) + 1; card.last = now;
+    if (g === 0) { card.box = 1; card.lapses = (card.lapses || 0) + 1; card.due = now + 10 * 60000; }
+    else if (g === 1) { const d = nextDays(card, 1); card.box = Math.max(1, card.box || 0); card.due = dayStart(now) + d * DAY + 4 * 3600000; }
+    else { card.box = nextBox(card); card.due = dayStart(now) + BOX_DAYS[card.box] * DAY + 4 * 3600000; }
+    await db.put(n);
+  }
+  if (g === 0) { rv.again++; if (!c.requeued) { rv.queue.splice(Math.min(rv.queue.length, rv.i + 4), 0, { ...c, requeued: true }); } }
+  else if (!c.requeued) rv.ok++;
+  rv.i++; rv.shown = false; drawCard();
+}
+
+/* =================== Audio gardé + lecteur synchronisé =================== */
+/* L'audio est rangé à part des notes (magasin « pending », clé « audio:<id> ») pour que la liste reste légère.
+   Une note fusionnée lit l'audio de chacune de ses parties, bout à bout. */
+const AK = (id) => 'audio:' + id;
+const audioDB = {
+  get: (id) => dbRun('pending', 'readonly', (s) => s.get(AK(id))).catch(() => null),
+  put: (id, blob) => dbRun('pending', 'readwrite', (s) => s.put(blob, AK(id))),
+  del: (id) => dbRun('pending', 'readwrite', (s) => s.delete(AK(id))).catch(() => {}),
+  keys: () => dbRun('pending', 'readonly', (s) => s.getAllKeys(IDBKeyRange.bound('audio:', 'audio:￿'))).then((k) => (k || []).map((x) => String(x).slice(6))).catch(() => []),
+};
+function audioParts(n) {
+  if (!n) return [];
+  if (!(n.mergedFrom && n.mergedFrom.length)) return [{ id: n.id, off: 0 }];
+  const out = []; let off = 0;
+  for (const f of n.mergedFrom) {
+    const o = f.off != null ? f.off : off;
+    for (const p of (f.parts && f.parts.length ? f.parts : [{ id: f.id, off: 0 }])) out.push({ id: p.id, off: o + p.off });
+    off = o + (f.duration || 0);
+  }
+  return out;
+}
+async function audioStats() {
+  const ids = await audioDB.keys(); let size = 0;
+  for (const id of ids) { const b = await audioDB.get(id); if (b && b.size) size += b.size; }
+  return { count: ids.length, size };
+}
+async function gcAudio() {   // audio dont plus aucune note ne se sert (note supprimée)
+  try {
+    const ids = await audioDB.keys(); if (!ids.length) return;
+    const used = new Set();
+    for (const n of await db.all()) for (const p of audioParts(n)) used.add(p.id);
+    for (const id of ids) if (!used.has(id)) await audioDB.del(id);
+  } catch (e) {}
+}
+async function renderAudioData() {
+  const st = await audioStats();
+  $('audLine').textContent = st.count ? `Audio gardé : ${st.count} enregistrement${st.count > 1 ? 's' : ''} · ${mb(st.size)}` : 'Aucun audio gardé';
+  $('audDelAll').classList.toggle('hidden', !st.count);
+}
+const PLAY_SVG = '<svg viewBox="0 0 24 24"><path d="M8 5.2v13.6c0 .8.9 1.3 1.6.9l10.3-6.8c.6-.4.6-1.3 0-1.7L9.6 4.3C8.9 3.9 8 4.4 8 5.2z" fill="currentColor"/></svg>';
+const PAUSE_SVG = '<svg viewBox="0 0 24 24"><rect x="6" y="4.5" width="4.2" height="15" rx="1.3" fill="currentColor"/><rect x="13.8" y="4.5" width="4.2" height="15" rx="1.3" fill="currentColor"/></svg>';
+const RATES = [1, 1.25, 1.5, 1.75, 2, 0.75];
+const rateLbl = (r) => String(r).replace('.', ',') + '×';
+const pl = { el: null, noteId: null, parts: [], blobs: {}, idx: -1, url: null, total: 0, seeking: false, lastUser: 0, segEls: null, cur: null, token: 0 };
+const plRate = () => +lsGet('np-rate', '1') || 1;
+function plAudio() {
+  if (pl.el) return pl.el;
+  const a = pl.el = new Audio(); a.preload = 'metadata';
+  a.addEventListener('timeupdate', () => plSync());
+  a.addEventListener('play', () => { plUI(); plMedia(); });
+  a.addEventListener('pause', () => { plUI(); plMedia(); });
+  a.addEventListener('ended', async () => {
+    if (pl.idx + 1 < pl.parts.length) { if (await plLoad(pl.idx + 1)) { a.currentTime = 0; a.play().catch(() => {}); } }
+    else plUI();
+  });
+  return a;
+}
+const plTime = () => pl.idx < 0 || !pl.parts[pl.idx] ? 0 : pl.parts[pl.idx].off + ((pl.el && pl.el.currentTime) || 0);
+const plTotal = () => pl.total || (pl.el && isFinite(pl.el.duration) ? (pl.parts[pl.idx] ? pl.parts[pl.idx].off : 0) + pl.el.duration : 0);
+async function preparePlayer(n) {
+  const tok = ++pl.token;
+  if (pl.noteId === n.id && pl.parts.length) { plUI(); plSync(true); return; }
+  stopPlayer();
+  const parts = [], blobs = {};
+  for (const p of audioParts(n)) {
+    const b = (p.id === n.id && n.audio) || await audioDB.get(p.id);
+    if (tok !== pl.token) return;
+    if (b && b.size) { parts.push(p); blobs[p.id] = b; }
+  }
+  Object.assign(pl, { noteId: n.id, parts, blobs, idx: -1, total: n.duration || 0, segEls: null, cur: null });
+  plUI();
+}
+function stopPlayer() {
+  if (pl.el) { try { pl.el.pause(); } catch (e) {} pl.el.removeAttribute('src'); try { pl.el.load(); } catch (e) {} }
+  if (pl.url) URL.revokeObjectURL(pl.url);
+  Object.assign(pl, { noteId: null, parts: [], blobs: {}, idx: -1, url: null, cur: null, segEls: null });
+  document.querySelectorAll('.seg.now').forEach((e) => e.classList.remove('now'));
+  if ('mediaSession' in navigator) try { navigator.mediaSession.metadata = null; navigator.mediaSession.playbackState = 'none'; } catch (e) {}
+  plUI();
+}
+function plLoad(i) {
+  const a = plAudio();
+  return new Promise((res) => {
+    if (pl.idx === i && pl.url) return res(true);
+    const blob = pl.blobs[pl.parts[i].id]; if (!blob) return res(false);
+    if (pl.url) URL.revokeObjectURL(pl.url);
+    pl.idx = i; pl.url = URL.createObjectURL(blob);
+    let t = 0;
+    const done = (ok) => { clearTimeout(t); a.removeEventListener('loadedmetadata', onOk); a.removeEventListener('error', onErr); if (!ok) toast('Lecture impossible : format audio non pris en charge'); res(ok); };
+    const onOk = () => done(true), onErr = () => done(false);
+    a.addEventListener('loadedmetadata', onOk); a.addEventListener('error', onErr);
+    t = setTimeout(() => done(a.readyState >= 1), 8000);
+    a.src = pl.url; a.defaultPlaybackRate = a.playbackRate = plRate();
+  });
+}
+async function playAt(noteId, sec, play = true) {
+  if (pl.noteId !== noteId || !pl.parts.length) {
+    if (currentNote && currentNote.id === noteId) await preparePlayer(currentNote);
+    if (pl.noteId !== noteId || !pl.parts.length) return false;
+  }
+  sec = Math.max(0, sec || 0);
+  let i = 0; for (let k = 0; k < pl.parts.length; k++) if (pl.parts[k].off <= sec + 0.01) i = k;
+  if (!(await plLoad(i))) return false;
+  const a = plAudio();
+  try { a.currentTime = Math.max(0, sec - pl.parts[i].off); } catch (e) {}
+  pl.lastUser = 0;
+  if (play) { try { await a.play(); } catch (e) {} }
+  plSync(true); plUI();
+  return true;
+}
+function plToggle() {
+  if (pl.idx < 0) return playAt(pl.noteId, 0);
+  const a = plAudio();
+  if (a.paused) a.play().catch(() => {}); else a.pause();
+}
+function plSeekBy(d) { return playAt(pl.noteId, plTime() + d, !!(pl.el && !pl.el.paused)); }
+function plUI() {
+  const has = current === 'note' && !!currentNote && pl.noteId === currentNote.id && pl.parts.length > 0;
+  $('player').classList.toggle('hidden', !has);
+  document.body.classList.toggle('has-player', has);
+  $('noteTr').classList.toggle('can-play', has);
+  $('trPlayHint').classList.toggle('hidden', !has);
+  $('audDelNote').classList.toggle('hidden', !has || !!(currentNote && currentNote.audio));
+  if (!has) return;
+  const playing = !!(pl.el && !pl.el.paused);
+  $('plPlay').innerHTML = playing ? PAUSE_SVG : PLAY_SVG;
+  $('plPlay').setAttribute('aria-label', playing ? 'Pause' : 'Lire');
+  $('plSpeed').textContent = rateLbl(plRate());
+  plSync();
+}
+function plSync(force) {
+  const t = plTime(), tot = plTotal();
+  if (!pl.seeking) { $('plSeek').value = tot ? Math.round(1000 * Math.min(1, t / tot)) : 0; $('plCur').textContent = hms(t); }
+  $('plDur').textContent = tot ? hms(tot) : '--:--';
+  if (pl.idx < 0 || !currentNote || pl.noteId !== currentNote.id) return;
+  if (!pl.segEls || !pl.segEls.length || !pl.segEls[0].isConnected) pl.segEls = [...$('noteTr').querySelectorAll('.seg[data-t]')];
+  const els = pl.segEls;
+  let lo = 0, hi = els.length - 1, k = -1;
+  while (lo <= hi) { const m = (lo + hi) >> 1; if (+els[m].dataset.t <= t + 0.25) { k = m; lo = m + 1; } else hi = m - 1; }
+  const el = k >= 0 ? els[k] : null;
+  if (el !== pl.cur || force) {
+    if (pl.cur && pl.cur !== el) pl.cur.classList.remove('now');
+    pl.cur = el;
+    if (el) {
+      el.classList.add('now');
+      if (current === 'note' && !$('noteTrWrap').classList.contains('hidden') && pl.el && !pl.el.paused && Date.now() - pl.lastUser > 5000) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  }
+  if (pl.el && !pl.el.paused && tot && 'mediaSession' in navigator && navigator.mediaSession.setPositionState) {
+    try { navigator.mediaSession.setPositionState({ duration: tot, playbackRate: pl.el.playbackRate, position: Math.min(tot, t) }); } catch (e) {}
+  }
+}
+function plMedia() {
+  if (!('mediaSession' in navigator) || !pl.el || pl.idx < 0) return;
+  const n = currentNote && currentNote.id === pl.noteId ? currentNote : null;
+  try {
+    navigator.mediaSession.metadata = 'MediaMetadata' in window ? new MediaMetadata({ title: n ? n.title : 'Enregistrement', artist: 'Notes Plaud', album: n ? fmtDate(n.created) : '', artwork: [{ src: 'icon-512.png', sizes: '512x512', type: 'image/png' }] }) : null;
+    navigator.mediaSession.playbackState = pl.el.paused ? 'paused' : 'playing';
+    const h = { play: () => pl.el.play(), pause: () => pl.el.pause(), seekbackward: () => plSeekBy(-10), seekforward: () => plSeekBy(30), seekto: (d) => playAt(pl.noteId, d.seekTime, !pl.el.paused) };
+    for (const [k, f] of Object.entries(h)) { try { navigator.mediaSession.setActionHandler(k, f); } catch (e) {} }
+  } catch (e) {}
+}
+function renderMarks(n) {
+  const box = $('trMarks'), m = (n && n.marks) || [];
+  box.classList.toggle('hidden', !m.length);
+  box.innerHTML = m.length ? `<span>Moments marqués</span>` + m.map((x) => `<button class="ts" type="button" data-t="${x}">★ ${hms(x)}</button>`).join('') : '';
+  box.querySelectorAll('button').forEach((b) => b.onclick = () => jumpTo(n.id, +b.dataset.t));
+}
+
+/* =================== Enregistrer avec le téléphone =================== */
+/* MediaRecorder découpe l'audio en morceaux de 5 s, chacun écrit tout de suite dans la base :
+   si Android ferme l'app, l'enregistrement est reconstitué à la réouverture. */
+const rec = { mr: null, stream: null, chunks: [], writes: [], t0: 0, acc: 0, since: 0, paused: false, marks: [], sid: '', n: 0, mime: '', ctx: null, an: null, lv: [], tick: 0, wake: null, screen: true };
+const recElapsed = () => rec.acc + (rec.paused || !rec.mr ? 0 : Date.now() - rec.since);
+const p2 = (x) => String(x).padStart(2, '0');
+const recName = (t0) => { const d = new Date(t0); return `Enregistrement du ${d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} à ${p2(d.getHours())}h${p2(d.getMinutes())}`; };
+function recFile(blob, t0) {
+  const d = new Date(t0), ext = /ogg/.test(blob.type) ? 'ogg' : /mp4|aac|m4a/.test(blob.type) ? 'm4a' : 'webm';
+  return new File([blob], `enregistrement-${toISODate(t0)}-${p2(d.getHours())}h${p2(d.getMinutes())}.${ext}`, { type: blob.type || 'audio/webm' });
+}
+async function startRec() {
+  if (rec.mr) { show('rec'); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) { toast('L\'enregistrement n\'est pas possible dans ce navigateur'); return; }
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: true, autoGainControl: true } }); }
+  catch (e) {
+    toast(e && e.name === 'NotAllowedError' ? 'Micro refusé : autorise-le (cadenas à gauche de l\'adresse, ou Réglages Android › Applis › Chrome › Autorisations)' : 'Micro indisponible : ' + ((e && e.message) || e));
+    return;
+  }
+  const mime = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/mp4', 'audio/webm'].find((m) => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) || '';
+  let mr;
+  try { mr = new MediaRecorder(stream, mime ? { mimeType: mime, audioBitsPerSecond: 64000 } : undefined); }
+  catch (e) { stream.getTracks().forEach((t) => t.stop()); toast('Impossible de démarrer l\'enregistrement : ' + e.message); return; }
+  if (pl.el && !pl.el.paused) pl.el.pause();
+  const t0 = Date.now();
+  Object.assign(rec, { mr, stream, chunks: [], writes: [], t0, acc: 0, since: t0, paused: false, marks: [], sid: t0.toString(36), n: 0, mime: mr.mimeType || mime || 'audio/webm', lv: [] });
+  mr.ondataavailable = (e) => {
+    if (!e.data || !e.data.size) return;
+    rec.chunks.push(e.data);
+    const key = `rec:${rec.sid}:${String(rec.n++).padStart(5, '0')}`;
+    const val = { blob: e.data, t0: rec.t0, mime: rec.mime, marks: rec.marks.slice(), secs: Math.round(recElapsed() / 1000) };
+    rec.writes.push(dbRun('pending', 'readwrite', (s) => s.put(val, key)).catch(() => {}));
+  };
+  mr.start(5000);
+  try { const AC = window.AudioContext || window.webkitAudioContext; rec.ctx = new AC(); const an = rec.ctx.createAnalyser(); an.fftSize = 1024; rec.ctx.createMediaStreamSource(stream).connect(an); const mute = rec.ctx.createGain(); mute.gain.value = 0; an.connect(mute); mute.connect(rec.ctx.destination); rec.an = an; if (rec.ctx.state === 'suspended') rec.ctx.resume().catch(() => {}); } catch (e) { rec.an = null; }
+  keepAlive(true);
+  recWake(true);
+  clearInterval(rec.tick); rec.tick = setInterval(recTick, 125);
+  show('rec');
+}
+async function recWake(on) {
+  try {
+    if (on && rec.screen && 'wakeLock' in navigator && !rec.wake) { rec.wake = await navigator.wakeLock.request('screen'); rec.wake.addEventListener('release', () => { rec.wake = null; }); }
+    else if (!on && rec.wake) { const w = rec.wake; rec.wake = null; await w.release(); }
+  } catch (e) {}
+}
+function recTick() {
+  if (!rec.mr) return;
+  const t = hms(Math.floor(recElapsed() / 1000));
+  if ($('recTime').textContent !== t) $('recTime').textContent = t;
+  $('recBannerTime').textContent = t + (rec.paused ? ' · en pause' : '');
+  let v = 0;
+  if (rec.an && !rec.paused) {
+    const buf = new Uint8Array(rec.an.fftSize); rec.an.getByteTimeDomainData(buf);
+    let sum = 0; for (let i = 0; i < buf.length; i++) { const x = (buf[i] - 128) / 128; sum += x * x; }
+    const db = 20 * Math.log10(Math.sqrt(sum / buf.length) + 1e-6);   // échelle en décibels : -50 dB → vide, -10 dB → plein
+    v = Math.max(0, Math.min(1, (db + 50) / 40));
+  }
+  rec.lv.push(v); if (rec.lv.length > 36) rec.lv.shift();
+  if (current === 'rec') {
+    const box = $('recWave'); if (box.children.length !== 36) box.innerHTML = '<i></i>'.repeat(36);
+    const off = 36 - rec.lv.length;
+    for (let i = 0; i < 36; i++) box.children[i].style.height = Math.round(6 + (i >= off ? rec.lv[i - off] : 0) * 94) + '%';
+  }
+}
+function renderRec() {
+  $('recState').textContent = rec.paused ? 'En pause' : 'Enregistrement en cours';
+  $('recDot').classList.toggle('paused', rec.paused);
+  $('recPause').innerHTML = rec.paused
+    ? '<svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="5" fill="var(--err)"/></svg><span>Reprendre</span>'
+    : '<svg viewBox="0 0 24 24"><rect x="6.5" y="5" width="3.8" height="14" rx="1.2" fill="currentColor"/><rect x="13.7" y="5" width="3.8" height="14" rx="1.2" fill="currentColor"/></svg><span>Pause</span>';
+  $('recMarks').innerHTML = rec.marks.map((x) => `<span class="ts">★ ${hms(x)}</span>`).join('');
+  $('recScreen').setAttribute('aria-pressed', String(rec.screen));
+  recTick();
+}
+function renderRecBanner() { $('recBanner').classList.toggle('hidden', !rec.mr); if (rec.mr) recTick(); }
+function recPause() {
+  if (!rec.mr) return;
+  if (rec.paused) { try { rec.mr.resume(); } catch (e) {} rec.since = Date.now(); rec.paused = false; }
+  else { try { rec.mr.pause(); } catch (e) {} rec.acc += Date.now() - rec.since; rec.paused = true; }
+  renderRec();
+}
+function recMark() {
+  if (!rec.mr) return;
+  const x = Math.floor(recElapsed() / 1000);
+  if (rec.marks.length && x - rec.marks[rec.marks.length - 1] < 3) return;
+  rec.marks.push(x); renderRec(); toast('Moment marqué : ' + hms(x));
+  try { if (navigator.vibrate) navigator.vibrate(30); } catch (e) {}
+}
+async function stopRec(save) {
+  const mr = rec.mr; if (!mr || rec.stopping) return;
+  rec.stopping = true;
+  if (!rec.paused) { rec.acc += Date.now() - rec.since; rec.paused = true; }
+  const secs = Math.round(rec.acc / 1000);
+  const stopped = new Promise((res) => { mr.onstop = res; setTimeout(res, 4000); });
+  try { if (mr.state !== 'inactive') mr.stop(); } catch (e) {}
+  await stopped; await sleep(0);
+  await Promise.all(rec.writes);
+  try { rec.stream.getTracks().forEach((t) => t.stop()); } catch (e) {}
+  try { if (rec.ctx) rec.ctx.close(); } catch (e) {}
+  clearInterval(rec.tick);
+  await recWake(false);
+  const { chunks, sid, t0, marks, mime } = rec;
+  Object.assign(rec, { mr: null, stream: null, ctx: null, an: null, chunks: [], writes: [], paused: false, stopping: false });
+  if (!busy && !enhancing && !writing) keepAlive(false);
+  renderRecBanner();
+  const clear = () => dbRun('pending', 'readwrite', (s) => s.delete(IDBKeyRange.bound(`rec:${sid}:`, `rec:${sid}:￿`))).catch(() => {});
+  const blob = new Blob(chunks, { type: (mime || 'audio/webm').split(';')[0] });
+  if (!save || !blob.size) { await clear(); toast(save ? 'Enregistrement vide' : 'Enregistrement supprimé'); show(lastTab); return; }
+  await startFile(recFile(blob, t0), { created: t0, title: recName(t0), marks: marks.length ? marks : undefined, recorded: true, duration: secs });
+  await clear();
+}
+async function recoverRec() {   // enregistrement coupé net (app fermée) : on le reconstitue
+  let keys = [];
+  try { keys = await dbRun('pending', 'readonly', (s) => s.getAllKeys(IDBKeyRange.bound('rec:', 'rec:￿'))); } catch (e) { return; }
+  if (!keys || !keys.length || rec.mr) return;
+  const bySid = new Map();
+  for (const k of keys) { const sid = String(k).split(':')[1]; if (!bySid.has(sid)) bySid.set(sid, []); bySid.get(sid).push(k); }
+  for (const [sid, ks] of bySid) {
+    const items = [];
+    for (const k of ks.sort()) { const v = await dbRun('pending', 'readonly', (s) => s.get(k)).catch(() => null); if (v && v.blob) items.push(v); }
+    if (items.length) {
+      const last = items[items.length - 1], t0 = last.t0 || Date.now(), now = Date.now();
+      const file = recFile(new Blob(items.map((x) => x.blob), { type: (last.mime || 'audio/webm').split(';')[0] }), t0);
+      const note = { id: 'n' + now.toString(36) + sid.slice(-2), created: t0, addedAt: now, fileName: file.name, size: file.size, title: recName(t0) + ' (récupéré)', status: 'transcription', audio: file, segments: null, summary: '', duration: last.secs || 0, recorded: true };
+      if (last.marks && last.marks.length) note.marks = last.marks;
+      await db.put(note);
+      toast('Un enregistrement interrompu a été récupéré');
+    }
+    await dbRun('pending', 'readwrite', (s) => s.delete(IDBKeyRange.bound(`rec:${sid}:`, `rec:${sid}:￿`))).catch(() => {});
+  }
+}
+
+/* =================== Bouton « retour » d'Android =================== */
+/* Sans ça, le geste retour ferme l'app d'un coup. On garde une entrée d'historique « tampon » :
+   le retour ferme d'abord le panneau ouvert, revient à l'écran précédent, puis demande confirmation. */
+let backReady = false, backArmed = 0;
+function goBack() {
+  if (!$('sheet').classList.contains('hidden')) { closeSheet(); return true; }
+  if (current === 'review' && rv.active) { rv.active = false; renderReview(); updateBadge(); return true; }
+  if (!['home', 'tasks', 'review'].includes(current)) { $('backBtn').click(); return true; }
+  if (ui.sel) { setSel(false); return true; }
+  if (current !== 'home') { show('home'); return true; }
+  if ($('search').value) { $('search').value = ''; $('search').dispatchEvent(new Event('input')); return true; }
+  return false;
+}
+function setupBack() {
+  try { history.replaceState({ np: 0 }, ''); history.pushState({ np: 1 }, ''); } catch (e) { return; }
+  backReady = true;
+  window.addEventListener('popstate', () => {
+    if (goBack()) { try { history.pushState({ np: 1 }, ''); } catch (e) {} return; }
+    if (Date.now() - backArmed > 2500) {   // premier appui à l'accueil : on prévient ; le suivant ferme l'app
+      backArmed = Date.now(); toast('Appuie encore sur Retour pour quitter');
+    }
+  });
+}
+
+/* =================== Mes données : sauvegarde, restauration, stockage =================== */
+const SECRET_KEYS = ['key', 'gkey', 'ckey', 'mkey', 'ptoken'];
+function saveBlob(blob, name) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000);
+}
+async function backupData() {
+  const notes = (await db.all()).map((n) => { const c = { ...n }; delete c.audio; delete c.partial; delete c.audioKept; return c; });
+  const st = { ...settings };
+  if (!$('bkKeys').checked) for (const k of SECRET_KEYS) delete st[k];
+  const data = { app: 'notes-plaud', format: 1, version: APP_VERSION, exportedAt: new Date().toISOString(), notes, settings: st, plaudImported: importedIds() };
+  saveBlob(new Blob([JSON.stringify(data)], { type: 'application/json' }), `notes-plaud-sauvegarde-${toISODate(Date.now())}.json`);
+  lsSet('np-last-backup', String(Date.now()));
+  toast(`Sauvegarde de ${notes.filter((n) => n.id !== INBOX).length} notes enregistrée (Téléchargements)`);
+  renderData(); renderBkRemind();
+}
+async function restoreData(file) {
+  let data = null;
+  try { data = JSON.parse(await file.text()); } catch (e) {}
+  if (!data || data.app !== 'notes-plaud' || !Array.isArray(data.notes)) { toast('Ce fichier n\'est pas une sauvegarde de Notes Plaud'); return; }
+  const have = new Map((await db.all()).map((n) => [n.id, n]));
+  let added = 0, same = 0;
+  for (const n of data.notes) {
+    if (!n || !n.id) continue;
+    const cur = have.get(n.id);
+    if (!cur) { await db.put(n); added++; continue; }
+    if (n.id === INBOX) {   // tâches ajoutées à la main : on fusionne les lignes manquantes
+      const lines = new Set((cur.summary || '').split('\n'));
+      const extra = (n.summary || '').split('\n').filter((l) => TASK_RE.test(l) && !lines.has(l));
+      if (extra.length) { cur.summary = cur.summary.replace(/\s+$/, '') + '\n' + extra.join('\n'); await db.put(cur); }
+      continue;
+    }
+    same++;
+  }
+  // réglages : on ne complète que ce qui manque (sans écraser les tiens)
+  if (data.settings) {
+    let changed = false;
+    for (const [k, v] of Object.entries(data.settings)) if ((settings[k] === undefined || settings[k] === '' || settings[k] === DEFAULTS[k]) && v !== undefined && v !== '' && v !== DEFAULTS[k]) { settings[k] = v; changed = true; }
+    if (changed) { saveSettings(settings); applyTheme(settings.theme); applyFs(settings.fs); }
+  }
+  if (Array.isArray(data.plaudImported)) markImported(data.plaudImported);
+  scheduleReminders(); updateBadge();
+  toast(`${added} note${added > 1 ? 's' : ''} restaurée${added > 1 ? 's' : ''}${same ? ` · ${same} déjà présente${same > 1 ? 's' : ''}` : ''}`);
+  renderData();
+  if (current === 'home') renderHome();
+}
+async function renderData() {
+  const notes = (await db.all()).filter((n) => n.id !== INBOX);
+  let line = `${notes.length} note${notes.length > 1 ? 's' : ''}`, state = '';
+  try {
+    if (navigator.storage && navigator.storage.estimate) { const e = await navigator.storage.estimate(); line += ` · ${mb(e.usage || 0)} utilisés`; }
+    if (navigator.storage && navigator.storage.persisted) {
+      const p = await navigator.storage.persisted();
+      state = p ? 'Stockage protégé : Android ne l\'effacera pas pour faire de la place.' : 'Stockage non protégé : Android pourrait l\'effacer si le téléphone manque de place.';
+      $('persistBtn').classList.toggle('hidden', p);
+    }
+  } catch (e) {}
+  $('stoLine').textContent = line; $('stoState').textContent = state;
+  renderAudioData();
+  const last = +lsGet('np-last-backup', '0');
+  $('bkLast').textContent = last ? `Dernière sauvegarde : ${new Date(last).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}.` + ' La restauration ajoute les notes absentes, sans rien écraser.' : 'Aucune sauvegarde pour l\'instant. La restauration ajoute les notes absentes, sans rien écraser.';
+}
+async function askPersist(silent) {
+  try {
+    if (!navigator.storage || !navigator.storage.persist) return false;
+    if (await navigator.storage.persisted()) return true;
+    const ok = await navigator.storage.persist();
+    if (!silent) toast(ok ? 'Stockage protégé' : 'Android n\'a pas accordé la protection (réessaie après avoir installé l\'app)');
+    return ok;
+  } catch (e) { return false; } finally { if (!silent) renderData(); }
+}
+function renderBkRemind() {
+  const n = (allNotes || []).length, last = +lsGet('np-last-backup', '0'), later = +lsGet('np-bk-later', '0');
+  const due = n >= 3 && Date.now() - last > 30 * 86400000 && Date.now() - later > 14 * 86400000;
+  $('bkRemind').classList.toggle('hidden', !due);
+  if (due) $('bkRemindTxt').textContent = last ? `Dernière sauvegarde il y a ${Math.round((Date.now() - last) / 86400000)} jours.` : `${n} notes, jamais sauvegardées. Un fichier suffit pour tout récupérer.`;
+}
+/* Taille du texte */
+function applyFs(fs) {
+  fs = fs || 'm';
+  if (fs === 'm') delete document.documentElement.dataset.fs; else document.documentElement.dataset.fs = fs;
+  document.querySelectorAll('#fsRow button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.fs === fs)));
+}
+/* Bouton « remonter » */
+function updToTop() { $('toTop').classList.toggle('show', (current === 'note' || current === 'home') && window.scrollY > 900); }
+window.addEventListener('scroll', () => { if (!updToTop._r) { updToTop._r = requestAnimationFrame(() => { updToTop._r = 0; updToTop(); }); } }, { passive: true });
+
 /* =================== Thèmes =================== */
 const THEMES = [
   { id: 'auto', name: 'Système', bg: 'linear-gradient(135deg,#f7f4ee 0 50%,#1d1c19 50% 100%)', dot: '#e0572b' },
@@ -3686,7 +4860,10 @@ function showSettings() {
   $('sKind').value = settings.kind || 'auto';
   $('sRemind').value = settings.autoRemind || 'eve';
   $('sBg').checked = settings.bg !== false;
+  $('sKeepAudio').checked = settings.keepAudio !== false;
   renderThemes();
+  applyFs(settings.fs);
+  renderData();
   renderTagAdmin();
   renderNotif();
   $('sKey').value = settings.key; $('sLang').value = settings.lang; $('sWhisper').value = settings.whisper;
@@ -3704,7 +4881,7 @@ $('stats').onclick = () => { if (/tâche/.test($('stats').textContent)) show('ta
 $('shareDiagClose').onclick = () => $('shareDiag').classList.add('hidden');
 $('settingsBtn').onclick = showSettings;
 $('onboardBtn').onclick = showSettings;
-$('backBtn').onclick = () => show(lastTab);
+$('backBtn').onclick = () => { if (current === 'ask' && askFrom === 'note' && currentNote) show('note'); else show(lastTab); };
 $('jobHome').onclick = () => show('home');
 $('search').oninput = renderList;
 $('homeMode').querySelectorAll('button').forEach((b) => {
@@ -3721,14 +4898,14 @@ $('selMerge').onclick = () => { if (ui.picked.size >= 2) mergeSheet([...ui.picke
 $('selCancel').innerHTML = ICONS.x;
 $('selDel').onclick = async () => {
   const ids = [...ui.picked].filter((id) => id !== runningId);
-  if (!ids.length || !confirm(`Supprimer définitivement ${ids.length} note${ids.length > 1 ? 's' : ''} ?`)) return;
-  for (const id of ids) await db.del(id);
-  toast(`${ids.length} note${ids.length > 1 ? 's' : ''} supprimée${ids.length > 1 ? 's' : ''}`);
+  if (!ids.length) return;
+  await deleteNotes(ids);
   setSel(false); renderHome();
 };
 $('sheetBg').onclick = closeSheet;
 $('tabbar').querySelector('[data-v=home]').innerHTML = ICONS.notes + 'Notes';
 $('tabbar').querySelector('[data-v=tasks]').innerHTML = ICONS.todo + 'Tâches<span class="badge hidden"></span>';
+$('tabbar').querySelector('[data-v=review]').innerHTML = ICONS.cards + 'Réviser<span class="badge hidden"></span>';
 $('tabbar').querySelectorAll('button').forEach((b) => b.onclick = () => { if (current !== b.dataset.v) show(b.dataset.v); });
 $('fab').innerHTML = ICONS.plus; $('fab').onclick = () => taskSheet(null);
 $('tMore').innerHTML = ICONS.more; $('tMore').onclick = tasksMenu;
@@ -3743,7 +4920,7 @@ const hadController = 'serviceWorker' in navigator && !!navigator.serviceWorker.
 let reloading = false, updatePending = false;
 function applyUpdate() {
   if (reloading) return;
-  if (busy || enhancing) { updatePending = true; return; }
+  if (busy || enhancing || writing) { updatePending = true; return; }
   reloading = true; location.reload();
 }
 if ('serviceWorker' in navigator) {
@@ -3758,6 +4935,8 @@ if ('serviceWorker' in navigator) {
 }
 $('appVersion').textContent = APP_VERSION;
 applyTheme(settings.theme);
+applyFs(settings.fs);
+setTimeout(() => askPersist(true), 4000);
 $('updBtn').onclick = async () => {
   $('updState').textContent = 'Recherche d\'une mise à jour…';
   try {
@@ -3795,9 +4974,10 @@ $('sSave').onclick = () => {
     llms: $('sLlm').value.trim() || DEFAULTS.llms, ctx: $('sCtx').value,
     provider: $('sProv').value, gkey: $('sGKey').value.trim(), gmodels: $('sGModel').value.trim() || DEFAULTS.gmodels,
     ckey: $('sCKey').value.trim(), cmodels: $('sCModel').value.trim() || DEFAULTS.cmodels,
-    mkey: $('sMKey').value.trim(), mmodels: $('sMModel').value.trim() || DEFAULTS.mmodels, kind: $('sKind').value, autoRemind: $('sRemind').value, bg: $('sBg').checked };
+    mkey: $('sMKey').value.trim(), mmodels: $('sMModel').value.trim() || DEFAULTS.mmodels, kind: $('sKind').value, autoRemind: $('sRemind').value, bg: $('sBg').checked, keepAudio: $('sKeepAudio').checked };
   const prev = loadSettings();
   settings.theme = prev.theme || 'auto';
+  settings.fs = prev.fs || 'm';
   const nt = $('sPToken').value.trim(), nr = $('sPRelay').value.trim();
   Object.assign(settings, { prelay: nr, ptoken: nt, pauto: $('sPAuto').checked,
     pregion: nt === prev.ptoken ? prev.pregion : undefined,
@@ -3897,10 +5077,79 @@ $('aDl').onclick = () => {
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 };
 $('nlmBtn').onclick = printForNotebookLM;
+$('pinBtn').onclick = togglePin;
+$('askBtn').onclick = () => openAsk('note', 'note');
+$('stAsk').onclick = () => openAsk('note', 'note');
+$('stCards').onclick = () => { if (currentNote) cardsMenu(currentNote); };
+$('askSend').onclick = sendAsk;
+$('askInput').oninput = autoGrow;
+$('askInput').onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendAsk(); } };
+$('askScope').querySelectorAll('button').forEach((b) => b.onclick = () => { if (b.disabled) return; askScope = b.dataset.s; renderAsk(); });
+$('askClear').onclick = async () => {
+  if (!confirm('Effacer cette conversation ?')) return;
+  if (askScope === 'note' && currentNote) { const n = await db.get(currentNote.id); if (n) { delete n.chat; await db.put(n); } delete currentNote.chat; }
+  else lsSet(ALLCHAT, '[]');
+  renderAsk();
+};
+$('rvQuit').onclick = () => { rv.active = false; renderReview(); updateBadge(); };
+$('plPlay').onclick = plToggle;
+$('plBack').onclick = () => plSeekBy(-10);
+$('plFwd').onclick = () => plSeekBy(30);
+$('plSpeed').onclick = () => {
+  const r = RATES[(RATES.indexOf(plRate()) + 1) % RATES.length]; lsSet('np-rate', String(r));
+  if (pl.el) { pl.el.defaultPlaybackRate = pl.el.playbackRate = r; }
+  plUI(); toast('Vitesse de lecture : ' + rateLbl(r));
+};
+$('plSeek').oninput = () => { pl.seeking = true; const tot = plTotal(); $('plCur').textContent = hms(tot * $('plSeek').value / 1000); };
+$('plSeek').onchange = async () => { const tot = plTotal(); pl.seeking = false; await playAt(pl.noteId, tot * $('plSeek').value / 1000, !!(pl.el && !pl.el.paused)); };
+$('noteTr').addEventListener('click', (e) => {
+  const seg = e.target.closest('.seg[data-t]');
+  if (!seg || !currentNote || pl.noteId !== currentNote.id || !pl.parts.length) return;
+  if (String(window.getSelection ? window.getSelection() : '').trim()) return;   // l'utilisateur sélectionne du texte
+  playAt(currentNote.id, +seg.dataset.t);
+});
+['touchmove', 'wheel'].forEach((ev) => window.addEventListener(ev, () => { pl.lastUser = Date.now(); }, { passive: true }));
+$('audDelNote').onclick = async () => {
+  const n = currentNote; if (!n || !confirm('Supprimer l\'audio de cette note ? La transcription, le résumé et le reste sont gardés.')) return;
+  const ids = pl.parts.map((p) => p.id);
+  stopPlayer();
+  for (const id of ids) await audioDB.del(id);
+  toast('Audio supprimé');
+};
+$('audDelAll').onclick = async () => {
+  if (!confirm('Supprimer l\'audio de toutes les notes ? Les transcriptions, résumés, cours et fiches sont gardés.')) return;
+  stopPlayer();
+  for (const id of await audioDB.keys()) await audioDB.del(id);
+  toast('Audio supprimé'); renderData();
+};
+$('recBtn').onclick = startRec;
+$('recBanner').onclick = () => show('rec');
+$('recStop').onclick = () => stopRec(true);
+$('recPause').onclick = recPause;
+$('recMark').onclick = recMark;
+$('recCancel').onclick = () => { if (confirm('Supprimer cet enregistrement ?')) stopRec(false); };
+$('recScreen').onclick = () => { rec.screen = !rec.screen; recWake(rec.screen); renderRec(); toast(rec.screen ? 'L\'écran reste allumé' : 'L\'écran peut s\'éteindre'); };
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && rec.mr) recWake(true); });
+$('toTop').onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+$('bkBtn').onclick = backupData;
+$('rsBtn').onclick = () => $('rsInput').click();
+$('rsInput').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) restoreData(f); };
+$('persistBtn').onclick = () => askPersist(false);
+$('bkRemindGo').onclick = backupData;
+$('bkRemindX').onclick = () => { lsSet('np-bk-later', String(Date.now())); renderBkRemind(); };
+document.querySelectorAll('#fsRow button').forEach((b) => b.onclick = () => { settings.fs = b.dataset.fs; saveSettings(settings); applyFs(settings.fs); });
 $('resumAgain').onclick = () => { const n = currentNote; if (n && !busy) kindSheet(n); };
+async function deleteNotes(ids) {
+  const keep = (await Promise.all(ids.map((id) => db.get(id)))).filter(Boolean);
+  for (const n of keep) await db.del(n.id);
+  const label = keep.length > 1 ? `${keep.length} notes supprimées` : 'Note supprimée';
+  toast(label, { action: 'Annuler', onAction: async () => { for (const n of keep) await db.put(n); scheduleReminders(); updateBadge(); toast(keep.length > 1 ? 'Notes restaurées' : 'Note restaurée'); if (current === 'home') renderHome(); } });
+  scheduleReminders(); updateBadge();
+}
 $('delNote').onclick = async () => {
-  if (!currentNote || !confirm('Supprimer cette note ?')) return;
-  await db.del(currentNote.id); currentNote = null; toast('Note supprimée'); show('home');
+  if (!currentNote || currentNote.id === runningId) return;
+  const id = currentNote.id; currentNote = null; show('home');
+  await deleteNotes([id]); renderHome();
 };
 $('enhStop').onclick = () => { cancelAll(); $('enhStatus').textContent = 'Arrêt en cours…'; };
 $('lectStop').onclick = () => { cancelAll(); $('lectStatus').textContent = 'Arrêt en cours…'; };
@@ -3929,24 +5178,25 @@ async function resumeInterrupted() {
     run(n, { background: current !== 'job' });
   }
 }
-window.addEventListener('beforeunload', (e) => { if (busy || enhancing || writing) { e.preventDefault(); e.returnValue = ''; } });
+window.addEventListener('beforeunload', (e) => { if (busy || enhancing || writing || rec.mr) { e.preventDefault(); e.returnValue = ''; } });
 
 /* =================== Démarrage =================== */
 (async function init() {
-  if ('serviceWorker' in navigator) {
-    try { await navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }); } catch (e) {}
-  }
   const params = new URLSearchParams(location.search);
   if (params.has('shared')) history.replaceState(null, '', location.pathname.replace(/\?.*$/, ''));
-  let pending = null;
-  try { pending = await db.takePending(); } catch (e) {}
+  setupBack();
+  let pending = null, pendErr = '';
+  try { pending = await db.takePending(); } catch (e) { pendErr = String(e && e.message || e); }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {});
   if (pending && pending.file) { startFile(pending.file); return; }
   current = '';
   show('home');
   renderNotif();
-  if (params.has('note')) { const id = params.get('note'); history.replaceState(null, '', location.pathname); if (id === ':tasks') show('tasks'); else openNote(id); }
+  if (params.has('note')) { const id = params.get('note'); history.replaceState(history.state, '', location.pathname); if (id === ':tasks') show('tasks'); else openNote(id); }
+  await recoverRec();
   resumeInterrupted();
   updateBadge(); scheduleReminders(); fireReminders(); setupPeriodicCheck();
+  setTimeout(gcAudio, 6000);
   setTimeout(() => plaudAutoCheck(true), 1500);
   if (params.has('shared') || pending) {
     const i = (pending && pending.info) || {};
@@ -3954,7 +5204,8 @@ window.addEventListener('beforeunload', (e) => { if (busy || enhancing || writin
     if (i.files && i.files.length) lines.push('Fichiers : ' + i.files.map((f) => `${f.name || 'sans nom'} (${f.type || 'type inconnu'}, ${mb(f.size)})`).join(', '));
     if (i.texts && i.texts.length) lines.push('Texte : ' + i.texts.join(' | '));
     if (i.error) lines.push('Erreur : ' + i.error);
-    if (!lines.length) lines.push("Rien du tout : l'app qui partage n'a transmis aucun contenu.");
+    if (pendErr) lines.push('Lecture du partage impossible : ' + pendErr);
+    if (!lines.length) lines.push(pending ? "Rien du tout : l'app qui partage n'a transmis aucun contenu." : "Le partage n'a pas pu être récupéré (l'app a peut-être été relancée pendant le partage). Réessaie le partage une fois.");
     lines.push("\nEn attendant, touche « Nouvel enregistrement » : le fichier exporté apparaît en haut de la liste « Récents ».");
     $('shareDiagTxt').textContent = lines.join('\n');
     $('shareDiag').classList.remove('hidden');

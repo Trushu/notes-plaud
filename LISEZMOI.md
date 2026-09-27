@@ -94,16 +94,52 @@ Réglages → **Import depuis Plaud** : colle l'adresse du relais et le jeton, t
 
 ## Apparence (thèmes)
 
-Réglages → **Apparence** : choisis parmi 8 thèmes — **Système** (suit le mode clair/sombre du téléphone), **Clair**, **Sombre**, **Parchemin**, **Océan**, **Forêt**, **Nuit** et **Prune**. Le changement est immédiat et retenu. « Système » bascule tout seul entre clair et sombre selon l'heure/les réglages Android.
+Réglages → **Apparence** : choisis parmi 8 thèmes — **Système** (suit le mode clair/sombre du téléphone), **Clair**, **Sombre**, **Parchemin**, **Océan**, **Forêt**, **Nuit** et **Prune**. Le changement est immédiat et retenu. « Système » bascule tout seul entre clair et sombre selon l'heure/les réglages Android. Juste en dessous, **Taille du texte des notes** agrandit ou réduit le texte des résumés, cours et transcriptions (pratique pour réviser).
 
 ## Utilisation
 
 - **Depuis Plaud :** automatiquement si l'import depuis le cloud est configuré (étape 6). Sinon, ouvre l'enregistrement, puis **Exporter → Audio → MP3 → Partager → Notes Plaud**.
 - **Depuis un fichier :** dans l'app, touche **Choisir un fichier audio**.
+- **Avec le micro du téléphone :** touche **Enregistrer avec le téléphone** (la première fois, autorise le micro). Pendant l'enregistrement : **Pause/Reprendre**, et **Marquer** pour signaler un passage important (il sera repéré par une ★ dans la transcription). Touche le **carré rouge** pour terminer : transcription et résumé se lancent tout seuls. Tu peux revenir à l'accueil pendant l'enregistrement (une bannière rouge permet d'y revenir). L'écran reste allumé par défaut (bouton « Écran allumé » pour changer) ; l'audio est sauvegardé toutes les 5 secondes, donc si l'app se ferme, l'enregistrement est **récupéré** à la réouverture.
 - **Pendant le traitement :** l'écran reste allumé tout seul. Tu peux aussi **réduire l'app** : le traitement continue en arrière-plan (Réglages → Notifications → « Continuer les traitements en arrière-plan », activé par défaut). L'app se maintient active grâce à un **son silencieux** — Android peut donc l'afficher comme si un média jouait, c'est normal. Selon l'économie de batterie du téléphone, Android peut quand même finir par la suspendre ; dans ce cas tout **reprend à la réouverture**. Active les **notifications** pour être prévenu quand une note est prête ou si un traitement se met en pause (quota, erreur).
 - **Sur une note :** **Copier**, **Partager** (vers Keep, Gmail, WhatsApp, Drive…) ou **.md** (téléchargement).
 - **Améliorer la transcription :** dans l'onglet Transcription, touche **Améliorer avec l'IA**. L'IA corrige les mots mal reconnus d'après le contexte, enlève les hésitations et reformule en phrases claires, sans rien résumer. Tu peux passer de la version **Améliorée** à la version **Brute** à tout moment. Avec Gemini, ça prend quelques secondes ; avec Groq, compte quelques minutes pour 1 h d'audio.
 - **Cours rédigé :** dans l'onglet **Cours**, touche **Rédiger le cours**. À la différence du résumé (condensé) et de la transcription améliorée (le parlé nettoyé), l'IA écrit ici une **version longue, développée et structurée** de tout le cours — titres, paragraphes, définitions et formules — comme un chapitre de manuel ou un polycopié, idéale pour réviser. Rien n'est résumé : tout est repris et expliqué. Sur un long enregistrement, la rédaction se fait morceau par morceau (barre de progression) ; si elle s'interrompt, **Reprendre** continue là où ça s'était arrêté. Le cours est inclus dans **Copier** (depuis l'onglet Cours) et dans l'export **.md**.
+
+### Réécouter un passage
+
+L'audio de chaque note est **gardé dans le téléphone** (réglable : Réglages → « Garder l'audio après la transcription »). Sur une note, un **lecteur** apparaît en bas :
+
+- Dans l'onglet **Transcription**, **touche une phrase** : la lecture démarre à cet endroit. Le passage en cours est surligné et la transcription défile toute seule (elle s'arrête de défiler quelques secondes si tu fais défiler toi-même).
+- **−10 / +30** pour reculer/avancer, **1× → 1,25× → 1,5× → 1,75× → 2× → 0,75×** pour la vitesse (retenue d'une note à l'autre), et la barre pour aller n'importe où.
+- La lecture continue écran verrouillé, avec les commandes Android (notification média). Elle se met en pause si tu quittes la note.
+- Une note **fusionnée** se lit d'un bloc : l'app enchaîne l'audio de chaque partie.
+- Place prise : environ 30 Mo par heure d'audio. Réglages → **Mes données** montre le total et permet de **tout supprimer** ; sur une note, **Supprimer l'audio** (en bas) ne supprime que le son — transcription, résumé, cours et fiches restent.
+
+Les notes créées avant cette version n'ont pas d'audio gardé (il était supprimé après le traitement) : le lecteur n'apparaît que pour les nouvelles.
+
+### Poser une question à ses notes
+
+Sur une note, touche l'icône **bulle ?** en haut (ou **Demander** sous le résumé), puis pose ta question : « Qu'a dit le prof sur le théorème de Gauss ? », « Qu'est-ce qui tombe à l'examen ? »… L'IA répond **uniquement d'après l'enregistrement** et cite les passages sous forme d'horodatages ▷ 12:34 : **touche-en un** pour ouvrir la transcription à cet endroit (et l'écouter si l'audio est gardé).
+
+- **Cette note / Toutes mes notes** : en haut de l'écran. « Toutes mes notes » cherche dans l'ensemble des enregistrements (les réponses indiquent de quelle note vient chaque passage). Aussi accessible depuis l'onglet **Réviser**.
+- Les échanges sont gardés avec la note (icône corbeille pour effacer). Les questions suivantes tiennent compte des précédentes.
+- Sur un très long enregistrement avec Groq, l'app n'envoie que les passages les plus pertinents pour la question (limite de l'offre gratuite) ; avec Gemini, tout l'enregistrement est lu.
+
+### Réviser avec des fiches
+
+- Sous le résumé d'une note, **Fiches de révision → Créer** : l'IA prépare 8 à 20 questions-réponses sur les notions importantes (définitions, formules, théorèmes, pièges signalés, points d'examen). Touche ensuite le bouton pour **réviser**, voir la **liste** ou **recréer** les fiches.
+- Onglet **Réviser** (en bas) : le nombre de fiches à revoir aujourd'hui (pastille violette), tes paquets de fiches avec leur progression, et les notes sans fiches.
+- En séance : lis la question, réfléchis, **touche la carte** pour voir la réponse, puis note-toi : **À revoir** (revient dans 10 min, dans la même séance), **Difficile** (revient plus tôt : demain pour une nouvelle fiche) ou **Je savais** (3 jours, puis 7, 16, 35, 80 jours à chaque réussite). C'est la **révision espacée** : chaque fiche revient juste avant que tu l'oublies. Une fiche inutile se supprime pendant la séance.
+
+### Rechercher, épingler, sauvegarder
+
+- **Recherche :** la barre de l'accueil cherche dans les titres, résumés, cours rédigés **et** transcriptions, sans tenir compte des accents. Chaque résultat montre l'extrait trouvé ; le toucher ouvre la note **au bon onglet, passage surligné**.
+- **Épingler :** l'icône punaise en haut d'une note la garde en tête de l'accueil.
+- **Supprimer** une ou plusieurs notes affiche **Annuler** pendant quelques secondes.
+- **Sauvegarde :** Réglages → **Mes données → Sauvegarder** télécharge un fichier avec toutes tes notes (résumés, cours, transcriptions, tâches, fiches, questions). **Restaurer** le réimporte (sur ce téléphone ou un autre) sans rien écraser. Les clés d'API ne sont incluses que si tu coches la case. L'audio n'est pas inclus (trop lourd). Un rappel apparaît sur l'accueil quand ta dernière sauvegarde date.
+- **Protéger le stockage :** si « Stockage non protégé » s'affiche dans Mes données, touche **Protéger** pour qu'Android n'efface jamais les notes en cas de manque de place (l'app doit être installée).
+- **Bouton Retour d'Android :** il ferme d'abord le panneau ouvert, puis revient à l'écran précédent ; à l'accueil, un deuxième appui quitte l'app.
 
 ### Envoyer une note vers NotebookLM
 
@@ -162,7 +198,7 @@ Ces limites peuvent changer. Si un modèle disparaît, remplace-le dans les **R�
 
 ## Confidentialité
 
-Avec l'import depuis le cloud (étape 6), l'audio passe par ton relais Cloudflare, qui ne garde rien. Ton jeton Plaud reste dans le téléphone et n'est envoyé qu'au relais puis à Plaud. L'audio est envoyé uniquement à Groq, pour la transcription. L'app supprime sa copie de l'audio une fois la note terminée. Pour le résumé, seule la transcription écrite est envoyée, à Gemini ou à Groq selon ton réglage. Sur l'offre gratuite de Gemini, Google peut utiliser ces textes pour améliorer ses modèles. Pour les conversations vraiment sensibles, utilise plutôt le script PC 100 % local (`plaud_local.py`).
+Avec l'import depuis le cloud (étape 6), l'audio passe par ton relais Cloudflare, qui ne garde rien. Ton jeton Plaud reste dans le téléphone et n'est envoyé qu'au relais puis à Plaud. L'audio est envoyé uniquement à Groq, pour la transcription. Ensuite, l'app en garde une copie **dans le téléphone seulement**, pour la réécoute (désactivable dans les Réglages, et supprimable à tout moment). Les questions posées aux notes et la création de fiches envoient la transcription (ou les passages utiles) à l'IA de résumé choisie, comme pour un résumé. Pour le résumé, seule la transcription écrite est envoyée, à Gemini ou à Groq selon ton réglage. Sur l'offre gratuite de Gemini, Google peut utiliser ces textes pour améliorer ses modèles. Pour les conversations vraiment sensibles, utilise plutôt le script PC 100 % local (`plaud_local.py`).
 
 Rappel : en France, enregistrer une conversation privée à l'insu des personnes est interdit. Préviens les participants.
 
@@ -182,4 +218,9 @@ Rappel : en France, enregistrer une conversation privée à l'insu des personnes
 | « Jeton Plaud refusé ou expiré » | Recopie le jeton depuis web.plaud.ai (étape 6 B). |
 | « La version MP3 n'est pas encore prête » | Ouvre l'enregistrement dans l'app Plaud, attends quelques minutes, puis réessaie. |
 | « Le relais n'accepte pas l'hébergeur … » | Plaud a changé d'hébergeur de fichiers : ajoute le nom indiqué à la ligne `AUDIO_HOSTS` du relais, puis **Deploy**. |
+| « Micro refusé » | Touche le cadenas à gauche de l'adresse (ou Réglages Android → Applis → Chrome → Autorisations → Micro) et autorise le micro, puis réessaie. |
+| L'enregistrement s'arrête écran éteint | Laisse l'app au premier plan (« Écran allumé » activé), et mets la batterie de Chrome sur « Sans restriction ». Ce qui a été enregistré est récupéré à la réouverture. |
+| Pas de lecteur sur une note | L'audio n'est gardé que pour les notes traitées avec cette version, si « Garder l'audio » est activé. |
+| « Lecture impossible : format audio non pris en charge » | Rare (format exotique) : réexporte l'audio en MP3 depuis Plaud. La transcription n'est pas concernée. |
+| « L'IA n'a pas renvoyé de fiches exploitables » | Réessaie (le modèle a mal formaté sa réponse) ; avec Gemini, c'est plus fiable. |
 | Mettre l'app à jour | Remplace les fichiers sur GitHub. Le téléphone reçoit la nouvelle version à la prochaine ouverture. |

@@ -2,7 +2,7 @@
 // - reçoit les fichiers partagés depuis Android (cible de partage)
 // - garde l'application en cache pour qu'elle s'ouvre même avec un mauvais réseau
 
-const CACHE = 'notes-plaud-v25';
+const CACHE = 'notes-plaud-v30';
 const KATEX_CACHE = 'katex-v1';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
@@ -36,7 +36,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== KATEX_CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== KATEX_CACHE && k !== 'np-share').map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -54,25 +54,46 @@ self.addEventListener('fetch', (e) => {
   if (url.origin !== self.location.origin) return; // on ne touche pas aux appels vers Groq et Gemini
 
   // Fichier partagé depuis une autre app (Plaud -> Partager -> Notes Plaud)
+  // Sur Android, le fichier partagé n'est lisible que brièvement (il est « prêté » par l'autre app) :
+  // on lit tout de suite ses octets en mémoire, puis on les range. Toute erreur est gardée pour être affichée.
   if (e.request.method === 'POST' && url.pathname.endsWith('/share')) {
     e.respondWith((async () => {
       const info = { at: Date.now(), files: [], texts: [], error: '' };
-      let file = null;
+      let shared = null;
+      const why = (err) => String((err && (err.name ? err.name + ' : ' : '') + (err.message || '')) || err);
       try {
         const fd = await e.request.formData();
         const files = [];
-        // on prend les fichiers quel que soit le nom du champ utilisé
         for (const [k, v] of fd.entries()) {
           if (typeof v === 'string') { if (v.trim()) info.texts.push(`${k} : ${v.slice(0, 300)}`); }
-          else if (v && v.size) files.push(v);
+          else if (v) files.push(v);
         }
         info.files = files.map((f) => ({ name: f.name, type: f.type, size: f.size }));
-        file = files.find((f) => /^(audio|video)\//.test(f.type) || /\.(mp3|m4a|wav|ogg|opus|aac|flac|amr|3gp|webm|mp4)$/i.test(f.name))
-          || files[0] || null;
+        const isAudio = (f) => /^(audio|video)\//.test(f.type) || /\.(mp3|m4a|wav|ogg|opus|aac|flac|amr|3gp|webm|mp4|mpga|mpeg)$/i.test(f.name || '');
+        const pick = files.find((f) => isAudio(f) && f.size) || files.find((f) => f.size) || files[0];
+        if (pick) {
+          try {
+            const buf = await pick.arrayBuffer();
+            if (!buf.byteLength) info.error = 'Le fichier reçu est vide (0 octet) : l\'app qui partage ne l\'a pas transmis.';
+            else shared = { buf, name: pick.name || 'partage.mp3', type: pick.type || '', size: buf.byteLength };
+          } catch (err) { info.error = 'Lecture du fichier partagé impossible (' + why(err) + ').'; }
+        }
       } catch (err) {
-        info.error = String(err && err.message || err);
+        info.error = 'Contenu du partage illisible (' + why(err) + ').';
       }
-      try { await putPending({ file, info }); } catch (err) {}
+      try { await putPending({ shared, info }); }
+      catch (err) {
+        // Repli : le cache du navigateur supporte bien les gros fichiers
+        info.error = (info.error ? info.error + ' ' : '') + 'Stockage principal impossible (' + why(err) + ').';
+        if (shared) {
+          try {
+            const c = await caches.open('np-share');
+            await c.put('./__shared', new Response(shared.buf, { headers: { 'Content-Type': shared.type || 'application/octet-stream', 'X-Name': encodeURIComponent(shared.name) } }));
+            info.cached = true; info.error = '';
+          } catch (e2) {}
+        }
+        try { await putPending({ shared: null, info }); } catch (e3) {}
+      }
       return Response.redirect(new URL('./?shared=1', self.registration.scope).href, 303);
     })());
     return;

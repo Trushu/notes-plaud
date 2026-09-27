@@ -72,7 +72,9 @@ L'offre gratuite de Cloudflare permet 100 000 requêtes par jour : un import en 
 
 Le jeton est la « clé de session » du site web de Plaud. L'app ne te demande pas ton mot de passe exprès : une connexion par mot de passe ouvrirait une nouvelle session et **déconnecterait l'app Plaud de ton téléphone**.
 
-- *Sur ordinateur :* connecte-toi à **https://web.plaud.ai**, appuie sur **F12**, onglet **Console**, tape `localStorage.getItem("tokenstr")` puis Entrée. Copie le texte affiché, sans les guillemets (il commence par `bearer eyJ…`).
+L'app trouve le jeton toute seule, quel que soit le nom que Plaud lui donne (Plaud change ce nom de temps en temps).
+
+- *Sur ordinateur :* connecte-toi à **https://web.plaud.ai**, appuie sur **F12**, onglet **Console**. Dans Notes Plaud → Réglages → Import depuis Plaud, touche **Copier la commande**, colle-la dans la console et fais Entrée : le message « Jeton copié » apparaît et le jeton est dans ton presse-papier. (Si Chrome refuse de coller, tape d'abord `allow pasting` puis Entrée, et recommence.)
 - *Sur le téléphone seulement :* dans Notes Plaud, Réglages → Import depuis Plaud → **Copier le code du favori**. Dans Chrome, ajoute n'importe quelle page aux favoris, modifie ce favori, nomme-le `jeton` et remplace son adresse par le code copié. Ouvre **web.plaud.ai** et connecte-toi (si le site ne s'affiche pas bien, menu ⋮ → **Version pour ordinateur**). Tape ensuite `jeton` dans la barre d'adresse et touche le favori proposé : le jeton s'affiche dans une fenêtre, sélectionne-le entièrement et copie-le.
 
 **C. Brancher l'app**
@@ -102,6 +104,17 @@ Réglages → **Apparence** : choisis parmi 8 thèmes — **Système** (suit le 
 - **Sur une note :** **Copier**, **Partager** (vers Keep, Gmail, WhatsApp, Drive…) ou **.md** (téléchargement).
 - **Améliorer la transcription :** dans l'onglet Transcription, touche **Améliorer avec l'IA**. L'IA corrige les mots mal reconnus d'après le contexte, enlève les hésitations et reformule en phrases claires, sans rien résumer. Tu peux passer de la version **Améliorée** à la version **Brute** à tout moment. Avec Gemini, ça prend quelques secondes ; avec Groq, compte quelques minutes pour 1 h d'audio.
 - **Cours rédigé :** dans l'onglet **Cours**, touche **Rédiger le cours**. À la différence du résumé (condensé) et de la transcription améliorée (le parlé nettoyé), l'IA écrit ici une **version longue, développée et structurée** de tout le cours — titres, paragraphes, définitions et formules — comme un chapitre de manuel ou un polycopié, idéale pour réviser. Rien n'est résumé : tout est repris et expliqué. Sur un long enregistrement, la rédaction se fait morceau par morceau (barre de progression) ; si elle s'interrompt, **Reprendre** continue là où ça s'était arrêté. Le cours est inclus dans **Copier** (depuis l'onglet Cours) et dans l'export **.md**.
+
+### Envoyer une note vers NotebookLM
+
+NotebookLM (version gratuite) n'a pas d'API : impossible d'y pousser une note automatiquement. Mais on peut le faire en un geste.
+
+- **Sur téléphone :** sur une note, touche **Envoyer vers NotebookLM (PDF)**. L'app fabrique un PDF propre (résumé + cours rédigé + transcription) et ouvre le partage Android → touche **NotebookLM**, qui l'ajoute comme source. (L'app NotebookLM n'accepte au partage que les PDF, sites web et vidéos YouTube — d'où le PDF.)
+- **Sur ordinateur :** deux options, sans rien installer :
+  - **Copier** la note, puis dans NotebookLM : **Ajouter une source → Texte collé** → coller.
+  - ou **Envoyer vers NotebookLM (PDF)** télécharge le PDF, que tu importes dans NotebookLM (**Ajouter une source → Importer un fichier**). L'export **.md** marche aussi à l'import.
+
+Le PDF se génère sur l'appareil ; la première fois, l'app télécharge une petite bibliothèque (connexion Internet requise une fois).
 
 ### Organiser ses notes
 

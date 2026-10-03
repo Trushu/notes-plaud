@@ -56,7 +56,9 @@ Colle-les dans Réglages → Résumé. Tu peux aussi choisir l'une d'elles comme
 
 Plus besoin d'exporter chaque enregistrement à la main : l'app Plaud envoie déjà tes enregistrements dans son cloud (c'est gratuit, seule la transcription est limitée), et Notes Plaud va les y chercher en MP3.
 
-Le serveur de Plaud refuse les appels venant d'un autre site. Il faut donc un petit **relais** : un programme de 75 lignes que tu héberges gratuitement chez Cloudflare. Il ne transmet que les 5 requêtes utiles à l'import, n'accepte que ton site, et ne stocke rien.
+Le serveur de Plaud refuse les appels venant d'un autre site. Il faut donc un petit **relais** : un programme d'une centaine de lignes que tu héberges gratuitement chez Cloudflare. Il ne transmet que les requêtes utiles à l'import (et la lecture de ton emploi du temps, voir plus bas), n'accepte que ton site, et ne stocke rien.
+
+> **Tu as déjà un relais ?** Depuis la version 31, il sait aussi lire ton emploi du temps. Mets-le à jour : page du Worker → **Edit code**, remplace tout le code par le nouveau `relais-plaud-cloudflare.js`, puis **Deploy**. Rien d'autre à changer.
 
 **A. Créer le relais (10 min, plus simple sur PC)**
 
@@ -92,6 +94,33 @@ Réglages → **Import depuis Plaud** : colle l'adresse du relais et le jeton, t
 
 ⚠️ Cette API de Plaud n'est **pas officielle** : Plaud peut la modifier ou la bloquer du jour au lendemain. Dans ce cas, le partage manuel (Exporter → MP3 → Partager) continue de fonctionner.
 
+## Emploi du temps et matières (onglet Cours)
+
+Notes Plaud lit le calendrier de tes cours (Moodle / WebCampus, ADE, Google Agenda…) et s'en sert partout :
+
+- **Rangement automatique :** un enregistrement fait pendant un cours (même 20 min avant ou 10 min après) est rangé tout seul dans sa **matière** : pastille colorée sur la note et dans la liste, tag de la matière.
+- **L'IA sait de quel cours il s'agit :** le nom complet de la matière, le type de séance (cours, TP), la date et l'enseignant sont donnés à la transcription (meilleure reconnaissance du vocabulaire et des noms) et au résumé.
+- **Onglet Cours** (en bas) : le cours **en cours** ou le **prochain** (compte à rebours, salle, bouton **Enregistrer** avec le téléphone si tu n'as pas ton Plaud), la semaine jour par jour (flèches pour changer de semaine) avec, pour chaque séance passée, ✓ si elle est enregistrée. Touche une séance pour ouvrir sa note, ou pour y **associer** une note du même jour. Une pastille rouge sur l'onglet signale un cours en ce moment. L'accueil montre aussi le prochain cours.
+- **Page d'une matière :** séances enregistrées, heures d'audio, prochaine séance, et quatre boutons :
+  - **Synthèse de la matière** : l'IA rassemble toutes les séances en une fiche de révision (vue d'ensemble, plan séance par séance, notions, définitions et formules, ce que l'enseignant a souligné, **questions d'examen probables avec éléments de réponse**, points à retravailler) ;
+  - **Poser une question** à toute la matière (« Dans quelle séance a-t-on vu… ? ») ;
+  - **Réviser les fiches** de toutes ses séances ;
+  - **PDF pour NotebookLM** : une seule source avec la synthèse et toutes les séances (au choix avec ou sans les transcriptions).
+  - En bas : **Renommer** la matière, ou la **Masquer** (un cours que tu ne suis pas ; réversible dans Réglages → Emploi du temps).
+- **Échéances :** les devoirs à remettre présents dans le calendrier deviennent des **tâches** datées (une seule fois chacun), avec la matière en tag.
+- **Rappel avant chaque cours** (Réglages → Emploi du temps) : une notification « pense à lancer ton Plaud » 5 à 30 min avant.
+- Sur une note, touche la pastille de la matière pour **changer de matière** ou la **détacher**.
+
+**Ajouter ton calendrier**
+
+1. Sur WebCampus (Moodle) : **Calendrier → Exporter le calendrier** → « Tous les événements » et « Événements récents et à venir » → **Obtenir l'URL du calendrier**. Copie l'adresse (elle contient une clé personnelle : ne la partage pas).
+2. Dans l'app : Réglages → **Emploi du temps** → colle l'adresse → **Synchroniser**. L'adresse reste dans le téléphone (elle n'est même pas dans les sauvegardes, sauf si tu coches « inclure mes clés »).
+3. La synchronisation passe par ton **relais Cloudflare** (étape 6, version à jour) : les serveurs d'université n'autorisent pas une app web à lire le calendrier directement. Elle se refait toute seule à l'ouverture de l'app (si la dernière date de plus de 12 h), et quand tu **tires l'accueil vers le bas**.
+
+Sans relais : sur WebCampus, **Exporter** (au lieu de « Obtenir l'URL ») télécharge un fichier `.ics` ; dans l'app, **Importer un .ics** (ou partage le fichier vers Notes Plaud). Il faudra le refaire quand l'horaire change.
+
+L'export Moodle « récents et à venir » couvre environ deux mois : l'app **garde l'historique** des séances passées à chaque synchronisation, et retire les séances annulées. Pour un autre hébergeur que l'UNamur, Google Agenda ou Outlook, ajoute-le dans la variable `ICS_HOSTS` du relais (ex. `ade.univ-exemple.fr`).
+
 ## Apparence (thèmes)
 
 Réglages → **Apparence** : choisis parmi 8 thèmes — **Système** (suit le mode clair/sombre du téléphone), **Clair**, **Sombre**, **Parchemin**, **Océan**, **Forêt**, **Nuit** et **Prune**. Le changement est immédiat et retenu. « Système » bascule tout seul entre clair et sombre selon l'heure/les réglages Android. Juste en dessous, **Taille du texte des notes** agrandit ou réduit le texte des résumés, cours et transcriptions (pratique pour réviser).
@@ -105,6 +134,16 @@ Réglages → **Apparence** : choisis parmi 8 thèmes — **Système** (suit le 
 - **Sur une note :** **Copier**, **Partager** (vers Keep, Gmail, WhatsApp, Drive…) ou **.md** (téléchargement).
 - **Améliorer la transcription :** dans l'onglet Transcription, touche **Améliorer avec l'IA**. L'IA corrige les mots mal reconnus d'après le contexte, enlève les hésitations et reformule en phrases claires, sans rien résumer. Tu peux passer de la version **Améliorée** à la version **Brute** à tout moment. Avec Gemini, ça prend quelques secondes ; avec Groq, compte quelques minutes pour 1 h d'audio.
 - **Cours rédigé :** dans l'onglet **Cours**, touche **Rédiger le cours**. À la différence du résumé (condensé) et de la transcription améliorée (le parlé nettoyé), l'IA écrit ici une **version longue, développée et structurée** de tout le cours — titres, paragraphes, définitions et formules — comme un chapitre de manuel ou un polycopié, idéale pour réviser. Rien n'est résumé : tout est repris et expliqué. Sur un long enregistrement, la rédaction se fait morceau par morceau (barre de progression) ; si elle s'interrompt, **Reprendre** continue là où ça s'était arrêté. Le cours est inclus dans **Copier** (depuis l'onglet Cours) et dans l'export **.md**.
+
+### Lire, écouter, annoter une note
+
+- **Glisser** vers la gauche ou la droite passe d'un onglet à l'autre (Résumé → Transcription → Cours).
+- **Reprendre la lecture :** chaque note se rouvre à l'onglet et à l'endroit où tu t'étais arrêté (bouton « En haut » dans le message) ; l'accueil propose **Reprendre « … »** pour la dernière note entamée.
+- **Chapitres :** les enregistrements de plus de 8 minutes sont découpés automatiquement en chapitres titrés (avec Groq seul, touche **Créer** dans l'onglet Transcription). Liste cliquable en haut de la transcription, titres insérés au fil du texte, repères sur la barre du lecteur et nom du chapitre en cours.
+- **Photos du tableau :** sous le résumé, **appareil photo** ou **Galerie**. Les photos prises pendant le cours (même avec l'appareil photo habituel, ajoutées plus tard depuis la galerie) se placent **toutes seules au bon moment** de l'enregistrement, grâce à leur heure de prise de vue ; elles apparaissent dans la transcription. Avec une clé Gemini, l'IA **lit le tableau** (texte, formules, tableaux) : ce contenu nourrit le résumé, le cours rédigé, les questions et le PDF NotebookLM. Touche une photo pour l'agrandir (glisser pour passer à la suivante), voir ce que l'IA a lu, aller au moment de la photo ou la supprimer. Pendant un enregistrement au téléphone, le bouton **Photo** ajoute une photo horodatée (si Android ferme l'app pendant la prise de vue, l'enregistrement est récupéré à la réouverture — sinon, prends les photos avec l'appareil photo et ajoute-les ensuite).
+- **Mes notes :** sous le résumé, écris tes propres remarques (questions pour le prof, liens, rappels ; Markdown et formules acceptés). Le brouillon est gardé même si tu quittes. Tes notes sont dans la recherche, les exports, le PDF, et l'IA en tient compte quand tu poses une question.
+- **Expliquer un passage :** sélectionne du texte (appui long) dans le résumé, le cours ou la transcription : une barre propose **Expliquer** (l'IA l'explique simplement, avec les passages de l'enregistrement) ou **Question…** (la question commence par ce passage).
+- **Lecture à voix haute :** icône **haut-parleur** en haut d'une note : l'app lit l'onglet affiché (résumé, cours rédigé ou transcription) avec la voix française du téléphone, en surlignant le passage lu, à partir de l'endroit où tu es. Pause, vitesse, arrêt dans la barre du bas. Les formules sont dites en français (« a sur b », « x au carré »).
 
 ### Réécouter un passage
 
@@ -122,14 +161,14 @@ Les notes créées avant cette version n'ont pas d'audio gardé (il était suppr
 
 Sur une note, touche l'icône **bulle ?** en haut (ou **Demander** sous le résumé), puis pose ta question : « Qu'a dit le prof sur le théorème de Gauss ? », « Qu'est-ce qui tombe à l'examen ? »… L'IA répond **uniquement d'après l'enregistrement** et cite les passages sous forme d'horodatages ▷ 12:34 : **touche-en un** pour ouvrir la transcription à cet endroit (et l'écouter si l'audio est gardé).
 
-- **Cette note / Toutes mes notes** : en haut de l'écran. « Toutes mes notes » cherche dans l'ensemble des enregistrements (les réponses indiquent de quelle note vient chaque passage). Aussi accessible depuis l'onglet **Réviser**.
+- **Cette note / La matière / Toutes** : en haut de l'écran. « La matière » interroge toutes les séances du cours (si l'emploi du temps est configuré) ; « Toutes » cherche dans l'ensemble des enregistrements (les réponses indiquent de quelle note vient chaque passage). Aussi en appui long sur l'icône de l'app → **Question**.
 - Les échanges sont gardés avec la note (icône corbeille pour effacer). Les questions suivantes tiennent compte des précédentes.
 - Sur un très long enregistrement avec Groq, l'app n'envoie que les passages les plus pertinents pour la question (limite de l'offre gratuite) ; avec Gemini, tout l'enregistrement est lu.
 
 ### Réviser avec des fiches
 
 - Sous le résumé d'une note, **Fiches de révision → Créer** : l'IA prépare 8 à 20 questions-réponses sur les notions importantes (définitions, formules, théorèmes, pièges signalés, points d'examen). Touche ensuite le bouton pour **réviser**, voir la **liste** ou **recréer** les fiches.
-- Onglet **Réviser** (en bas) : le nombre de fiches à revoir aujourd'hui (pastille violette), tes paquets de fiches avec leur progression, et les notes sans fiches.
+- Il n'y a plus d'onglet « Réviser » : la séance se lance depuis la note (bouton sous le résumé, qui indique combien de fiches sont à revoir) ou depuis la page d'une **matière** (**Réviser les fiches** de toutes ses séances). « Retour » ou « Terminer » ramène là où tu étais.
 - En séance : lis la question, réfléchis, **touche la carte** pour voir la réponse, puis note-toi : **À revoir** (revient dans 10 min, dans la même séance), **Difficile** (revient plus tôt : demain pour une nouvelle fiche) ou **Je savais** (3 jours, puis 7, 16, 35, 80 jours à chaque réussite). C'est la **révision espacée** : chaque fiche revient juste avant que tu l'oublies. Une fiche inutile se supprime pendant la séance.
 
 ### Rechercher, épingler, sauvegarder
@@ -139,7 +178,14 @@ Sur une note, touche l'icône **bulle ?** en haut (ou **Demander** sous le résu
 - **Supprimer** une ou plusieurs notes affiche **Annuler** pendant quelques secondes.
 - **Sauvegarde :** Réglages → **Mes données → Sauvegarder** télécharge un fichier avec toutes tes notes (résumés, cours, transcriptions, tâches, fiches, questions). **Restaurer** le réimporte (sur ce téléphone ou un autre) sans rien écraser. Les clés d'API ne sont incluses que si tu coches la case. L'audio n'est pas inclus (trop lourd). Un rappel apparaît sur l'accueil quand ta dernière sauvegarde date.
 - **Protéger le stockage :** si « Stockage non protégé » s'affiche dans Mes données, touche **Protéger** pour qu'Android n'efface jamais les notes en cas de manque de place (l'app doit être installée).
-- **Bouton Retour d'Android :** il ferme d'abord le panneau ouvert, puis revient à l'écran précédent ; à l'accueil, un deuxième appui quitte l'app.
+- **Bouton Retour d'Android :** il ferme d'abord le panneau ouvert, puis revient à l'écran précédent (par exemple : matière → note → retour à la matière) ; à l'accueil, un deuxième appui quitte l'app.
+- **Tirer l'accueil vers le bas** vérifie les nouveaux enregistrements Plaud et met à jour l'emploi du temps.
+
+### Raccourcis, tags NFC et télécommande (Flipper Zero…)
+
+- **Appui long sur l'icône** de l'app : **Enregistrer un cours**, **Mes cours**, **Poser une question**, **Mes tâches**. Tu peux glisser un raccourci sur l'écran d'accueil.
+- **Tag NFC** (autocollant NTAG, ou ton Flipper Zero en émulation NFC) : écris-y l'adresse de ton app suivie de `?action=rec`, par exemple `https://ton-pseudo.github.io/notes-plaud/?action=rec`. Approcher le téléphone du tag ouvre l'app et **lance l'enregistrement**. Autres actions : `?action=cours`, `?action=question`, `?action=taches`. (L'appli gratuite « NFC Tools » écrit un tag en 30 secondes : Écrire → Ajouter un enregistrement → URL.)
+- **Télécommande Bluetooth** — clicker de présentation, clavier, ou Flipper Zero (Apps → Bluetooth → Remote, appairé au téléphone) — pendant un enregistrement au téléphone : **→ / Entrée / Page suivante** = marquer un moment, **Espace** = pause/reprise. Avec des **écouteurs Bluetooth** : « piste suivante » (souvent un double appui) = marquer, lecture/pause = pause, souvent même écran verrouillé (selon le téléphone). Dans le lecteur d'une note : **Espace** lecture/pause, **← / →** reculer de 10 s / avancer de 30 s.
 
 ### Envoyer une note vers NotebookLM
 
@@ -198,7 +244,7 @@ Ces limites peuvent changer. Si un modèle disparaît, remplace-le dans les **R�
 
 ## Confidentialité
 
-Avec l'import depuis le cloud (étape 6), l'audio passe par ton relais Cloudflare, qui ne garde rien. Ton jeton Plaud reste dans le téléphone et n'est envoyé qu'au relais puis à Plaud. L'audio est envoyé uniquement à Groq, pour la transcription. Ensuite, l'app en garde une copie **dans le téléphone seulement**, pour la réécoute (désactivable dans les Réglages, et supprimable à tout moment). Les questions posées aux notes et la création de fiches envoient la transcription (ou les passages utiles) à l'IA de résumé choisie, comme pour un résumé. Pour le résumé, seule la transcription écrite est envoyée, à Gemini ou à Groq selon ton réglage. Sur l'offre gratuite de Gemini, Google peut utiliser ces textes pour améliorer ses modèles. Pour les conversations vraiment sensibles, utilise plutôt le script PC 100 % local (`plaud_local.py`).
+Avec l'import depuis le cloud (étape 6), l'audio passe par ton relais Cloudflare, qui ne garde rien. Ton jeton Plaud reste dans le téléphone et n'est envoyé qu'au relais puis à Plaud. L'audio est envoyé uniquement à Groq, pour la transcription. Ensuite, l'app en garde une copie **dans le téléphone seulement**, pour la réécoute (désactivable dans les Réglages, et supprimable à tout moment). Les questions posées aux notes, les chapitres, les synthèses de matière et la création de fiches envoient la transcription (ou les passages utiles) à l'IA de résumé choisie, comme pour un résumé. Les photos du tableau restent dans le téléphone ; si tu as une clé Gemini, chaque photo est envoyée une fois à Gemini pour être lue. L'emploi du temps est lu via ton relais Cloudflare (qui ne garde rien) et reste dans le téléphone. Pour le résumé, seule la transcription écrite est envoyée, à Gemini ou à Groq selon ton réglage. Sur l'offre gratuite de Gemini, Google peut utiliser ces textes pour améliorer ses modèles. Pour les conversations vraiment sensibles, utilise plutôt le script PC 100 % local (`plaud_local.py`).
 
 Rappel : en France, enregistrer une conversation privée à l'insu des personnes est interdit. Préviens les participants.
 
@@ -223,4 +269,10 @@ Rappel : en France, enregistrer une conversation privée à l'insu des personnes
 | Pas de lecteur sur une note | L'audio n'est gardé que pour les notes traitées avec cette version, si « Garder l'audio » est activé. |
 | « Lecture impossible : format audio non pris en charge » | Rare (format exotique) : réexporte l'audio en MP3 depuis Plaud. La transcription n'est pas concernée. |
 | « L'IA n'a pas renvoyé de fiches exploitables » | Réessaie (le modèle a mal formaté sa réponse) ; avec Gemini, c'est plus fiable. |
+| « Calendrier non synchronisé : ton relais Cloudflare est une ancienne version » | Remplace le code du Worker par le nouveau `relais-plaud-cloudflare.js` (étape 6, encadré), puis **Deploy**. |
+| « Hébergeur de calendrier non autorisé » | Ajoute le nom indiqué dans la variable `ICS_HOSTS` du relais (Settings → Variables and Secrets), puis **Deploy**. |
+| « Cette adresse ne renvoie pas un calendrier » | Recopie l'URL depuis Moodle (Calendrier → Exporter → Obtenir l'URL du calendrier). Si tu as changé ton mot de passe Moodle, l'ancienne URL peut ne plus marcher. |
+| Une note n'est pas rangée dans la bonne matière | Touche la pastille de la matière sur la note → choisis la bonne séance ou matière (ou « Aucune matière »). |
+| Les photos ne sont pas lues par l'IA | Il faut une clé Gemini (étape 4). Dans la visionneuse, touche **Lire avec l'IA** pour réessayer. |
+| Pas de voix pour la lecture à voix haute | Réglages Android → Accessibilité → Synthèse vocale : choisis le moteur Google et installe la voix française. |
 | Mettre l'app à jour | Remplace les fichiers sur GitHub. Le téléphone reçoit la nouvelle version à la prochaine ouverture. |

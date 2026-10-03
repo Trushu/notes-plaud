@@ -1,7 +1,7 @@
 {
   "name": "Notes Plaud",
   "short_name": "Notes Plaud",
-  "description": "Transcription et résumé de tes enregistrements Plaud avec Groq",
+  "description": "Transcription, résumé et révision de tes cours enregistrés avec Plaud",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",
@@ -9,9 +9,24 @@
   "background_color": "#f7f4ee",
   "theme_color": "#f7f4ee",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "share_target": {
     "action": "./share",
@@ -23,9 +38,76 @@
       "files": [
         {
           "name": "audio",
-          "accept": ["audio/*", "video/*", "application/octet-stream", "*/*", ".mp3", ".m4a", ".wav", ".ogg", ".opus", ".aac", ".flac", ".amr"]
+          "accept": [
+            "audio/*",
+            "video/*",
+            "application/octet-stream",
+            "*/*",
+            ".mp3",
+            ".m4a",
+            ".wav",
+            ".ogg",
+            ".opus",
+            ".aac",
+            ".flac",
+            ".amr",
+            ".ics",
+            "text/calendar"
+          ]
         }
       ]
     }
-  }
+  },
+  "shortcuts": [
+    {
+      "name": "Enregistrer un cours",
+      "short_name": "Enregistrer",
+      "description": "Enregistrer avec le micro du téléphone",
+      "url": "./?action=rec",
+      "icons": [
+        {
+          "src": "sc-rec.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Mes cours",
+      "short_name": "Cours",
+      "description": "Emploi du temps et matières",
+      "url": "./?action=cours",
+      "icons": [
+        {
+          "src": "sc-cours.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Poser une question à mes notes",
+      "short_name": "Question",
+      "url": "./?action=question",
+      "icons": [
+        {
+          "src": "sc-ask.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Mes tâches",
+      "short_name": "Tâches",
+      "url": "./?action=taches",
+      "icons": [
+        {
+          "src": "sc-tasks.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
 }

@@ -481,7 +481,11 @@
   .sheet .tagin input { flex: 1; min-width: 0; }
   .tagrow { display: flex; align-items: center; gap: 8px; padding: 8px 0; }
   .tagrow + .tagrow { border-top: 1px solid var(--line); }
-  .tagrow .grow { flex: 1; }
+  .tagrow .grow { flex: 1; white-space: nowrap; }
+  .tagrow .tag { min-width: 0; flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; }
+  .tagrow .iconbtn { flex: none; }
+  .tag { max-width: 100%; }
+  .tags .tag, .tagbar .tag { max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
   .tagrow .iconbtn { width: 36px; height: 36px; color: var(--muted); }
   .tagrow .iconbtn svg { width: 18px; height: 18px; }
   /* ----- Onglets du bas ----- */
@@ -757,9 +761,165 @@
   .rec-side { width: 70px; display: flex; flex-direction: column; align-items: center; gap: 7px; border: 0; background: none; color: var(--ink-2); font: 600 13px/1.1 var(--sans); cursor: pointer; padding: 9px 0 0; }
   .rec-side svg { width: 54px; height: 54px; padding: 15px; border-radius: 50%; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
   .rec-hint { color: var(--muted); font-size: 14px; margin: 0 24px 18px; }
-  .rec-foot { display: flex; justify-content: center; align-items: center; gap: 18px; }
+  .rec-foot { display: flex; justify-content: center; align-items: center; gap: 10px 14px; flex-wrap: wrap; }
+  .rec-foot .tbtn { white-space: nowrap; }
   .rec-foot .tbtn[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
   .rec-tip { color: var(--muted); font-size: 12.5px; margin: 18px 26px 0; }
+  /* ---- Emploi du temps ---- */
+  .hue { --h: 20; background: hsl(var(--h) 75% 93%); color: hsl(var(--h) 55% 30%); }
+  @media (prefers-color-scheme: dark) { html:not([data-theme]) .hue { background: hsl(var(--h) 35% 20%); color: hsl(var(--h) 70% 78%); } }
+  html[data-theme="dark"] .hue, html[data-theme="nuit"] .hue, html[data-theme="prune"] .hue { background: hsl(var(--h) 35% 20%); color: hsl(var(--h) 70% 78%); }
+  .pill.crs { border: 0; cursor: pointer; font: inherit; font-size: 12.5px; font-weight: 600; }
+  .pill.crs.add { background: var(--surface-2); color: var(--muted); border: 1px dashed var(--line); }
+  .item.has-crs { box-shadow: inset 4px 0 0 hsl(var(--h) 62% 55%), var(--shadow); }
+  .crs-now { padding: 16px 18px; margin-bottom: 16px; border-left: 5px solid hsl(var(--h) 62% 55%); }
+  .crs-now-k { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--accent-ink); }
+  .crs-now-t { display: block; font: 600 22px/1.2 var(--serif); margin: 6px 0 4px; cursor: pointer; }
+  .crs-now-d { color: var(--muted); font-size: 14px; }
+  .crs-now .row { flex-wrap: wrap; }
+  .live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--err); animation: recpulse 1.6s infinite; flex: none; }
+  .home-crs { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 14px; margin-bottom: 12px; cursor: pointer; font: inherit; color: inherit; border-left: 5px solid hsl(var(--h) 62% 55%); }
+  .home-crs > div { flex: 1; min-width: 0; }
+  .home-crs small { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--accent-ink); }
+  .home-crs b { display: block; font: 600 17px/1.25 var(--serif); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .home-crs span.d { display: block; color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .home-crs .btn { min-height: 40px; padding: 0 12px; flex: none; }
+  .wk-nav { display: flex; align-items: center; gap: 8px; margin: 6px 0 2px; }
+  .wk-nav b { flex: 1; text-align: center; font-weight: 600; font-size: 15px; line-height: 1.25; }
+  .wk-nav b small { display: block; color: var(--muted); font-weight: 500; font-size: 12.5px; }
+  .wk-nav .iconbtn { width: 40px; height: 40px; }
+  .ev { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: var(--surface); border: 1px solid var(--line); border-left: 5px solid hsl(var(--h) 62% 55%); border-radius: var(--r); padding: 11px 12px; margin-bottom: 8px; cursor: pointer; font: inherit; color: inherit; box-shadow: var(--shadow); }
+  .ev.past { opacity: .72; }
+  .ev.live { box-shadow: 0 0 0 2px color-mix(in srgb, var(--err) 50%, transparent), var(--shadow); opacity: 1; }
+  .ev-time { flex: none; width: 46px; font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; line-height: 1.25; }
+  .ev-time small { display: block; color: var(--muted); font-weight: 500; font-size: 12.5px; }
+  .ev-main { flex: 1; min-width: 0; }
+  .ev-main b { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ev-main small { display: block; color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ev-main .ev-note { display: flex; align-items: center; gap: 4px; color: var(--green); font-weight: 600; }
+  .ev-main .ev-note svg { width: 13px; height: 13px; flex: none; }
+  .ev-st { flex: none; font-size: 12px; font-weight: 700; color: var(--muted); }
+  .ev-st svg { width: 20px; height: 20px; }
+  .ev-st.ok { color: var(--green); } .ev-st.live { color: var(--err); } .ev-st.due { color: var(--amber); }
+  .ev-day { font-size: 12.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 18px 4px 8px; display: flex; gap: 8px; align-items: center; }
+  .ev-day.today { color: var(--accent-ink); }
+  .ev-empty { color: var(--muted); font-size: 14px; padding: 6px 4px 2px; }
+  .mats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .mat { text-align: left; padding: 13px 14px; cursor: pointer; font: inherit; color: inherit; border-top: 5px solid hsl(var(--h) 62% 55%); display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .mat b { font: 600 15.5px/1.25 var(--serif); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .mat small { color: var(--muted); font-size: 12.5px; }
+  .mat .lvl { height: 5px; border-radius: 9px; background: var(--surface-3); overflow: hidden; margin-top: 4px; }
+  .mat .lvl i { display: block; height: 100%; background: hsl(var(--h) 62% 50%); border-radius: 9px; }
+  .ag-foot { text-align: center; color: var(--muted); font-size: 13px; margin: 18px 0 6px; }
+  .ag-empty { padding: 22px 18px; text-align: center; }
+  .ag-empty .sec-ic { margin: 0 auto 10px; width: 52px; height: 52px; border-radius: 16px; background: var(--accent-soft); color: var(--accent-ink); }
+  .ag-empty .sec-ic svg { width: 26px; height: 26px; }
+  .ag-empty b { display: block; font: 600 20px/1.25 var(--serif); margin-bottom: 6px; }
+  .ag-empty p { color: var(--muted); margin: 0 0 14px; font-size: 14.5px; }
+  .crs-head { display: flex; gap: 14px; align-items: center; padding: 6px 2px 14px; }
+  .crs-head .sec-ic { width: 52px; height: 52px; border-radius: 16px; flex: none; }
+  .crs-head .sec-ic svg { width: 26px; height: 26px; }
+  .crs-head h1 { font: 600 25px/1.15 var(--serif); margin: 0 0 4px; letter-spacing: -.01em; }
+  .crs-head p { margin: 0; color: var(--muted); font-size: 13.5px; }
+  .tiles4 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+  .tile { padding: 11px 13px; }
+  .tile b { display: block; font: 600 21px/1.15 var(--serif); }
+  .tile small { color: var(--muted); font-size: 12.5px; }
+  .crs-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .crs-acts .btn { min-height: 48px; justify-content: flex-start; padding: 0 12px; font-size: 14px; text-align: left; line-height: 1.2; }
+  .synth { padding: 0; overflow: hidden; margin-bottom: 14px; }
+  .synth > summary { list-style: none; display: flex; align-items: center; gap: 10px; padding: 14px 16px; cursor: pointer; }
+  .synth > summary::-webkit-details-marker { display: none; }
+  .synth > summary b { flex: 1; font-weight: 600; }
+  .synth > summary small { color: var(--muted); font-size: 12.5px; }
+  .synth .md { padding: 0 16px 6px; border-top: 1px solid var(--line); }
+  .synth .row { padding: 6px 16px 14px; flex-wrap: wrap; }
+  .synth-run { padding: 14px 16px; }
+  .crs-more { display: flex; gap: 14px; justify-content: center; margin: 18px 0 4px; flex-wrap: wrap; }
+  .tabbar .badge.dot { min-width: 10px; width: 10px; height: 10px; padding: 0; top: 4px; left: calc(50% + 9px); animation: recpulse 1.6s infinite; }
+  .ask-head .seg2 { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 1fr; }
+  /* ---- Chapitres ---- */
+  .chaps { padding: 0; margin-bottom: 12px; overflow: hidden; }
+  .chaps > summary { list-style: none; display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; font-weight: 600; }
+  .chaps > summary::-webkit-details-marker { display: none; }
+  .chaps > summary .sec-ic { background: var(--teal-soft); color: var(--teal); }
+  .chaps > summary span.g { flex: 1; }
+  .chaps ol { list-style: none; margin: 0; padding: 0 8px 8px; }
+  .chaps li button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: 0; background: none; padding: 8px; border-radius: 10px; font: inherit; color: var(--ink-2); cursor: pointer; }
+  .chaps li button time { flex: none; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--teal); background: var(--teal-soft); border-radius: 7px; padding: 2px 7px; }
+  .chaps li button.on { background: color-mix(in srgb, var(--teal) 12%, transparent); color: var(--ink); font-weight: 600; }
+  .chaps .chap-foot { padding: 0 16px 12px; }
+  .chap-make { display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 12px; }
+  .chap-make > div { flex: 1; min-width: 0; } .chap-make b { display: block; font-weight: 600; } .chap-make small { color: var(--muted); font-size: 13px; }
+  .chap-make .sec-ic { background: var(--teal-soft); color: var(--teal); flex: none; }
+  .chap-h { display: flex; align-items: center; gap: 8px; margin: 14px -4px 4px; padding: 6px 4px; font: 600 16px/1.3 var(--serif); color: var(--ink); border-bottom: 2px solid var(--teal-soft); }
+  .chap-h span { font: 700 11.5px/1 var(--sans); color: var(--teal); background: var(--teal-soft); border-radius: 6px; padding: 3px 6px; font-variant-numeric: tabular-nums; }
+  .pl-mid { position: relative; }
+  .pl-ticks { position: absolute; left: 8px; right: 8px; top: 9px; height: 4px; pointer-events: none; }
+  .pl-ticks i { position: absolute; top: 0; width: 2px; height: 5px; margin-left: -1px; background: var(--teal); border-radius: 1px; opacity: .8; }
+  .pl-times span:nth-child(2) { flex: 1; min-width: 0; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 6px; color: var(--teal); font-weight: 600; }
+  /* ---- Photos du tableau ---- */
+  .xcard { padding: 12px 14px; margin-top: 12px; }
+  .x-h { display: flex; align-items: center; gap: 10px; }
+  .x-h > div { flex: 1; min-width: 0; } .x-h b { display: block; font-weight: 600; } .x-h small { display: block; color: var(--muted); font-size: 13px; }
+  .x-h .btn { min-height: 38px; padding: 0 11px; flex: none; }
+  .photos .sec-ic { background: var(--blue-soft); color: var(--blue); flex: none; }
+  .ph-strip { display: flex; gap: 8px; overflow-x: auto; margin: 10px -2px 2px; padding: 2px; scrollbar-width: none; }
+  .ph-strip:empty { display: none; }
+  .ph-strip button { position: relative; flex: none; width: 104px; height: 78px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); padding: 0; background: var(--surface-2); cursor: pointer; }
+  .ph-strip img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ph-strip button span { position: absolute; left: 5px; bottom: 5px; font: 700 11px/1 var(--sans); color: #fff; background: rgba(0,0,0,.55); border-radius: 6px; padding: 3px 5px; font-variant-numeric: tabular-nums; }
+  .ph-strip button i { position: absolute; right: 5px; top: 5px; width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 2px #fff; }
+  .seg-photo { display: flex; align-items: center; gap: 10px; width: 100%; border: 1px dashed var(--line); background: var(--surface-2); border-radius: 12px; padding: 6px; margin: 8px 0; cursor: pointer; font: inherit; color: var(--ink-2); text-align: left; }
+  .seg-photo img { width: 64px; height: 48px; object-fit: cover; border-radius: 8px; flex: none; background: var(--surface-3); }
+  .seg-photo span { display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; }
+  .seg-photo svg { width: 16px; height: 16px; color: var(--blue); }
+  .lb { position: fixed; inset: 0; z-index: 60; background: #0c0c0e; color: #f3f1ec; display: flex; flex-direction: column; }
+  .lb-top { display: flex; align-items: center; gap: 8px; padding: calc(10px + env(safe-area-inset-top)) 12px 8px; }
+  .lb-top b { flex: 1; font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .lb .iconbtn { color: #f3f1ec; }
+  .lb-img { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 0 8px; touch-action: pan-y; }
+  .lb-img img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
+  .lb-txt { max-height: 34vh; overflow: auto; background: rgba(255,255,255,.06); margin: 10px 12px 0; border-radius: 14px; padding: 4px 14px; font-size: 14.5px; }
+  .lb-txt .md, .lb-txt p, .lb-txt .md * { color: #f3f1ec; }
+  .lb-txt .md h1, .lb-txt .md h2, .lb-txt .md h3 { font-size: 16px; margin: 10px 0 4px; }
+  .lb-acts { display: flex; gap: 8px; padding: 10px 12px calc(12px + env(safe-area-inset-bottom)); flex-wrap: wrap; }
+  .lb-acts .btn { flex: 1; min-height: 42px; font-size: 14px; padding: 0 8px; white-space: nowrap; background: rgba(255,255,255,.1); color: #fff; border-color: transparent; }
+  /* ---- Mes notes ---- */
+  .mine .sec-ic { background: var(--amber-soft); color: var(--amber); flex: none; }
+  .mine-view { margin-top: 6px; } .mine-view:empty { display: none; }
+  .mine textarea { width: 100%; min-height: 150px; margin-top: 10px; border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; background: var(--surface); font: inherit; line-height: 1.5; resize: vertical; }
+  .mine textarea:focus { outline: none; border-color: var(--accent); }
+  .mine .row { margin-top: 8px; }
+  /* ---- Sélection → expliquer ---- */
+  .sel-ask { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(92px + env(safe-area-inset-bottom)); z-index: 30; display: flex; gap: 6px; padding: 6px; border-radius: 16px; background: var(--ink); box-shadow: 0 10px 30px -8px rgba(0,0,0,.45); }
+  .sel-ask button { border: 0; border-radius: 11px; padding: 9px 13px; font: 600 14px/1 var(--sans); background: transparent; color: var(--bg); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .sel-ask button:first-child { background: var(--accent); color: #fff; }
+  .sel-ask svg { width: 15px; height: 15px; }
+  body.has-player .sel-ask { bottom: calc(150px + env(safe-area-inset-bottom)); }
+  /* ---- Lecture à voix haute ---- */
+  .tts-bar { max-width: 640px; margin: 0 auto 10px; display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 12px; border-radius: 14px; background: var(--teal-soft); color: var(--teal); }
+  .tts-bar b { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tts-bar .pl-sm { border-color: transparent; }
+  .tts-now { background: color-mix(in srgb, var(--teal) 14%, transparent); border-radius: 8px; box-shadow: 0 0 0 4px color-mix(in srgb, var(--teal) 14%, transparent); }
+  body.has-tts .wrap { padding-bottom: 200px; }
+  /* ---- Glisser entre onglets / reprendre / tirer pour actualiser ---- */
+  html, body { overscroll-behavior-y: contain; }
+  @keyframes swl { from { opacity: .3; transform: translateX(36px); } to { opacity: 1; transform: none; } }
+  @keyframes swr { from { opacity: .3; transform: translateX(-36px); } to { opacity: 1; transform: none; } }
+  .sw-l { animation: swl .22s ease-out; } .sw-r { animation: swr .22s ease-out; }
+  .resume-chip { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 14px; padding: 9px 12px; margin: -6px 0 14px; cursor: pointer; font: inherit; color: inherit; box-shadow: var(--shadow); }
+  .resume-chip svg { width: 18px; height: 18px; color: var(--accent-ink); flex: none; }
+  .resume-chip > span { flex: 1; min-width: 0; }
+  .resume-chip b { display: block; font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .resume-chip small { display: block; color: var(--muted); font-size: 12.5px; }
+  .resume-chip .lvl { width: 42px; height: 5px; border-radius: 9px; background: var(--surface-3); overflow: hidden; flex: none; }
+  .resume-chip .lvl i { display: block; height: 100%; background: var(--accent); }
+  .ptr { position: fixed; top: calc(6px + env(safe-area-inset-top)); left: 50%; z-index: 50; width: 40px; height: 40px; margin-top: -56px; border-radius: 50%; background: var(--surface); box-shadow: var(--shadow-lg); display: grid; place-items: center; color: var(--muted); transform: translate(-50%, 0); opacity: 0; transition: opacity .15s; pointer-events: none; }
+  .ptr svg { width: 20px; height: 20px; transition: transform .2s; }
+  .ptr.show { opacity: 1; }
+  .ptr.ready { color: var(--accent-ink); } .ptr.ready svg { transform: rotate(180deg); }
+  .ptr.spin { transform: translate(-50%, 62px) !important; } .ptr.spin svg { animation: spin .8s linear infinite; }
   .bk-remind { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; margin-bottom: 14px; }
   .bk-remind > div { flex: 1; min-width: 0; }
   .bk-remind b { display: block; font-size: 14.5px; }
@@ -813,6 +973,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg>
     </button>
     <span class="hdr-acts hidden" id="noteHdr">
+      <button class="iconbtn" id="ttsBtn" aria-label="Lire à voix haute"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
       <button class="iconbtn" id="askBtn" aria-label="Poser une question sur cette note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a7.5 7.5 0 0 1-11.1 6.6L4 19.5l1.4-4.3A7.5 7.5 0 1 1 20 11.5z"/><path d="M10.2 9.6a2 2 0 1 1 2.8 1.8c-.6.3-1 .8-1 1.4M12 15.2h.01"/></svg></button>
       <button class="iconbtn" id="pinBtn" aria-label="Épingler la note" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3.5h6l-1.2 5.5 3.7 3.4V14H6.5v-1.6L10.2 9z"/><path d="M12 14v6.5"/></svg></button>
     </span>
@@ -825,6 +986,7 @@
       <h1 id="greet">Bonjour</h1>
       <p id="stats" role="button" style="cursor:pointer"></p>
     </div>
+    <div id="resumeBox"></div>
 
     <div id="onboard" class="card setup hidden">
       <h2>Deux minutes de réglage</h2>
@@ -847,6 +1009,7 @@
       <div><b>Sauvegarde tes notes</b><small id="bkRemindTxt"></small>
         <div class="row" style="margin-top:10px"><button class="btn primary" id="bkRemindGo" style="min-height:38px">Sauvegarder</button><button class="btn ghost" id="bkRemindX" style="min-height:38px">Plus tard</button></div></div>
     </div>
+    <div id="homeCrs"></div>
     <button class="card run-banner rec-banner hidden" id="recBanner">
       <span class="rec-dot"></span>
       <div><b>Enregistrement en cours</b><small id="recBannerTime"></small></div>
@@ -873,7 +1036,7 @@
       <div><b>Importer depuis Plaud</b><small>Enregistrements synchronisés par l'app Plaud</small></div>
       <span class="pill" id="plaudCount"></span>
     </button>
-    <input type="file" id="fileInput" accept="audio/*,video/*,.mp3,.m4a,.wav,.ogg,.opus,.aac,.flac,.amr" class="hidden">
+    <input type="file" id="fileInput" accept="audio/*,video/*,.mp3,.m4a,.wav,.ogg,.opus,.aac,.flac,.amr,.ics" class="hidden">
 
     <div id="browse" class="hidden">
       <div class="toolbar">
@@ -950,6 +1113,21 @@
       <div class="study-row"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a7.5 7.5 0 0 1-11.1 6.6L4 19.5l1.4-4.3A7.5 7.5 0 1 1 20 11.5z"/></svg></span><div><b>Poser une question</b><small>Réponses avec renvois aux passages</small></div><button class="btn" id="stAsk" type="button">Demander</button></div>
       <div class="study-row"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="14" rx="2.5"/><path d="M7 3h11.5A2.5 2.5 0 0 1 21 5.5V17"/></svg></span><div><b>Fiches de révision</b><small id="stCardsInfo"></small></div><button class="btn" id="stCards" type="button"></button></div>
     </div>
+    <div id="noteExtras">
+      <div class="card xcard photos" id="phBox">
+        <div class="x-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.8l1.4-2h4.6l1.4 2h1.8A2.5 2.5 0 0 1 20 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5z"/><circle cx="12" cy="12.5" r="3.5"/></svg></span><div><b>Photos du tableau</b><small id="phInfo"></small></div>
+          <button class="btn" id="phCam" type="button" aria-label="Prendre une photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.8l1.4-2h4.6l1.4 2h1.8A2.5 2.5 0 0 1 20 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5z"/><circle cx="12" cy="12.5" r="3.5"/></svg></button><button class="btn" id="phGal" type="button">Galerie</button></div>
+        <div class="ph-strip" id="phStrip"></div>
+        <input type="file" id="phCamInput" accept="image/*" capture="environment" class="hidden">
+        <input type="file" id="phGalInput" accept="image/*" multiple class="hidden">
+      </div>
+      <div class="card xcard mine" id="mineBox">
+        <div class="x-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span><div><b>Mes notes</b><small id="mineInfo">Tes remarques, questions pour le prof, liens…</small></div><button class="btn" id="mineEdit" type="button">Écrire</button></div>
+        <div class="md mine-view" id="mineView"></div>
+        <textarea id="mineInput" class="hidden" placeholder="Écris librement. Markdown accepté : **gras**, listes, $formules$…"></textarea>
+        <div class="row hidden" id="mineBar"><button class="btn primary" id="mineSave" type="button">Enregistrer</button><button class="btn ghost" id="mineCancel" type="button">Annuler</button></div>
+      </div>
+    </div>
     <div id="noteTrWrap" class="hidden">
       <div class="card enh" id="enhBox">
         <div class="enh-intro" id="enhIntro">
@@ -976,6 +1154,7 @@
           <input type="search" id="trSearch" placeholder="Rechercher dans la transcription" autocomplete="off">
         </div>
       </div>
+      <div id="chapBox"></div>
       <div class="marks-row hidden" id="trMarks"></div>
       <p class="f-help pl-hint hidden" id="trPlayHint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5.5v13l10.5-6.5z"/></svg>Touche un passage pour l'écouter.</p>
       <div class="card tr-list" id="noteTr"></div>
@@ -1009,6 +1188,15 @@
     </div>
   </section>
 
+  <!-- ===== Cours (emploi du temps) ===== -->
+  <section id="v-courses" class="view hidden">
+    <div class="hello"><h1>Cours</h1><p id="crsSub"></p></div>
+    <div id="crsBody"></div>
+  </section>
+  <section id="v-course" class="view hidden">
+    <div id="courseBody"></div>
+  </section>
+
   <!-- ===== Enregistrement ===== -->
   <section id="v-rec" class="view hidden">
     <div class="rec">
@@ -1024,7 +1212,9 @@
       <p class="rec-hint">Touche le carré pour terminer : la transcription et le résumé se lancent tout seuls. « Marquer » signale un passage important.</p>
       <div class="rec-foot">
         <button class="tbtn" id="recScreen" type="button" aria-pressed="true">Écran allumé</button>
-        <button class="linkbtn" id="recCancel" type="button" style="color:var(--muted);font-weight:500">Annuler l'enregistrement</button>
+        <button class="tbtn" id="recPhoto" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;display:inline-block;vertical-align:-3px;margin-right:4px"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.8l1.4-2h4.6l1.4 2h1.8A2.5 2.5 0 0 1 20 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5z"/><circle cx="12" cy="12.5" r="3.5"/></svg>Photo</button>
+        <input type="file" id="recPhotoInput" accept="image/*" capture="environment" class="hidden">
+        <button class="linkbtn" id="recCancel" type="button" style="color:var(--muted);font-weight:500">Annuler</button>
       </div>
       <p class="rec-tip">L'enregistrement est sauvegardé au fur et à mesure : si l'app se ferme, il est récupéré à la réouverture. Pour un long cours, laisse l'app ouverte au premier plan.</p>
     </div>
@@ -1033,7 +1223,7 @@
   <!-- ===== Questions ===== -->
   <section id="v-ask" class="view hidden">
     <div class="ask-head">
-      <div class="seg2" id="askScope" role="tablist"><button data-s="note" aria-selected="true">Cette note</button><button data-s="all" aria-selected="false">Toutes mes notes</button></div>
+      <div class="seg2" id="askScope" role="tablist"><button data-s="note" aria-selected="true">Cette note</button><button data-s="course" aria-selected="false" class="hidden">La matière</button><button data-s="all" aria-selected="false">Toutes</button></div>
       <button class="iconbtn" id="askClear" type="button" aria-label="Effacer la conversation" title="Effacer la conversation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button>
     </div>
     <div class="ask-list" id="askList"></div>
@@ -1041,10 +1231,6 @@
 
   <!-- ===== Réviser ===== -->
   <section id="v-review" class="view hidden">
-    <div id="rvHome">
-      <div class="hello"><h1>Réviser</h1><p id="rvStats"></p></div>
-      <div id="rvBody"></div>
-    </div>
     <div id="rvSession" class="hidden">
       <div class="rv-top"><button class="tbtn" id="rvQuit" type="button">Terminer</button><span id="rvProg"></span></div>
       <div class="rv-bar"><i id="rvBar"></i></div>
@@ -1210,6 +1396,25 @@
       </div>
     </div>
 
+    <div class="set-group" id="agSet">
+      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5"/><path d="M9 7.5h7M9 11h5"/></svg></span><b>Emploi du temps</b></div>
+      <div class="card pad stack">
+        <div>
+          <label class="f" for="sIcsUrl">Adresse de ton calendrier (.ics)</label>
+          <input type="url" id="sIcsUrl" spellcheck="false" autocomplete="off" placeholder="https://webcampus…/calendar/export_execute.php?…">
+          <div class="f-help">Moodle : <b>Calendrier → Exporter le calendrier</b> → « Tous les événements », « Événements récents et à venir » → <b>Obtenir l'URL du calendrier</b>, puis colle-la ici. Elle donne accès à ton calendrier : ne la partage pas. Elle reste dans ce téléphone. La synchronisation passe par ton relais Cloudflare (étape 6 du guide) ; sans relais, importe le fichier .ics.</div>
+        </div>
+        <div class="row"><button class="btn" id="agSync" type="button" style="flex:1">Synchroniser</button><button class="btn" id="agFile" type="button" style="flex:1">Importer un .ics</button></div>
+        <div class="f-help" id="agState"></div>
+        <div>
+          <label class="f" for="sCourseRem">Rappel avant chaque cours</label>
+          <select id="sCourseRem"><option value="0">Désactivé</option><option value="5">5 min avant</option><option value="10">10 min avant</option><option value="15">15 min avant</option><option value="30">30 min avant</option></select>
+          <div class="f-help">Une notification « pense à lancer ton Plaud ». Comme les rappels de tâches, elle est fiable quand l'app est ouverte ou en arrière-plan ; sinon elle peut arriver un peu en avance (vérification Android toutes les heures environ).</div>
+        </div>
+        <input type="file" id="icsInput" accept=".ics,text/calendar" class="hidden">
+      </div>
+    </div>
+
     <div class="set-group">
       <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-.5-9A6 6 0 0 1 18 8.5a4 4 0 0 1-.5 9.5"/><path d="M12 12v8M9 17l3 3 3-3"/></svg></span><div><b>Import depuis Plaud</b><small>Sans exporter à la main (facultatif)</small></div></div>
       <div class="card pad stack">
@@ -1288,10 +1493,11 @@
 </div>
 
 <div class="actions hidden" id="noteActions">
+  <div class="tts-bar hidden" id="ttsBar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><b id="ttsLbl">Lecture</b><button class="pl-sm" id="ttsPause" type="button" aria-label="Pause"></button><button class="pl-sm pl-rate" id="ttsRate" type="button" aria-label="Vitesse">1×</button><button class="pl-sm" id="ttsStop" type="button" aria-label="Arrêter">✕</button></div>
   <div class="player hidden" id="player">
     <button class="pl-play" id="plPlay" type="button" aria-label="Lire"></button>
     <button class="pl-sm" id="plBack" type="button" aria-label="Reculer de 10 secondes">−10</button>
-    <div class="pl-mid"><input type="range" class="pl-seek" id="plSeek" min="0" max="1000" value="0" step="1" aria-label="Position dans l'enregistrement"><div class="pl-times"><span id="plCur">0:00</span><span id="plDur">--:--</span></div></div>
+    <div class="pl-mid"><input type="range" class="pl-seek" id="plSeek" min="0" max="1000" value="0" step="1" aria-label="Position dans l'enregistrement"><div class="pl-ticks" id="plTicks"></div><div class="pl-times"><span id="plCur">0:00</span><span id="plChap"></span><span id="plDur">--:--</span></div></div>
     <button class="pl-sm" id="plFwd" type="button" aria-label="Avancer de 30 secondes">+30</button>
     <button class="pl-sm pl-rate" id="plSpeed" type="button" aria-label="Vitesse de lecture">1×</button>
   </div>
@@ -1302,9 +1508,17 @@
   </div>
 </div>
 <button class="fab hidden" id="fab" aria-label="Nouvelle tâche"></button>
+<div class="ptr" id="ptr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></div>
+<div class="sel-ask hidden" id="selAsk"><button id="selExplain" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/></svg>Expliquer</button><button id="selQ" type="button">Question…</button><button id="selX" type="button" aria-label="Fermer">✕</button></div>
+<div class="lb hidden" id="lightbox">
+  <div class="lb-top"><button class="iconbtn" id="lbClose" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button><b id="lbCap"></b><button class="iconbtn" id="lbPrev" aria-label="Précédente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><button class="iconbtn" id="lbNext" aria-label="Suivante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
+  <div class="lb-img" id="lbImgBox"><img id="lbImg" alt="Photo du tableau"></div>
+  <div class="lb-txt" id="lbText"></div>
+  <div class="lb-acts"><button class="btn" id="lbGo" type="button">Aller au moment</button><button class="btn" id="lbRead" type="button">Lire avec l'IA</button><button class="btn" id="lbDel" type="button">Supprimer</button></div>
+</div>
 <nav class="tabbar hidden" id="tabbar">
   <button data-v="home" aria-selected="true"></button>
-  <button data-v="review" aria-selected="false"></button>
+  <button data-v="courses" aria-selected="false"></button>
   <button data-v="tasks" aria-selected="false"></button>
 </nav>
 <div class="ask-bar hidden" id="askBar"><div>
@@ -1328,7 +1542,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '30 · 28 sept. 2026';
+const APP_VERSION = '31 · 3 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -1564,7 +1778,7 @@ const SILENCE = 'data:audio/wav;base64,UklGRmQfAABXQVZFZm10IBAAAAABAAEAQB8AAEAfA
 let bgAudio = null, bgOn = false;
 function setMedia(active) {
   if (!('mediaSession' in navigator)) return;
-  try { if (pl.el && pl.idx >= 0) return plMedia(); } catch (e) {}
+  try { if (rec.mr) return recMedia(); if (pl.el && pl.idx >= 0) return plMedia(); } catch (e) {}
   try {
     navigator.mediaSession.metadata = active && 'MediaMetadata' in window ? new MediaMetadata({ title: 'Traitement en cours…', artist: 'Notes Plaud' }) : null;
     navigator.mediaSession.playbackState = active ? 'playing' : 'none';
@@ -1993,6 +2207,7 @@ async function transcribePart(part, i, n, onModel) {
     fd.append('model', model);
     fd.append('response_format', 'verbose_json');
     fd.append('temperature', '0');
+    if (whisperPrompt) fd.append('prompt', whisperPrompt);
     if (settings.lang !== 'auto') fd.append('language', settings.lang);
     try {
       return { j: await groq('/audio/transcriptions', { method: 'POST', body: fd }, label, { maxWait: 20, timeout: 600000 }), model };
@@ -2071,7 +2286,7 @@ let lastModel = '';
 const GEM_API = 'https://generativelanguage.googleapis.com/v1beta/models/';
 let gemThinking = true;
 const gemLimited = {};   // modèle -> fin du blocage (quota atteint)
-async function gemini(prompt, maxOut, label) {
+async function gemini(prompt, maxOut, label, extraParts) {
   if (!settings.gkey) throw new ApiError('Clé Gemini manquante. Ajoute-la dans les réglages, ou choisis Groq pour le résumé.');
   const models = gemList();
   if (!models.length) throw new ApiError('Aucun modèle Gemini indiqué dans les réglages.');
@@ -2080,7 +2295,7 @@ async function gemini(prompt, maxOut, label) {
     if (gemLimited[model] > Date.now()) { lastErr = `quota atteint pour « ${model} »`; continue; }
     for (let attempt = 0; attempt < 3; attempt++) {
       const body = {
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        contents: [{ role: 'user', parts: [...(extraParts || []), { text: prompt }] }],
         generationConfig: { maxOutputTokens: Math.max(maxOut * 3, 8192) },
       };
       if (gemThinking) body.generationConfig.thinkingConfig = { thinkingLevel: 'low' };
@@ -2214,7 +2429,8 @@ function fallBack(e) {   // passe au fournisseur suivant ; renvoie son nom ou nu
   return nx;
 }
 
-const ctxLine = () => settings.ctx.trim() ? `\nContexte donné par l'utilisateur : ${settings.ctx.trim()}\n` : '';
+let ctxCourse = '', whisperPrompt = '';
+const ctxLine = () => (settings.ctx.trim() ? `\nContexte donné par l'utilisateur : ${settings.ctx.trim()}\n` : '') + (ctxCourse ? `\nCet enregistrement : ${ctxCourse}\n` : '');
 const KINDS = { auto: 'Automatique', cours: 'Cours', reunion: 'Réunion', perso: 'Note personnelle' };
 const STRUCT = {
   cours: `## Résumé
@@ -2471,6 +2687,10 @@ function splitTitle(summary, fallback) {
 /* =================== Icônes =================== */
 const I = (d, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const ICONS = {
+  camera: I('<path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.8l1.4-2h4.6l1.4 2h1.8A2.5 2.5 0 0 1 20 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5z"/><circle cx="12" cy="12.5" r="3.5"/>'),
+  chapters: I('<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>'),
+  book: I('<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5"/><path d="M9 7.5h7M9 11h5"/>'),
+  mic: I('<rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/>'),
   cards: I('<rect x="3" y="6" width="14" height="14" rx="2.5"/><path d="M7 3h11.5A2.5 2.5 0 0 1 21 5.5V17"/>'),
   play: I('<path d="M8 5.5v13l10.5-6.5z"/>'),
   pin: I('<path d="M9 3.5h6l-1.2 5.5 3.7 3.4V14H6.5v-1.6L10.2 9z"/><path d="M12 14v6.5"/>'),
@@ -2577,6 +2797,7 @@ function renderNoteDate() {
 }
 
 async function startFile(file, extra) {
+  if (file && (/\.ics$/i.test(file.name || '') || /calendar/i.test(file.type || ''))) { importIcsFile(file); return; }
   if (!extra && (busy || enhancing || writing)) { toast('Un traitement est déjà en cours'); return; }
   if (!file || !file.size) { toast('Aucun fichier audio reçu'); return; }
   const now = Date.now();
@@ -2626,6 +2847,8 @@ async function run(note, opts = {}) {
   if (enhancing) { toast('Attends la fin de l\'amélioration en cours'); return; }
   if (busy) { toast('Un traitement est déjà en cours'); return; }
   busy = true; runningId = note.id;
+  if (!note.course && !note.courseOff) { const ev = courseAt(note.created); if (ev) { linkCourse(note, ev); if (/^(Enregistrement du|enregistrement-|audio|rec|\d)/i.test(note.title || '') || note.title === baseName(note.fileName)) note.title = courseTitle(note); await db.put(note).catch(() => {}); } }
+  setCourseCtx(note);
   $('runBannerName').textContent = baseName(note.title || note.fileName);
   renderNotif();
   if (!opts.background) show('job'); else if (current === 'home') renderHome();
@@ -2659,12 +2882,20 @@ async function run(note, opts = {}) {
     }
     bar(0.5);
     step('st-sum', 'active', 'Avec ' + PNAME[provider()]);
-    const raw = await summarize(note.segments, (label, p) => { step('st-sum', 'active', label); bar(0.5 + 0.48 * p); }, opts.kind || settings.kind || 'auto', note.created);
+    if (settings.gkey && (note.photos || []).some((x) => !x.text && !x.textErr)) {
+      step('st-sum', 'active', 'Lecture des photos du tableau…');
+      await readBoards(note.id); const f = await db.get(note.id); if (f && f.photos) note.photos = f.photos;
+    }
+    const raw = await summarize(withBoards(note.segments, note.photos), (label, p) => { step('st-sum', 'active', label); bar(0.5 + 0.48 * p); }, opts.kind || (note.course && (settings.kind || 'auto') === 'auto' ? 'cours' : settings.kind || 'auto'), note.created);
     const t = splitTitle(raw, note.title);
     const meta = splitMeta(t.body);
     meta.body = autoRemind(meta.body);
-    const tags = [...new Set([...(note.tags || []), ...(note.tags && note.tags.length ? [] : meta.tags)])];
+    const own = (note.tags || []).filter((x) => !note.course || x !== crsTag(note.course.name));
+    const tags = [...new Set([...(note.tags || []), ...(own.length ? [] : meta.tags)])];
     Object.assign(note, { title: t.title, summary: meta.body, status: 'ok', summaryBy: lastModel, kind: meta.kind || (opts.kind !== 'auto' && opts.kind) || note.kind || null, tags });
+    if (!note.chapters && (note.duration || 0) >= 480 && provider() !== 'groq') {   // chapitres (avec Groq, sur demande : sa limite par minute est déjà entamée)
+      try { step('st-sum', 'active', 'Chapitres…'); const ch = await makeChapters(note); if (ch) Object.assign(note, ch); } catch (e) { if (e instanceof Cancelled) throw e; }
+    }
     if (note.audio) {   // l'audio quitte la note (liste plus légère) ; on le garde à part pour la réécoute
       if (settings.keepAudio !== false) { try { await audioDB.put(note.id, note.audio); } catch (e) { toast('Pas assez de place : l\'audio n\'a pas été gardé'); } }
       delete note.audio;
@@ -2703,17 +2934,23 @@ async function run(note, opts = {}) {
 
 /* =================== Vues =================== */
 let current = 'home', currentNote = null, allNotes = [];
-const TITLES = { job: 'Traitement', note: '', settings: 'Réglages', ask: 'Poser une question', rec: 'Enregistrer' };
+const TITLES = { job: 'Traitement', note: '', settings: 'Réglages', ask: 'Poser une question', rec: 'Enregistrer', review: 'Réviser', course: 'Matière' };
+const TABS = ['home', 'courses', 'tasks'];
+const navStack = []; let navLock = false;
 function show(v, keepScroll) {
+  if (v !== current && current && !navLock) {   // pile de navigation : « retour » revient à l'écran précédent
+    if (TABS.includes(v)) navStack.length = 0;
+    else { navStack.push({ v: current, id: currentNote ? currentNote.id : null, crs: courseCur }); if (navStack.length > 30) navStack.shift(); }
+  }
   const changed = v !== current;
   current = v;
-  for (const id of ['home', 'tasks', 'review', 'job', 'note', 'settings', 'ask', 'rec']) {
+  for (const id of ['home', 'tasks', 'courses', 'course', 'review', 'job', 'note', 'settings', 'ask', 'rec']) {
     const el = $('v-' + id);
     el.classList.toggle('hidden', id !== v);
     if (id === v && changed) { el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); }
   }
   const lockBack = false;
-  const tab = v === 'home' || v === 'tasks' || v === 'review';
+  const tab = TABS.includes(v);
   $('backBtn').classList.toggle('hidden', tab);
   $('brand').classList.toggle('hidden', !tab);
   $('title').classList.toggle('hidden', tab);
@@ -2732,8 +2969,12 @@ function show(v, keepScroll) {
   if (v === 'home') renderHome();
   if (v === 'tasks') renderTasks();
   if (v === 'review') renderReview();
+  if (v === 'courses') renderCourses();
+  if (v === 'course') renderCourse();
   $('askBar').classList.toggle('hidden', v !== 'ask');
   if (v !== 'note' && pl.el && !pl.el.paused) pl.el.pause();
+  if (v !== 'note' && tts.on) ttsStop();
+  $('selAsk').classList.add('hidden');
   plUI(); renderRecBanner();
   if (v === 'rec') renderRec();
   if (backReady && !(history.state && history.state.np === 1)) { try { history.pushState({ np: 1 }, ''); } catch (e) {} }
@@ -2787,6 +3028,8 @@ async function renderHome() {
   renderBrowse();
   renderList();
   renderBkRemind();
+  renderHomeCourse();
+  renderResume();
 }
 
 const EMPTY = `
@@ -2820,7 +3063,7 @@ function filtered(ignoreDay) {
     else if (ui.mode === 'cal') notes = notes.filter((n) => monthStart(n.created) === ui.month);
   }
   const q = norm($('search').value.trim());
-  if (q) notes = notes.filter((n) => norm(`${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''} ${n.lecture || ''} ${(n.segments || []).map((s) => s.text).join(' ')} ${(n.clean || []).map((s) => s.text).join(' ')}`).includes(q));
+  if (q) notes = notes.filter((n) => norm(`${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''} ${n.lecture || ''} ${(n.segments || []).map((s) => s.text).join(' ')} ${(n.clean || []).map((s) => s.text).join(' ')} ${n.mine || ''} ${(n.photos || []).map((x) => x.text || '').join(' ')}`).includes(q));
   // les notes épinglées d'abord (hors filtre par jour)
   if (ui.day == null && ui.mode !== 'cal') notes = [...notes.filter((n) => n.pinned), ...notes.filter((n) => !n.pinned)];
   return notes;
@@ -2833,6 +3076,8 @@ function findSnippet(n, qRaw) {
     ['sum', 'Résumé', plainMd(n.summary, true)],
     ['lecture', 'Cours', plainMd(n.lecture)],
     ['tr', 'Transcription', (hasClean(n) ? n.clean : (n.segments || [])).map((x) => x.text).join(' ')],
+    ['mine', 'Mes notes', plainMd(n.mine)],
+    ['sum', 'Tableau', plainMd((n.photos || []).map((x) => x.text || '').join(' '))],
   ];
   if (norm(n.title).includes(q)) return null;
   for (const [where, label, text] of places) {
@@ -2938,14 +3183,15 @@ function renderList() {
     const badge = n.id === runningId ? `<span class="pill run">${ICONS.clock}En cours…</span>` : n.status === 'ok' ? '' :
       n.status === 'resume-err' ? `<span class="pill err">${ICONS.alert}Résumé à refaire</span>` :
       n.status === 'err' ? `<span class="pill err">${ICONS.alert}Échec</span>` : `<span class="pill run">${ICONS.alert}Interrompu</span>`;
-    const tags = (n.tags || []).slice(0, 3).map((t) => tagHtml(t)).join('');
+    const crsM = n.course ? getMat(n.course.key) : null, hue = crsM ? crsM.hue : null;
+    const tags = (n.tags || []).filter((t) => !n.course || t !== crsTag(n.course.name)).slice(0, 3).map((t) => tagHtml(t)).join('');
     html += `
-      <button class="item${ui.picked.has(n.id) ? ' picked' : ''}" data-id="${n.id}">
+      <button class="item${ui.picked.has(n.id) ? ' picked' : ''}${n.course ? ' has-crs' : ''}" data-id="${n.id}"${hue != null ? ` style="--h:${hue}"` : ''}>
         <span class="ck"></span>
         <span class="item-top"><span class="t">${n.pinned ? `<span class="pin">${ICONS.pin}</span>` : ''}${esc(n.title)}</span><span class="time">${shortTime(n.created)}</span></span>
         ${excerpt(n) ? `<span class="ex">${esc(excerpt(n))}</span>` : ''}
         ${qRaw ? (() => { const sn = findSnippet(n, qRaw); return sn ? `<span class="snip" data-where="${sn.where}"><b>${sn.label}</b>${sn.html}</span>` : ''; })() : ''}
-        <span class="m">${n.duration ? `<span class="pill">${ICONS.clock}${dur(n.duration)}</span>` : ''}${tasks ? `<span class="pill task">${ICONS.check}${tasks} à faire</span>` : ''}${badge}</span>
+        <span class="m">${n.course ? `<span class="pill hue"${hue != null ? ` style="--h:${hue}"` : ''}>${ICONS.book}${esc(n.course.name)}${n.course.kind && n.course.kind !== 'cours' ? ' · ' + (KIND_LBL[n.course.kind] || '') : ''}</span>` : ''}${n.duration ? `<span class="pill">${ICONS.clock}${dur(n.duration)}</span>` : ''}${tasks ? `<span class="pill task">${ICONS.check}${tasks} à faire</span>` : ''}${badge}</span>
         ${tags ? `<span class="tags">${tags}</span>` : ''}
       </button>`;
   }
@@ -3008,7 +3254,7 @@ async function openTagSheet(ids) {
 }
 function renderNoteTags() {
   const n = currentNote; if (!n) return;
-  $('noteTags').innerHTML = (n.tags || []).map((t) => `<span class="tag" style="--h:${tagHue(t)}"><span class="tn" data-t="${esc(t)}" role="button">${ICONS.tag}${esc(t)}</span><span class="tx" data-rm="${esc(t)}" role="button" aria-label="Retirer">${ICONS.x}</span></span>`).join('')
+  $('noteTags').innerHTML = (n.tags || []).filter((t) => !n.course || t !== crsTag(n.course.name)).map((t) => `<span class="tag" style="--h:${tagHue(t)}"><span class="tn" data-t="${esc(t)}" role="button">${ICONS.tag}${esc(t)}</span><span class="tx" data-rm="${esc(t)}" role="button" aria-label="Retirer">${ICONS.x}</span></span>`).join('')
     + `<button class="tag add" id="addNoteTag">${ICONS.plus}Tag</button>`;
   $('noteTags').querySelectorAll('[data-rm]').forEach((x) => x.onclick = async () => { n.tags = n.tags.filter((t) => t !== x.dataset.rm); await db.put(n); renderNoteTags(); });
   $('noteTags').querySelectorAll('[data-t]').forEach((x) => x.onclick = () => { ui.tag = x.dataset.t; ui.day = null; show('home'); });
@@ -3047,7 +3293,9 @@ function noteMarkdown(n) {
   const hasClean = !!(n.clean && n.clean.length);
   const tr = (hasClean ? n.clean : (n.segments || [])).map((s) => s.sep ? `### ${s.text}` : `[${hms(s.start)}] ${s.text}`).join('\n\n');
   const lect = n.lecture && n.lecture.trim() ? `\n\n---\n\n# Cours rédigé\n\n${n.lecture}` : '';
-  return `# ${n.title}\n\n*${fmtDate(n.created)}${n.duration ? ' · ' + dur(n.duration) : ''} · ${n.fileName}*\n\n${n.summary || ''}${lect}\n\n---\n\n## Transcription${hasClean ? ' (améliorée par IA)' : ''}\n\n${tr}\n`;
+  const mine = n.mine ? `\n\n---\n\n## Mes notes\n\n${n.mine}` : '';
+  const boards = (n.photos || []).filter((x) => x.text).map((x) => `### Tableau${x.t != null ? ' (' + hms(x.t) + ')' : ''}\n\n${x.text}`).join('\n\n');
+  return `# ${n.title}\n\n*${fmtDate(n.created)}${n.duration ? ' · ' + dur(n.duration) : ''} · ${n.fileName}*\n\n${n.summary || ''}${mine}${lect}${boards ? '\n\n---\n\n## Photos du tableau\n\n' + boards : ''}\n\n---\n\n## Transcription${hasClean ? ' (améliorée par IA)' : ''}\n\n${tr}\n`;
 }
 
 // « - Question ? → Réponse » : la flèche est cherchée en dehors des formules LaTeX
@@ -3109,13 +3357,17 @@ function renderTranscript() {
     const flat = curSegs(n).filter((s) => !s.sep);
     for (const m of n.marks) { let pick = null; for (const x of flat) { if (x.start <= m + 0.5) pick = x; else break; } if (pick) marked.add(pick); }
   }
+  const inl = re ? [] : inlineItems(n); let ii = 0;
+  const before = (t) => { let h = ''; while (ii < inl.length && inl[ii].t <= t + 0.5) h += inl[ii++].html; return h; };
   $('noteTr').innerHTML = segs.map((s) => {
     if (s.sep) return `<div class="seg-sep">${ICONS.file}<span>${esc(s.text)}</span></div>`;
+    const pre = before(s.start);
     let t = re ? esc(s.text) : mathify(s.text);
     if (re) t = t.replace(new RegExp(esc(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), (m) => `<mark>${m}</mark>`);
-    return `<div class="seg${para ? ' para' : ''}${marked.has(s) ? ' mark' : ''}" data-t="${s.start}"><time>${hms(s.start)}</time><span>${t}</span></div>`;
-  }).join('') || `<p class="muted" style="padding:10px 0">${n.segments ? 'Aucun passage ne correspond.' : 'Pas de transcription.'}</p>`;
+    return pre + `<div class="seg${para ? ' para' : ''}${marked.has(s) ? ' mark' : ''}" data-t="${s.start}"><time>${hms(s.start)}</time><span>${t}</span></div>`;
+  }).join('') + (segs.length ? inl.slice(ii).map((x) => x.html).join('') : '') || `<p class="muted" style="padding:10px 0">${n.segments ? 'Aucun passage ne correspond.' : 'Pas de transcription.'}</p>`;
   renderMath($('noteTr'));
+  fillImgs($('noteTr'));
   pl.segEls = null; if (pl.noteId === n.id) plSync(true);
 }
 
@@ -3196,7 +3448,7 @@ async function enhance() {
   let si = 0, out = [], prev = '';
   const saved = n.cleanPartial;
   if (saved && saved.total === segs.length && saved.si > 0 && saved.si < segs.length) ({ si, out, prev } = { si: saved.si, out: saved.out.slice(), prev: saved.prev || '' });
-  enhancing = n.id; statusEl = 'enhStatus'; cancelReq = false; provFailed = new Set(); provOverride = null; keepAwake(true);
+  enhancing = n.id; setCourseCtx(n); statusEl = 'enhStatus'; cancelReq = false; provFailed = new Set(); provOverride = null; keepAwake(true);
   renderEnh(); setEnh(0.04 + 0.92 * (si / segs.length), si ? 'Reprise là où ça s\'était arrêté' : 'Réécriture en cours');
   const about = excerpt(n).slice(0, 600);
   const save = async (extra) => {
@@ -3330,11 +3582,11 @@ async function generateLecture() {
   if (!n || !n.segments || !n.segments.length) return;
   if (busy || enhancing || writing) { toast('Un traitement est déjà en cours'); return; }
   if (!hasKey(provider())) { toast('Ajoute d\'abord une clé d\'IA dans les réglages'); return; }
-  const segs = n.segments;
+  const segs = withBoards(n.segments, n.photos);
   let si = 0, parts = [], prev = '';
   const saved = n.lecturePartial;
   if (saved && saved.total === segs.length && saved.si > 0 && saved.si < segs.length) ({ si, parts, prev } = { si: saved.si, parts: saved.parts.slice(), prev: saved.prev || '' });
-  writing = n.id; statusEl = 'lectStatus'; cancelReq = false; provFailed = new Set(); provOverride = null; keepAwake(true);
+  writing = n.id; setCourseCtx(n); statusEl = 'lectStatus'; cancelReq = false; provFailed = new Set(); provOverride = null; keepAwake(true);
   renderLecture(); setLect(0.04 + 0.92 * (si / segs.length), si ? 'Reprise là où ça s\'était arrêté' : 'Rédaction en cours');
   const about = excerpt(n).slice(0, 800);
   const totalChars = segs.reduce((a, x) => a + (x.sep ? 0 : x.text.length + 1), 0);
@@ -3413,6 +3665,7 @@ async function openNote(id, opts) {
     n.summaryBy ? `<span class="pill">${ICONS.spark}résumé : ${esc(n.summaryBy.replace(/^openai\//, ''))}</span>` : '',
   ].join('');
   renderNoteTags();
+  renderCoursePill(n);
   renderMergeHint(n);
   $('noteSum').innerHTML = renderSummary(n);
   renderMath($('noteSum'));
@@ -3432,9 +3685,14 @@ async function openNote(id, opts) {
   show('note');
   renderMarks(n);
   preparePlayer(n);
+  resetMine();
+  renderExtras(n);
+  renderChapters(n);
+  if (!(opts && opts.q) && !(opts && opts.noRestore)) restorePos(n);
   if (opts && opts.q) {
     if (opts.where === 'tr') { setTab('tr'); $('trSearch').value = opts.q; renderTranscript(); }
     else if (opts.where === 'lecture') { setTab('lecture'); highlightIn($('noteLect'), opts.q); }
+    else if (opts.where === 'mine') highlightIn($('mineView'), opts.q);
     else highlightIn($('noteSum'), opts.q);
   }
 }
@@ -3449,6 +3707,8 @@ async function togglePin() {
 function setTab(t) {
   document.querySelectorAll('.tabs-wrap .tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
   $('noteSum').classList.toggle('hidden', t !== 'sum');
+  $('noteExtras').classList.toggle('hidden', t !== 'sum');
+  if (tts.on) ttsStop();
   $('noteStudy').classList.toggle('hidden', t !== 'sum' || !currentNote || !(currentNote.segments || currentNote.summary));
   $('noteTrWrap').classList.toggle('hidden', t !== 'tr');
   $('noteLectWrap').classList.toggle('hidden', t !== 'lecture');
@@ -3678,6 +3938,7 @@ async function mergeNotes(ids, del) {
     tags: [...new Set(notes.flatMap((n) => n.tags || []))], kind: notes.map((n) => n.kind).find(Boolean) || null,
     mergedFrom: notes.map((n, i) => ({ id: n.id, title: n.title, fileName: n.fileName, created: n.created, duration: n.duration, off: offs[i], parts: audioParts(n) })),
     marks: notes.some((n) => n.marks) ? notes.flatMap((n, i) => (n.marks || []).map((x) => x + offs[i])) : undefined,
+    course: (notes.find((n) => n.course) || {}).course,
   };
   if (allClean) Object.assign(m, { clean, cleanBy: first.cleanBy, cleanAt: now });
   await db.put(m);
@@ -3775,11 +4036,7 @@ async function updateBadge() {
   try { const today = dayStart(Date.now()); n = (await allTasks()).filter((t) => !t.done && t.due && isoDay(t.due) <= today).length; } catch (e) {}
   const b = $('tabbar').querySelector('[data-v=tasks] .badge');
   if (b) { b.textContent = n; b.classList.toggle('hidden', !n); }
-  try {
-    const due = (await loadNotes()).reduce((a, x) => a + (x.cards || []).filter(isDue).length, 0);
-    const rb = $('tabbar').querySelector('[data-v=review] .badge');
-    if (rb) { rb.textContent = due > 99 ? '99+' : due; rb.classList.toggle('hidden', !due); rb.style.background = 'var(--violet)'; }
-  } catch (e) {}
+  try { const cb = $('tabbar').querySelector('[data-v=courses] .badge'); if (cb) cb.classList.toggle('hidden', !liveEvent()); } catch (e) {}
 }
 async function renderTasks() {
   const all = await allTasks();
@@ -4058,7 +4315,7 @@ let askScope = 'note', askFrom = 'note', asking = false, askAbort = false;
 const STOPW = new Set(('le la les un une des de du et ou en a au aux ce ces cet cette que qui quoi quel quelle quels quelles est sont ont pour par sur dans avec sans ne pas plus il elle ils elles on nous vous je tu me te se son sa ses leur leurs mon ma mes ton ta tes y qu comment pourquoi quand combien dit dire parle parler parlé prof professeur explique expliquer cours note notes enregistrement quoi fait faire etait était été avoir etre être tout tous toute toutes aussi comme mais donc alors peux peut quelque quelques chose choses').split(' '));
 const askTerms = (q) => [...new Set(norm(q).split(/[^a-z0-9]+/).filter((w) => w.length > 2 && !STOPW.has(w)))];
 function noteChunks(n, pre = '') {   // morceaux d'environ 1 100 caractères, avec un repère de temps toutes les 20 s environ
-  const src = hasClean(n) ? n.clean : (n.segments || []);
+  const src = withBoards(hasClean(n) ? n.clean : (n.segments || []), n.photos);
   const out = []; let cur = null, mark = -1e9;
   for (const x of src) {
     if (x.sep) { cur = null; continue; }
@@ -4092,7 +4349,7 @@ function buildAskContext(notes, q) {
     chunks = chunks.filter((c, i) => keep.has(i));
   }
   const head = notes.map((n, i) => `${multi ? '#' + (i + 1) + ' ' : ''}« ${n.title} » — ${new Date(n.created).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}` +
-    (n.summary ? `\nRésumé : ${plainMd(n.summary, true).slice(0, multi ? 500 : 3000)}` : '')).join('\n\n');
+    (n.summary ? `\nRésumé : ${plainMd(n.summary, true).slice(0, multi ? 500 : 3000)}` : '') + (n.mine ? `\nNotes personnelles de l'étudiant : ${n.mine.slice(0, multi ? 400 : 2000)}` : '')).join('\n\n');
   return { head, body: chunks.map((c) => c.text).join('\n'), multi };
 }
 const P_ASK = (ctx, q, history) => `Tu es un assistant d'étude. Réponds à la question en français, uniquement à partir des enregistrements ci-dessous (transcriptions automatiques : corrige mentalement les erreurs de reconnaissance vocale).
@@ -4123,14 +4380,17 @@ async function askLLM(prompt, label) {
 }
 const ALLCHAT = 'np-chat-all';
 const getAllChat = () => { try { return JSON.parse(lsGet(ALLCHAT, '[]')); } catch (e) { return []; } };
-function openAsk(scope, from) {
-  askScope = scope === 'all' || !currentNote ? 'all' : 'note';
+let askCourse = null;
+function openAsk(scope, from, key) {
+  askCourse = key || (currentNote && currentNote.course ? currentNote.course.key : null);
+  askScope = scope === 'course' && askCourse ? 'course' : scope === 'all' || !currentNote ? 'all' : 'note';
   askFrom = from || (currentNote ? 'note' : 'home');
   show('ask');
   setTimeout(() => $('askInput').focus({ preventScroll: true }), 250);
 }
 const SUGG = {
   note: ['Quels sont les points à retenir pour l\'examen\u00a0?', 'Explique-moi simplement la notion la plus difficile.', 'Quels exemples ont été donnés\u00a0?', 'Qu\'est-ce que je dois faire ou rendre, et pour quand\u00a0?'],
+  course: ['Quels sont les points essentiels de cette matière\u00a0?', 'Quelles questions pourraient tomber à l\'examen\u00a0?', 'Dans quelle séance a-t-on vu ', 'Résume-moi la dernière séance.'],
   all: ['De quoi ai-je parlé ces derniers jours\u00a0?', 'Dans quelles notes parle-t-on de ', 'Quelles tâches reviennent dans plusieurs notes\u00a0?'],
 };
 const TS_RE = /\[((?:#\d+\s+)?\d{1,2}:\d{2}(?::\d{2})?(?:\s*[,;]\s*(?:#\d+\s+)?\d{1,2}:\d{2}(?::\d{2})?)*)\]/g;
@@ -4157,7 +4417,7 @@ function linkTimes(root, notes) {
   }
 }
 async function jumpTo(noteId, sec) {
-  if (!currentNote || currentNote.id !== noteId || current !== 'note') await openNote(noteId);
+  if (!currentNote || currentNote.id !== noteId || current !== 'note') await openNote(noteId, { noRestore: true });
   if (!currentNote || currentNote.id !== noteId) return;
   setTab('tr'); $('trSearch').value = ''; renderTranscript();
   const segs = [...$('noteTr').querySelectorAll('.seg[data-t]')];
@@ -4168,20 +4428,30 @@ async function jumpTo(noteId, sec) {
 }
 async function askNotes() {
   if (askScope === 'note' && currentNote) return [await db.get(currentNote.id) || currentNote];
-  return (await loadNotes()).filter((n) => n.segments && n.segments.length);
+  const all = (await loadNotes()).filter((n) => n.segments && n.segments.length);
+  if (askScope === 'course') return all.filter((n) => n.course && n.course.key === askCourse).sort((a, b) => a.created - b.created);
+  return all;
+}
+const chatKey = () => askScope === 'course' ? 'np-chat-crs-' + askCourse : ALLCHAT;
+async function getChat() {
+  if (askScope === 'note' && currentNote) return ((await db.get(currentNote.id)) || currentNote).chat || [];
+  try { return JSON.parse(lsGet(chatKey(), '[]')); } catch (e) { return []; }
 }
 async function renderAsk() {
   const noteOk = !!currentNote && askFrom === 'note';
-  if (!noteOk) askScope = 'all';
+  if (!noteOk && askScope === 'note') askScope = askCourse ? 'course' : 'all';
   $('askScope').querySelector('[data-s=note]').disabled = !noteOk;
+  $('askScope').querySelector('[data-s=note]').classList.toggle('hidden', !noteOk && !!askCourse);
+  $('askScope').querySelector('[data-s=course]').classList.toggle('hidden', !askCourse);
+  const crsM = askCourse ? getMat(askCourse) : null;
   $('askScope').querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.s === askScope)));
-  $('title').textContent = askScope === 'note' && currentNote ? 'Question · ' + currentNote.title : 'Question · toutes mes notes';
-  const items = askScope === 'note' ? ((await db.get(currentNote.id)) || currentNote).chat || [] : getAllChat();
+  $('title').textContent = askScope === 'note' && currentNote ? 'Question · ' + currentNote.title : askScope === 'course' ? 'Question · ' + (crsM ? crsM.name : 'matière') : 'Question · toutes mes notes';
+  const items = await getChat();
   const notes = await askNotes();
   $('askClear').classList.toggle('hidden', !items.length);
   const list = $('askList');
   if (!items.length && !asking) {
-    list.innerHTML = `<div class="ask-empty"><b>${askScope === 'note' ? 'Interroge cet enregistrement' : 'Interroge toutes tes notes'}</b>${askScope === 'note' ? 'Les réponses citent les passages : touche un horodatage pour y aller.' : `${notes.length} enregistrement${notes.length > 1 ? 's' : ''} consultables. Les réponses indiquent dans quelle note chercher.`}</div>
+    list.innerHTML = `<div class="ask-empty"><b>${askScope === 'note' ? 'Interroge cet enregistrement' : askScope === 'course' ? 'Interroge toute la matière' : 'Interroge toutes tes notes'}</b>${askScope === 'note' ? 'Les réponses citent les passages : touche un horodatage pour y aller.' : `${notes.length} enregistrement${notes.length > 1 ? 's' : ''} consultables. Les réponses indiquent dans quelle note chercher.`}</div>
       <div class="ask-sugg">${SUGG[askScope].map((q) => `<button type="button">${esc(q)}</button>`).join('')}</div>`;
     list.querySelectorAll('.ask-sugg button').forEach((b) => b.onclick = () => { $('askInput').value = b.textContent; autoGrow(); if (/ $/.test(b.textContent)) $('askInput').focus(); else sendAsk(); });
     return;
@@ -4200,7 +4470,7 @@ async function sendAsk() {
   if (!hasKey(provider())) { toast('Ajoute d\'abord une clé d\'IA dans les réglages'); return; }
   const notes = await askNotes();
   if (!notes.length) { toast('Aucune note transcrite à interroger'); return; }
-  asking = true; askAbort = false;
+  asking = true; askAbort = false; setCourseCtx(askScope === 'note' ? notes[0] : null, askScope === 'course' ? getMat(askCourse) : null);
   $('askInput').value = ''; autoGrow();
   await renderAsk();
   const list = $('askList');
@@ -4208,7 +4478,7 @@ async function sendAsk() {
   list.insertAdjacentHTML('beforeend', `<div class="msg me">${esc(q)}</div><div class="msg ai" id="askPending"><span class="typing"><i></i><i></i><i></i></span><div class="ask-st" id="askStatus">Lecture des passages…</div></div>`);
   $('askPending').scrollIntoView({ block: 'end', behavior: 'smooth' });
   const prevEl = statusEl; statusEl = 'askStatus';
-  const prevItems = askScope === 'note' ? (notes[0].chat || []) : getAllChat();
+  const prevItems = askScope === 'note' ? (notes[0].chat || []) : await getChat();
   const history = prevItems.filter((m) => !m.err).slice(-3).map((m) => `Q : ${m.q}\nR : ${m.a.slice(0, 600)}`).join('\n\n');
   let entry;
   try {
@@ -4222,7 +4492,7 @@ async function sendAsk() {
     const fresh = (await db.get(notes[0].id)) || notes[0];
     fresh.chat = [...(fresh.chat || []), entry].slice(-60); await db.put(fresh);
     if (currentNote && currentNote.id === fresh.id) currentNote.chat = fresh.chat;
-  } else lsSet(ALLCHAT, JSON.stringify([...getAllChat(), entry].slice(-40)));
+  } else { const key = chatKey(); let prev = []; try { prev = JSON.parse(lsGet(key, '[]')); } catch (e) {} lsSet(key, JSON.stringify([...prev, entry].slice(-40))); }
   if (current === 'ask') { await renderAsk(); const last = $('askList').lastElementChild; if (last) last.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
 }
 
@@ -4264,7 +4534,7 @@ async function makeCards(n) {
   if (carding) { toast('Création de fiches déjà en cours'); return; }
   if (busy || enhancing || writing || asking) { toast('Un traitement est en cours — réessaie dès qu\'il sera fini'); return; }
   if (!hasKey(provider())) { toast('Ajoute d\'abord une clé d\'IA dans les réglages'); return; }
-  carding = n.id; renderStudy();
+  carding = n.id; setCourseCtx(n); renderStudy();
   provFailed = new Set(); provOverride = null;
   try {
     const src = cardSource(n);
@@ -4329,37 +4599,16 @@ async function cardsMenu(n) {
 /* ---- Écran « Réviser » ---- */
 const rv = { queue: [], i: 0, ok: 0, again: 0, shown: false, total: 0 };
 async function renderReview() {
-  $('tabbar').classList.toggle('hidden', !!rv.active || ui.sel);
-  $('rvSession').classList.toggle('hidden', !rv.active);
-  $('rvHome').classList.toggle('hidden', !!rv.active);
-  if (rv.active) return drawCard();
-  const notes = await loadNotes();
-  const decks = notes.filter((n) => (n.cards || []).length);
-  const due = decks.reduce((a, n) => a + n.cards.filter(isDue).length, 0), total = decks.reduce((a, n) => a + n.cards.length, 0);
-  $('rvStats').textContent = total ? `${total} fiches dans ${decks.length} note${decks.length > 1 ? 's' : ''}` : 'Tes fiches de révision apparaîtront ici.';
-  const cand = notes.filter((n) => !(n.cards || []).length && n.status === 'ok' && (n.summary || n.lecture)).slice(0, 3);
-  let html = `<div class="card rv-start"><div><div class="rv-num">${due}</div><div class="rv-sub">fiche${due > 1 ? 's' : ''} à réviser aujourd'hui</div></div>
-    ${due ? `<button class="btn primary block" id="rvAll">Commencer la révision</button>` : `<div class="rv-sub">${total ? 'Tout est à jour. Reviens demain !' : 'Crée des fiches depuis une note : onglet Résumé → « Fiches de révision ».'}</div>`}</div>`;
-  if (decks.length) html += `<div class="group">Mes fiches</div>` + decks.map((n) => {
-    const d = n.cards.filter(isDue).length, m = n.cards.filter((c) => (c.box || 0) >= 4).length;
-    return `<div class="card deck"><div><b data-open="${n.id}">${esc(n.title)}</b><small>${n.cards.length} fiches · ${d ? d + ' à réviser' : 'à jour'} · ${m} maîtrisée${m > 1 ? 's' : ''}</small><div class="lvl"><i style="width:${Math.round(100 * m / n.cards.length)}%"></i></div></div><button class="btn" data-rv="${n.id}">${d ? 'Réviser' : 'Revoir'}</button></div>`;
-  }).join('');
-  if (cand.length) html += `<div class="group">Notes sans fiches</div>` + cand.map((n) => `<div class="card deck"><div><b data-open="${n.id}">${esc(n.title)}</b><small>${fmtDate(n.created)}</small></div><button class="btn" data-mk="${n.id}">Créer</button></div>`).join('');
-  html += `<div class="card deck" style="margin-top:18px"><div><b>Interroger toutes mes notes</b><small>« Quand a-t-on parlé de…\u00a0? »</small></div><button class="btn" id="rvAsk">Demander</button></div>`;
-  $('rvBody').innerHTML = html;
-  const body = $('rvBody');
-  if ($('rvAll')) $('rvAll').onclick = () => startReview(null);
-  body.querySelectorAll('[data-rv]').forEach((b) => b.onclick = () => startReview(b.dataset.rv));
-  body.querySelectorAll('[data-open]').forEach((b) => b.onclick = () => openNote(b.dataset.open));
-  body.querySelectorAll('[data-mk]').forEach((b) => b.onclick = async () => { const n = await db.get(b.dataset.mk); currentNote = n; b.disabled = true; b.textContent = 'Création…'; await makeCards(n); renderReview(); });
-  $('rvAsk').onclick = () => { currentNote = null; openAsk('all', 'home'); };
-  updateBadge();
+  if (!rv.active) { navBack(); return; }
+  $('rvSession').classList.remove('hidden');
+  return drawCard();
 }
 async function startReview(noteId) {
-  const notes = noteId ? [await db.get(noteId)].filter(Boolean) : await loadNotes();
+  const ids = Array.isArray(noteId) ? noteId : noteId ? [noteId] : null;
+  const notes = ids ? (await Promise.all(ids.map((id) => db.get(id)))).filter(Boolean) : await loadNotes();
   let cards = notes.flatMap((n) => (n.cards || []).map((c) => ({ ...c, noteId: n.id, noteTitle: n.title })));
   let q = cards.filter(isDue);
-  if (!q.length && noteId) q = cards;   // « Revoir » : toutes les fiches de la note
+  if (!q.length && ids) q = cards;   // « Revoir » : toutes les fiches
   q.sort((a, b) => (a.due || 0) - (b.due || 0));
   const fresh = q.filter((c) => !c.due), old = q.filter((c) => c.due);
   for (let i = fresh.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [fresh[i], fresh[j]] = [fresh[j], fresh[i]]; }
@@ -4376,7 +4625,7 @@ function drawCard() {
   if (done) {
     const pct = rv.total ? Math.round(100 * rv.ok / rv.total) : 0;
     st.innerHTML = `<div class="card rv-done"><div class="big">${pct >= 80 ? '🎉' : pct >= 50 ? '👏' : '💪'}</div><b>Session terminée</b><p class="muted">${rv.ok} sue${rv.ok > 1 ? 's' : ''} du premier coup sur ${rv.total} · ${rv.again} à revoir</p><button class="btn primary block" id="rvEnd">Retour</button></div>`;
-    $('rvEnd').onclick = () => { rv.active = false; renderReview(); updateBadge(); };
+    $('rvEnd').onclick = () => { rv.active = false; updateBadge(); navBack(); };
     return;
   }
   const c = rv.queue[rv.i];
@@ -4412,6 +4661,1003 @@ async function gradeCard(g) {
   rv.i++; rv.shown = false; drawCard();
 }
 
+/* =================== Emploi du temps (calendrier .ics) =================== */
+/* Le calendrier de l'université (Moodle, ADE, Google Agenda…) est gardé dans le téléphone.
+   Chaque enregistrement fait pendant un cours est rangé tout seul dans sa matière, et l'IA sait de quel cours il s'agit. */
+let AG = { events: [], at: 0, src: '' }, MATS = null, courseCur = null, wkOff = 0, lastLive = null;
+const KIND_LBL = { cours: 'Cours', tp: 'TP', td: 'Exercices', exam: 'Examen', due: 'Échéance' };
+const CRS_HUES = [212, 152, 18, 272, 338, 44, 188, 98, 300, 0];
+const crsPrefs = () => { try { return JSON.parse(lsGet('np-crs', '{}')); } catch (e) { return {}; } };
+const crsTag = (name) => String(name || '').toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 40);
+const hhmm = (t) => new Date(t).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+const dayLong = (t) => new Date(t).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+const dayShort = (t) => { const d = dayStart(t), today = dayStart(Date.now()); return d === today ? 'aujourd\'hui' : d === dayStart(today + 36 * 3600000) ? 'demain' : new Date(t).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }); };
+function relIn(t) {
+  const m = Math.round((t - Date.now()) / 60000);
+  if (m <= 0) return 'maintenant';
+  if (m < 60) return `dans ${m} min`;
+  if (dayStart(t) === dayStart(Date.now()) || m < 6 * 60) return `dans ${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')}`;
+  return `${dayShort(t)} à ${hhmm(t)}`;
+}
+const icsText = (v) => String(v || '').replace(/\\n/gi, '\n').replace(/\\([,;\\:])/g, '$1');
+function icsParse(text) {
+  const lines = String(text).replace(/\r\n?/g, '\n').replace(/\n[ \t]/g, '').split('\n');
+  const evs = []; let cur = null;
+  for (const raw of lines) {
+    const L = raw.trim();
+    if (L === 'BEGIN:VEVENT') { cur = { EXDATE: [] }; continue; }
+    if (L === 'END:VEVENT') { if (cur) evs.push(cur); cur = null; continue; }
+    if (!cur) continue;
+    const m = /^([A-Za-z0-9-]+)((?:;[^:]*)?):(.*)$/.exec(raw); if (!m) continue;
+    const name = m[1].toUpperCase(), params = {};
+    for (const part of m[2].split(';').slice(1)) { const i = part.indexOf('='); if (i > 0) params[part.slice(0, i).toUpperCase()] = part.slice(i + 1).replace(/^"|"$/g, ''); }
+    if (name === 'EXDATE') { for (const v of m[3].split(',')) cur.EXDATE.push({ value: v, params }); continue; }
+    if (!(name in cur)) cur[name] = { value: m[3], params };
+  }
+  return evs;
+}
+function zonedToUtc(y, mo, d, h, mi, s, tz) {
+  let t = Date.UTC(y, mo, d, h, mi, s);
+  try {
+    const f = new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    for (let i = 0; i < 2; i++) {
+      const p = Object.fromEntries(f.formatToParts(new Date(t)).map((x) => [x.type, x.value]));
+      t += Date.UTC(y, mo, d, h, mi, s) - Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute, +p.second);
+    }
+    return t;
+  } catch (e) { return new Date(y, mo, d, h, mi, s).getTime(); }
+}
+function icsDate(prop) {
+  const m = /^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})?(Z)?)?$/.exec(String(prop.value || '').trim()); if (!m) return null;
+  const y = +m[1], mo = +m[2] - 1, d = +m[3];
+  if (!m[4]) return new Date(y, mo, d).getTime();
+  const h = +m[4], mi = +m[5], sec = +(m[6] || 0);
+  if (m[7]) return Date.UTC(y, mo, d, h, mi, sec);
+  if (prop.params && prop.params.TZID) return zonedToUtc(y, mo, d, h, mi, sec, prop.params.TZID);
+  return new Date(y, mo, d, h, mi, sec).getTime();
+}
+function icsDur(v) {
+  const m = /^(-)?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/.exec(String(v || '').trim()); if (!m) return 0;
+  const sec = (+m[2] || 0) * 604800 + (+m[3] || 0) * 86400 + (+m[4] || 0) * 3600 + (+m[5] || 0) * 60 + (+m[6] || 0);
+  return (m[1] ? -1 : 1) * sec * 1000;
+}
+function eventKind(title, start, end) {
+  const t = norm(title);
+  if (end - start < 60000 || /a remettre|est du\b|is due|echeance|deadline|date limite|remise d/.test(t)) return 'due';
+  if (/\bexam|examen|interro|partiel|evaluation\b/.test(t)) return 'exam';
+  if (/\btp\b|travaux pratiques|\blabo\b/.test(t)) return 'tp';
+  if (/\btd\b|exercices?\b|\bapp\b/.test(t)) return 'td';
+  return 'cours';
+}
+function parseDesc(desc, code) {
+  const lines = desc.split('\n').map((l) => l.trim()).filter((l) => l && !/^\(?exported/i.test(l) && !/^\d{6,}$/.test(l));
+  let full = '', group = '', prof = '';
+  const cre = code ? new RegExp('^' + code.replace(/\s+/g, '').split('').map((c) => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s?') + '\\s+(.+)$', 'i') : null;
+  for (const l of lines) {
+    const m = cre && cre.exec(l);
+    if (m && !full) { full = m[1].trim(); continue; }
+    if (!group && /bloc|groupe|\bgr\.?\s?\d/i.test(l) && l.length < 40) { group = l; continue; }
+    if (!prof && /^[A-ZÀ-ÖØ-Ý][\p{L}'’-]+(?:\s+[A-ZÀ-ÖØ-Ý][\p{L}'’-]+){1,3}$/u.test(l)) prof = l;
+  }
+  return { full, group, prof };
+}
+function expandRule(ev, rule, ex, horizon) {
+  const p = Object.fromEntries(rule.split(';').map((x) => x.split('=')));
+  const days = (p.FREQ === 'DAILY' ? 1 : p.FREQ === 'WEEKLY' ? 7 : 0) * (+p.INTERVAL || 1);
+  if (!days) return [ev];
+  const count = +p.COUNT || 400, until = p.UNTIL ? icsDate({ value: p.UNTIL, params: {} }) : horizon;
+  const out = [], len = ev.end - ev.start, d0 = new Date(ev.start);
+  for (let i = 0; i < count; i++) {
+    const d = new Date(d0); d.setDate(d0.getDate() + i * days);
+    const t = d.getTime(); if (t > Math.min(until, horizon)) break;
+    if (!ex.some((x) => Math.abs(x - t) < 60000)) out.push({ ...ev, uid: ev.uid + '#' + i, start: t, end: t + len });
+  }
+  return out;
+}
+function icsEvents(text) {
+  const out = [], horizon = Date.now() + 240 * DAY;
+  for (const r of icsParse(text)) {
+    if (!r.DTSTART || (r.STATUS && /CANCELLED/i.test(r.STATUS.value))) continue;
+    const start = icsDate(r.DTSTART); if (start == null) continue;
+    let end = r.DTEND ? icsDate(r.DTEND) : r.DURATION ? start + icsDur(r.DURATION.value) : start;
+    if (end == null || end < start) end = start;
+    const title = icsText(r.SUMMARY && r.SUMMARY.value).trim() || 'Sans titre';
+    const code = r.CATEGORIES ? icsText(r.CATEGORIES.value).split(',')[0].trim() : '';
+    const base = title.replace(/^[.\s·•*-]+/, '').replace(/\s*[-–:,(]?\s*\b(TP|TD|CM|Cours|Exercices?|Labo|Travaux pratiques)\b\)?\.?\s*$/i, '').trim() || title;
+    const d = parseDesc(icsText(r.DESCRIPTION && r.DESCRIPTION.value), code);
+    const ev = { uid: (r.UID && r.UID.value) || title + '@' + start, title, base, code, key: code || norm(base).replace(/[^a-z0-9]+/g, '-'), kind: eventKind(title, start, end),
+      start, end, location: icsText(r.LOCATION && r.LOCATION.value).trim(), prof: d.prof, full: d.full, group: d.group };
+    if (r.RRULE) out.push(...expandRule(ev, r.RRULE.value, r.EXDATE.map(icsDate).filter((x) => x != null), horizon));
+    else out.push(ev);
+  }
+  return out;
+}
+function matieres() {
+  if (MATS) return MATS;
+  const prefs = crsPrefs(), map = new Map();
+  for (const e of AG.events || []) {
+    if (!map.has(e.key)) map.set(e.key, { key: e.key, code: e.code, names: {}, full: '', profs: new Set(), locs: new Set(), events: [] });
+    const m = map.get(e.key);
+    m.events.push(e);
+    if (e.kind !== 'due') m.names[e.base] = (m.names[e.base] || 0) + 1;
+    if (e.full) m.full = e.full;
+    if (e.prof) m.profs.add(e.prof);
+    if (e.location) m.locs.add(e.location);
+  }
+  MATS = [...map.values()].map((m) => {
+    const best = Object.entries(m.names).sort((a, b) => b[1] - a[1])[0];
+    const pr = prefs[m.key] || {};
+    return { ...m, name: pr.name || (best ? best[0] : m.full || m.code || m.key), hidden: !!pr.hidden, profs: [...m.profs], locs: [...m.locs] };
+  }).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+  MATS.forEach((m, i) => { m.hue = CRS_HUES[i % CRS_HUES.length]; });
+  return MATS;
+}
+const getMat = (key) => matieres().find((m) => m.key === key) || null;
+const hiddenKey = (key) => { const m = getMat(key); return !!(m && m.hidden); };
+const visibleEvents = () => (AG.events || []).filter((e) => !hiddenKey(e.key));
+function courseAt(t) {
+  let best = null, bd = Infinity;
+  for (const e of visibleEvents()) {
+    if (e.kind === 'due') continue;
+    if (t >= e.start - 20 * 60000 && t <= e.end + 10 * 60000) { const d = t < e.start ? e.start - t : t > e.end ? t - e.end : 0; if (d < bd) { best = e; bd = d; } }
+  }
+  return best;
+}
+const liveEvent = () => { const now = Date.now(); return visibleEvents().find((e) => e.kind !== 'due' && e.start <= now && e.end > now) || null; };
+const nextEvent = () => { const now = Date.now(); return visibleEvents().find((e) => e.kind !== 'due' && e.start > now) || null; };
+function linkCourse(n, e) {
+  const m = getMat(e.key);
+  n.course = { key: e.key, code: e.code, name: m ? m.name : e.base, uid: e.uid, start: e.start, end: e.end, kind: e.kind, prof: e.prof || '', location: e.location || '', full: e.full || '' };
+  delete n.courseOff;
+  n.tags = [...new Set([...(n.tags || []), crsTag(n.course.name)])];
+}
+const courseTitle = (n) => `${n.course.name} · ${KIND_LBL[n.course.kind] || 'Cours'} du ${new Date(n.course.start).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}`;
+function setCourseCtx(n, m) {
+  const c = n && n.course;
+  if (c) {
+    ctxCourse = `${KIND_LBL[c.kind] || 'Cours'} universitaire de « ${c.full || c.name} »${c.code ? ` (${c.code})` : ''}, le ${new Date(c.start).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}${c.prof ? `, enseignant : ${c.prof}` : ''}. Utilise le vocabulaire de cette matière pour corriger les mots mal reconnus.`;
+    whisperPrompt = `Cours de ${c.full || c.name}${c.prof ? ', ' + c.prof : ''}.`;
+  } else if (m) {
+    ctxCourse = `enregistrements de la matière universitaire « ${m.full || m.name} »${m.code ? ` (${m.code})` : ''}${m.profs.length ? `, enseignant(s) : ${m.profs.join(', ')}` : ''}.`;
+    whisperPrompt = '';
+  } else { ctxCourse = ''; whisperPrompt = ''; }
+}
+const noteOfEvent = (e, notes) => notes.find((n) => n.course && n.course.uid === e.uid) || null;
+
+async function loadAgenda() { try { const a = await dbRun('pending', 'readonly', (st) => st.get('agenda')); if (a && Array.isArray(a.events)) AG = a; } catch (e) {} MATS = null; }
+async function storeAgenda() { MATS = null; AG.remind = +settings.courseRemind || 0; AG.hidden = matieres().filter((m) => m.hidden).map((m) => m.key); await dbRun('pending', 'readwrite', (st) => st.put(AG, 'agenda')); }
+async function saveAgendaText(text, src) {
+  const evs = icsEvents(text);
+  if (!evs.length) throw new ApiError('Aucun cours trouvé dans ce calendrier.');
+  const first = Math.min(...evs.map((e) => e.start)), uids = new Set(evs.map((e) => e.uid));
+  const kept = (AG.events || []).filter((e) => e.end < first && !uids.has(e.uid));   // on garde l'historique des séances passées
+  AG = { events: [...kept, ...evs].sort((a, b) => a.start - b.start), at: Date.now(), src };
+  await storeAgenda();
+  const filed = await autoFile(), dues = await importDeadlines();
+  scheduleCourseReminders(); updateBadge();
+  return { n: evs.filter((e) => e.kind !== 'due').length, mats: matieres().length, filed, dues };
+}
+const agMsg = (r) => `${r.n} séances, ${r.mats} matière${r.mats > 1 ? 's' : ''}` + (r.filed ? ` · ${r.filed} note${r.filed > 1 ? 's' : ''} rangée${r.filed > 1 ? 's' : ''}` : '') + (r.dues ? ` · ${r.dues} échéance${r.dues > 1 ? 's' : ''} ajoutée${r.dues > 1 ? 's' : ''} aux tâches` : '');
+async function importIcsFile(file) {
+  try {
+    const r = await saveAgendaText(await file.text(), 'file');
+    toast('Emploi du temps importé : ' + agMsg(r));
+    if (current === 'settings') renderAgState(); else show('courses');
+  } catch (e) { toast(e instanceof ApiError ? e.message : 'Fichier illisible : ' + e.message); }
+}
+let syncing = false;
+async function syncAgenda(manual) {
+  const url = String(settings.icsUrl || '').trim();
+  if (!url) { if (manual) toast('Ajoute d\'abord l\'adresse de ton calendrier (Réglages → Emploi du temps)'); return null; }
+  if (syncing) return null;
+  syncing = true;
+  let text = '', why = '';
+  const isCal = (t) => /BEGIN:VCALENDAR/i.test(t);
+  try {
+    try { const r = await fetch(url, { cache: 'no-store' }); if (r.ok) { const t = await r.text(); if (isCal(t)) text = t; } } catch (e) {}   // marche si le serveur l'autorise (CORS)
+    if (!text && relayBase()) {
+      try {
+        const r = await fetch(relayBase() + '/ics?u=' + encodeURIComponent(url), { cache: 'no-store' });
+        const t = await r.text();
+        if (r.ok && isCal(t)) text = t;
+        else { let j = null; try { j = JSON.parse(t); } catch (e) {} why = (j && j.error) || 'erreur ' + r.status; if (r.status === 404 && /introuvable/i.test(why)) why = 'ton relais Cloudflare est une ancienne version : mets à jour son code (voir le guide)'; }
+      } catch (e) { why = 'relais Cloudflare injoignable'; }
+    } else if (!text) why = 'il faut le relais Cloudflare pour synchroniser par adresse (étape 6 du guide), ou importe le fichier .ics';
+    if (!text) { lsSet('np-ics-err', why); if (manual) toast('Calendrier non synchronisé : ' + why); return null; }
+    const res = await saveAgendaText(text, 'url');
+    lsSet('np-ics-err', '');
+    if (manual) toast('Emploi du temps à jour : ' + agMsg(res));
+    if (current === 'courses') renderCourses(); else if (current === 'home') renderHome();
+    return res;
+  } catch (e) { if (manual) toast(e instanceof ApiError ? e.message : 'Calendrier illisible : ' + e.message); return null; }
+  finally { syncing = false; if (current === 'settings') renderAgState(); }
+}
+function renderAgState() {
+  const err = lsGet('np-ics-err', '');
+  $('agState').textContent = AG.events.length
+    ? `${AG.events.length} séances · ${matieres().length} matières · mis à jour ${fmtDate(AG.at)}${AG.src === 'file' ? ' (fichier)' : ''}.` + (err ? ' Dernière synchronisation impossible : ' + err : '')
+    : (err ? 'Synchronisation impossible : ' + err : 'Aucun emploi du temps pour l\'instant.');
+  const hid = matieres().filter((m) => m.hidden);
+  if (hid.length) {
+    $('agState').insertAdjacentHTML('beforeend', '<br>Masquées : ' + hid.map((m) => `${esc(m.name)} <button class="linkbtn" data-unhide="${esc(m.key)}">Afficher</button>`).join(' · '));
+    $('agState').querySelectorAll('[data-unhide]').forEach((b) => b.onclick = async () => { const pr = crsPrefs(); if (pr[b.dataset.unhide]) delete pr[b.dataset.unhide].hidden; lsSet('np-crs', JSON.stringify(pr)); MATS = null; await storeAgenda(); scheduleCourseReminders(); renderAgState(); toast('Matière réaffichée'); });
+  }
+}
+function agendaSettingsChanged(prev) {
+  scheduleCourseReminders();
+  if (AG.events.length) storeAgenda().catch(() => {});
+  if (settings.icsUrl && settings.icsUrl !== (prev && prev.icsUrl)) setTimeout(() => syncAgenda(true), 400);
+}
+// Ranger les notes existantes dans leur matière (même date et heure qu'un cours)
+async function autoFile() {
+  if (!AG.events.length) return 0;
+  let k = 0;
+  for (const n of await loadNotes()) {
+    if (n.course || n.courseOff) continue;
+    const e = courseAt(n.created); if (!e) continue;
+    const fresh = await db.get(n.id); if (!fresh || fresh.course) continue;
+    linkCourse(fresh, e); await db.put(fresh); k++;
+  }
+  return k;
+}
+// Les échéances du calendrier (devoirs à remettre…) deviennent des tâches, une seule fois chacune
+async function importDeadlines() {
+  let seen = []; try { seen = JSON.parse(lsGet('np-ics-due', '[]')); } catch (e) {}
+  const set = new Set(seen), now = Date.now(); let k = 0;
+  for (const e of AG.events) {
+    if (e.kind !== 'due' || e.start < now - DAY || set.has(e.uid) || hiddenKey(e.key)) continue;
+    const m = getMat(e.key), due = toISODate(e.start);
+    await addTask({ text: e.title.replace(/^[.\s]+/, '') + (m && !norm(e.title).includes(norm(m.name)) ? ` (${m.name})` : ''), due, remind: remindFor(due), prio: 1, tags: m ? [crsTag(m.name)] : [] });
+    set.add(e.uid); k++;
+  }
+  lsSet('np-ics-due', JSON.stringify([...set].slice(-500)));
+  return k;
+}
+// Rappel « pense à lancer ton Plaud »
+let crsTimers = [];
+function scheduleCourseReminders() {
+  crsTimers.forEach(clearTimeout); crsTimers = [];
+  const lead = +settings.courseRemind || 0; if (!lead) return;
+  const now = Date.now();
+  for (const e of visibleEvents()) {
+    if (e.kind === 'due') continue;
+    const at = e.start - lead * 60000;
+    if (at > now - 60000 && at - now < 3 * DAY) crsTimers.push(setTimeout(() => notifyCourse(e), Math.max(0, at - now)));
+  }
+}
+async function notifyCourse(e) {
+  let seen = []; try { seen = (await dbRun('pending', 'readonly', (st) => st.get('crs-notified'))) || []; } catch (x) {}
+  if (seen.includes(e.uid)) return;
+  try { await dbRun('pending', 'readwrite', (st) => st.put([...seen, e.uid].slice(-400), 'crs-notified')); } catch (x) {}
+  const m = getMat(e.key), title = `📚 ${m ? m.name : e.base} à ${hhmm(e.start)}`, body = `${KIND_LBL[e.kind] || 'Cours'}${e.location ? ' · ' + e.location : ''} — pense à lancer ton Plaud`;
+  if (document.visibilityState === 'visible') { toast(title + ' — pense à lancer ton Plaud'); return; }
+  try { const reg = await navigator.serviceWorker.getRegistration(); if (reg && 'Notification' in window && Notification.permission === 'granted') await reg.showNotification(title, { body, icon: 'icon-192.png', badge: 'icon-192.png', tag: 'crs-' + e.uid, data: { id: ':courses' } }); } catch (x) {}
+}
+// Toutes les 30 s : comptes à rebours, et nouvel affichage quand un cours commence ou se termine
+function tickCourses() {
+  document.querySelectorAll('[data-rel]').forEach((el) => { el.textContent = relIn(+el.dataset.rel); });
+  const live = liveEvent(), id = live ? live.uid : null;
+  if (id !== lastLive) { lastLive = id; updateBadge(); if (current === 'courses') renderCourses(); if (current === 'home') renderHomeCourse(); }
+}
+
+/* ---- Affichage ---- */
+const AG_EMPTY = `<div class="card ag-empty"><span class="sec-ic">${ICONS.book}</span><b>Ajoute ton emploi du temps</b>
+  <p>Tes cours apparaissent ici, semaine par semaine. Chaque enregistrement est rangé tout seul dans sa matière, et l'IA sait de quel cours il s'agit.</p>
+  <div class="stack"><button class="btn primary block" id="agGoSet">Coller l'adresse du calendrier</button><button class="btn block" id="agGoFile">Importer un fichier .ics</button></div></div>`;
+function evRow(e, notes, opts = {}) {
+  const now = Date.now(), m = getMat(e.key), note = e.kind === 'due' ? null : noteOfEvent(e, notes);
+  const past = e.end <= now, live = e.start <= now && e.end > now;
+  const st = e.kind === 'due' ? `<span class="ev-st due">${ICONS.flag}</span>` : note ? `<span class="ev-st ok" title="Enregistré">${ICONS.check}</span>` : live ? '<span class="ev-st live">En cours</span>' : past ? '<span class="ev-st">—</span>' : '';
+  const when = opts.date ? `${new Date(e.start).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}` : '';
+  const sub = e.kind === 'due' ? e.title : [KIND_LBL[e.kind], when, e.location].filter(Boolean).join(' · ');
+  return `<button class="ev${past ? ' past' : ''}${live ? ' live' : ''}" data-uid="${esc(e.uid)}" style="--h:${m ? m.hue : 20}">
+    <span class="ev-time">${e.kind === 'due' ? hhmm(e.start) : hhmm(e.start)}<small>${e.kind === 'due' ? 'limite' : hhmm(e.end)}</small></span>
+    <span class="ev-main"><b>${esc(m ? m.name : e.base)}</b><small>${esc(sub)}</small>${note ? `<small class="ev-note">${ICONS.file}${esc(note.title)}</small>` : ''}</span>${st}</button>`;
+}
+function nowCard(e, notes) {
+  if (!e) return '';
+  const m = getMat(e.key), note = noteOfEvent(e, notes), now = Date.now(), live = e.start <= now && e.end > now;
+  const canRec = !note && now >= e.start - 15 * 60000 && now < e.end;
+  return `<div class="card crs-now" style="--h:${m ? m.hue : 20}">
+    <div class="crs-now-k">${live ? '<span class="live-dot"></span>En cours · fin à ' + hhmm(e.end) : 'Prochain cours · <span data-rel="' + e.start + '">' + relIn(e.start) + '</span>'}</div>
+    <b class="crs-now-t" data-mat="${esc(e.key)}">${esc(m ? m.name : e.base)}</b>
+    <div class="crs-now-d">${KIND_LBL[e.kind] || 'Cours'} · ${dayShort(e.start)}, ${hhmm(e.start)}–${hhmm(e.end)}${e.location ? ' · ' + esc(e.location) : ''}</div>
+    ${e.prof ? `<div class="crs-now-d">${esc(e.prof)}</div>` : ''}
+    <div class="row" style="margin-top:12px">${note ? `<button class="btn primary" data-open="${note.id}">${ICONS.file}Ouvrir la note</button>` : canRec ? `<button class="btn primary" data-rec="1">${ICONS.mic}Enregistrer</button>` : ''}<button class="btn" data-mat="${esc(e.key)}">${ICONS.book}La matière</button></div></div>`;
+}
+const weekStartOf = (t, k = 0) => { const d = new Date(t); const back = (d.getDay() + 6) % 7; return new Date(d.getFullYear(), d.getMonth(), d.getDate() - back + 7 * k).getTime(); };
+async function renderCourses() {
+  const body = $('crsBody');
+  if (!AG.events.length) {
+    $('crsSub').textContent = 'Ton emploi du temps, tes matières et leurs enregistrements.';
+    body.innerHTML = AG_EMPTY;
+    $('agGoSet').onclick = () => { showSettings(); setTimeout(() => { $('agSet').scrollIntoView({ block: 'start' }); $('sIcsUrl').focus(); }, 350); };
+    $('agGoFile').onclick = () => $('icsInput').click();
+    return;
+  }
+  const notes = await loadNotes(), now = Date.now(), evs = visibleEvents(), mats = matieres().filter((m) => !m.hidden);
+  const live = liveEvent(), next = nextEvent();
+  const w0 = weekStartOf(now, wkOff), w1 = weekStartOf(now, wkOff + 1);
+  const week = evs.filter((e) => e.start >= w0 && e.start < w1);
+  const nWeek = week.filter((e) => e.kind !== 'due').length;
+  $('crsSub').textContent = wkOff === 0 ? `${nWeek} séance${nWeek > 1 ? 's' : ''} cette semaine` : `${nWeek} séance${nWeek > 1 ? 's' : ''}`;
+  let html = wkOff === 0 ? nowCard(live || next, notes) : '';
+  const fmtD = (t) => new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  html += `<div class="wk-nav"><button class="iconbtn" id="wkPrev" aria-label="Semaine précédente">${ICONS.left}</button><b>${wkOff === 0 ? 'Cette semaine' : wkOff === 1 ? 'Semaine prochaine' : wkOff === -1 ? 'Semaine dernière' : 'Semaine du ' + fmtD(w0)}<small>${fmtD(w0)} – ${fmtD(w1 - DAY)}</small></b><button class="iconbtn" id="wkNext" aria-label="Semaine suivante">${ICONS.right}</button></div>`;
+  if (!week.length) html += `<div class="ev-empty">Aucun cours cette semaine${wkOff !== 0 ? '' : ' 🎉'}.</div>`;
+  for (let d = 0; d < 7; d++) {
+    const a = new Date(new Date(w0).getFullYear(), new Date(w0).getMonth(), new Date(w0).getDate() + d).getTime(), b = a + DAY;
+    const day = week.filter((e) => e.start >= a && e.start < b);
+    if (!day.length) continue;
+    const today = dayStart(now) === a;
+    html += `<div class="ev-day${today ? ' today' : ''}">${today ? 'Aujourd\'hui · ' : ''}${new Date(a).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</div>` + day.map((e) => evRow(e, notes)).join('');
+  }
+  const dues = evs.filter((e) => e.kind === 'due' && e.start > now && e.start < now + 30 * DAY && (e.start < w0 || e.start >= w1));
+  if (dues.length) html += `<div class="group">Échéances à venir</div>` + dues.map((e) => evRow(e, notes, { date: true })).join('');
+  html += `<div class="group">Matières</div><div class="mats">` + mats.map((m) => {
+    const sess = m.events.filter((e) => e.kind !== 'due'), past = sess.filter((e) => e.start <= now), rec = past.filter((e) => noteOfEvent(e, notes)).length;
+    const nx = sess.find((e) => e.start > now);
+    return `<button class="card mat" data-mat="${esc(m.key)}" style="--h:${m.hue}"><b>${esc(m.name)}</b><small>${past.length ? `${rec}/${past.length} séance${past.length > 1 ? 's' : ''} enregistrée${rec > 1 ? 's' : ''}` : 'Pas encore commencé'}</small><small>${nx ? 'Prochaine : ' + dayShort(nx.start) + ' ' + hhmm(nx.start) : 'Plus de séance prévue'}</small><span class="lvl"><i style="width:${past.length ? Math.round(100 * rec / past.length) : 0}%"></i></span></button>`;
+  }).join('') + `</div>`;
+  const hid = matieres().filter((m) => m.hidden).length;
+  html += `<p class="ag-foot">${AG.src === 'url' ? 'Synchronisé' : 'Importé'} ${fmtDate(AG.at)}${hid ? ` · ${hid} matière${hid > 1 ? 's' : ''} masquée${hid > 1 ? 's' : ''}` : ''} · <button class="linkbtn" id="agRefresh">${settings.icsUrl ? 'Actualiser' : 'Réglages'}</button></p>`;
+  body.innerHTML = html;
+  wireCourseLinks(body);
+  $('wkPrev').onclick = () => { wkOff--; renderCourses(); };
+  $('wkNext').onclick = () => { wkOff++; renderCourses(); };
+  $('agRefresh').onclick = () => { if (settings.icsUrl) syncAgenda(true); else { showSettings(); setTimeout(() => $('agSet').scrollIntoView({ block: 'start' }), 350); } };
+}
+function wireCourseLinks(root) {
+  root.querySelectorAll('[data-uid]').forEach((b) => b.onclick = () => evSheet(b.dataset.uid));
+  root.querySelectorAll('[data-mat]').forEach((b) => b.onclick = () => openCourse(b.dataset.mat));
+  root.querySelectorAll('[data-open]').forEach((b) => b.onclick = () => openNote(b.dataset.open));
+  root.querySelectorAll('[data-rec]').forEach((b) => b.onclick = () => startRec());
+}
+async function renderHomeCourse() {
+  const box = $('homeCrs');
+  const live = liveEvent(), next = nextEvent(), e = live || (next && next.start - Date.now() < 12 * 3600000 ? next : null);
+  if (!e) { box.innerHTML = ''; return; }
+  const notes = allNotes && allNotes.length ? allNotes : await loadNotes();
+  const m = getMat(e.key), note = noteOfEvent(e, notes), now = Date.now();
+  const canRec = !note && now >= e.start - 15 * 60000 && now < e.end;
+  box.innerHTML = `<div class="card home-crs" role="button" tabindex="0" style="--h:${m ? m.hue : 20}"><div><small>${live ? '<span class="live-dot"></span>En cours' : 'Prochain cours · <span data-rel="' + e.start + '">' + relIn(e.start) + '</span>'}</small><b>${esc(m ? m.name : e.base)}</b><span class="d">${KIND_LBL[e.kind] || 'Cours'} · ${hhmm(e.start)}–${hhmm(e.end)}${e.location ? ' · ' + esc(e.location) : ''}</span></div>
+    ${note ? `<button class="btn" data-open="${note.id}">Ouvrir</button>` : canRec ? `<button class="btn primary" data-rec="1">${ICONS.mic}Enregistrer</button>` : ''}</div>`;
+  const card = box.firstElementChild;
+  card.onclick = (ev) => { if (ev.target.closest('button')) return; show('courses'); };
+  wireCourseLinks(box);
+}
+async function evSheet(uid) {
+  const e = AG.events.find((x) => x.uid === uid); if (!e) return;
+  const m = getMat(e.key), notes = await loadNotes(), note = noteOfEvent(e, notes), now = Date.now();
+  const canRec = e.kind !== 'due' && !note && now >= e.start - 15 * 60000 && now < e.end;
+  const cands = e.kind === 'due' || note ? [] : notes.filter((n) => dayStart(n.created) === dayStart(e.start) && !(n.course && AG.events.some((x) => x.uid === n.course.uid && x.uid !== e.uid && noteOfEvent(x, [n]))));
+  openSheet(`<h3>${esc(m ? m.name : e.base)}</h3>
+    <p class="sub">${e.kind === 'due' ? esc(e.title) + ' · ' : (KIND_LBL[e.kind] || 'Cours') + ' · '}${dayLong(e.start)}, ${hhmm(e.start)}${e.end > e.start ? '–' + hhmm(e.end) : ''}${e.location ? '<br>' + esc(e.location) : ''}${e.prof ? '<br>' + esc(e.prof) : ''}${e.full && m && e.full !== m.name ? '<br>' + esc(e.full) : ''}</p>
+    <div class="stack">
+      ${note ? `<button class="btn primary block" id="evOpen">${ICONS.file}Ouvrir « ${esc(note.title.slice(0, 40))} »</button>` : ''}
+      ${canRec ? `<button class="btn primary block" id="evRec">${ICONS.mic}Enregistrer avec le téléphone</button>` : ''}
+      ${cands.length ? `<div class="f" style="margin:6px 0 0">Associer une note de ce jour</div>` + cands.map((n) => `<button class="btn block" data-link="${n.id}" style="justify-content:flex-start">${ICONS.file}${esc(n.title.slice(0, 44))} · ${hhmm(n.created)}</button>`).join('') : ''}
+      ${!note && e.kind !== 'due' && e.end < now && !cands.length ? '<p class="f-help" style="margin:0">Aucun enregistrement ce jour-là. S\'il arrive plus tard depuis Plaud, il sera rangé ici tout seul.</p>' : ''}
+      <button class="btn block" id="evMat">${ICONS.book}Voir la matière</button>
+      ${note ? '<button class="btn ghost block" id="evUnlink">Détacher la note de ce cours</button>' : ''}
+    </div>`, (b) => {
+    if (b.querySelector('#evOpen')) b.querySelector('#evOpen').onclick = () => { closeSheet(); openNote(note.id); };
+    if (b.querySelector('#evRec')) b.querySelector('#evRec').onclick = () => { closeSheet(); startRec(); };
+    b.querySelector('#evMat').onclick = () => { closeSheet(); openCourse(e.key); };
+    b.querySelectorAll('[data-link]').forEach((x) => x.onclick = async () => { const n = await db.get(x.dataset.link); if (!n) return; linkCourse(n, e); await db.put(n); closeSheet(); toast('Note rangée dans ' + n.course.name); rerenderCourseViews(); });
+    if (b.querySelector('#evUnlink')) b.querySelector('#evUnlink').onclick = async () => { const n = await db.get(note.id); if (!n) return; unlinkCourse(n); await db.put(n); closeSheet(); toast('Note détachée'); rerenderCourseViews(); };
+  });
+}
+function unlinkCourse(n) { if (n.course) n.tags = (n.tags || []).filter((t) => t !== crsTag(n.course.name)); delete n.course; n.courseOff = true; }
+function rerenderCourseViews() { if (current === 'courses') renderCourses(); else if (current === 'course') renderCourse(); else if (current === 'home') renderHome(); else if (current === 'note' && currentNote) openNote(currentNote.id); }
+function renderCoursePill(n) {
+  const old = $('crsPill'); if (old) old.remove();
+  if (!n.course && !AG.events.length) return;
+  const m = n.course ? getMat(n.course.key) : null;
+  const b = document.createElement('button');
+  b.id = 'crsPill'; b.type = 'button';
+  b.className = 'pill crs' + (n.course ? ' hue' : ' add');
+  if (m) b.style.setProperty('--h', m.hue);
+  b.innerHTML = n.course ? ICONS.book + esc(n.course.name) + (n.course.kind && n.course.kind !== 'cours' ? ' · ' + (KIND_LBL[n.course.kind] || '') : '') : ICONS.book + 'Associer à un cours';
+  b.onclick = () => coursePickSheet(n.id);
+  $('noteMeta').prepend(b);
+}
+async function coursePickSheet(id) {
+  const n = await db.get(id); if (!n) return;
+  const day = visibleEvents().filter((e) => e.kind !== 'due' && dayStart(e.start) === dayStart(n.created));
+  const mats = matieres().filter((m) => !m.hidden);
+  openSheet(`<h3>${n.course ? esc(n.course.name) : 'Associer à un cours'}</h3><p class="sub">${n.course ? 'Matière de cette note.' : 'Choisis la séance ou la matière de cet enregistrement.'}</p>
+    <div class="stack">
+      ${n.course ? `<button class="btn primary block" id="cpOpen">${ICONS.book}Ouvrir la matière</button>` : ''}
+      ${day.length ? `<div class="f" style="margin:6px 0 0">Cours de ce jour-là</div>` + day.map((e) => `<button class="btn block" data-ev="${esc(e.uid)}" style="justify-content:flex-start">${hhmm(e.start)} · ${esc((getMat(e.key) || {}).name || e.base)} · ${KIND_LBL[e.kind]}</button>`).join('') : ''}
+      <div class="f" style="margin:6px 0 0">${n.course ? 'Changer de matière' : 'Toutes les matières'}</div>
+      ${mats.map((m) => `<button class="btn block" data-m="${esc(m.key)}" style="justify-content:flex-start">${esc(m.name)}</button>`).join('')}
+      ${n.course ? '<button class="btn ghost block" id="cpNone">Aucune matière</button>' : ''}
+    </div>`, (b) => {
+    const done = async (fn) => { const f = await db.get(id); if (!f) return; fn(f); await db.put(f); closeSheet(); if (currentNote && currentNote.id === id) { Object.assign(currentNote, { course: f.course, courseOff: f.courseOff, tags: f.tags }); renderNoteTags(); renderCoursePill(currentNote); } };
+    if (b.querySelector('#cpOpen')) b.querySelector('#cpOpen').onclick = () => { closeSheet(); openCourse(n.course.key); };
+    b.querySelectorAll('[data-ev]').forEach((x) => x.onclick = () => done((f) => { if (f.course) unlinkCourse(f); linkCourse(f, AG.events.find((e) => e.uid === x.dataset.ev)); }));
+    b.querySelectorAll('[data-m]').forEach((x) => x.onclick = () => done((f) => {
+      if (f.course) unlinkCourse(f);
+      const m = getMat(x.dataset.m), e = m.events.filter((y) => y.kind !== 'due').sort((p, q) => Math.abs(p.start - f.created) - Math.abs(q.start - f.created))[0];
+      if (e && dayStart(e.start) === dayStart(f.created)) linkCourse(f, e);
+      else { f.course = { key: m.key, code: m.code, name: m.name, uid: null, start: f.created, end: f.created + (f.duration || 0) * 1000, kind: 'cours', prof: m.profs[0] || '', location: '', full: m.full }; delete f.courseOff; f.tags = [...new Set([...(f.tags || []), crsTag(m.name)])]; }
+    }));
+    if (b.querySelector('#cpNone')) b.querySelector('#cpNone').onclick = () => done(unlinkCourse);
+  });
+}
+
+/* ---- Page d'une matière ---- */
+function openCourse(key) { if (!getMat(key)) return; courseCur = key; if (current === 'course') renderCourse(); else show('course'); }
+const synthKey = (k) => 'synth:' + k;
+const getSynth = (k) => dbRun('pending', 'readonly', (st) => st.get(synthKey(k))).catch(() => null);
+let synthing = null;
+async function renderCourse() {
+  const m = getMat(courseCur); if (!m) { navBack(); return; }
+  $('title').textContent = m.name;
+  const all = await loadNotes(), notes = all.filter((n) => n.course && n.course.key === m.key).sort((a, b) => a.created - b.created);
+  const now = Date.now(), sess = m.events.filter((e) => e.kind !== 'due');
+  const past = sess.filter((e) => e.start <= now).sort((a, b) => b.start - a.start), up = sess.filter((e) => e.start > now);
+  const rec = past.filter((e) => noteOfEvent(e, notes)).length, audio = notes.reduce((a, n) => a + (n.duration || 0), 0);
+  const cards = notes.flatMap((n) => n.cards || []), dueCards = cards.filter(isDue).length;
+  const synth = await getSynth(m.key);
+  const loose = notes.filter((n) => !n.course.uid || !m.events.some((e) => e.uid === n.course.uid));
+  const dues = m.events.filter((e) => e.kind === 'due' && e.start > now - DAY);
+  let h = `<div class="crs-head"><span class="sec-ic hue" style="--h:${m.hue}">${ICONS.book}</span><div><h1>${esc(m.name)}</h1><p>${esc([m.code, m.profs.join(', ')].filter(Boolean).join(' · '))}</p></div></div>
+    <div class="tiles4">
+      <div class="card tile"><b>${rec}/${past.length}</b><small>séances enregistrées</small></div>
+      <div class="card tile"><b>${audio ? dur(audio) : '—'}</b><small>d'audio transcrit</small></div>
+      <div class="card tile"><b>${up[0] ? esc(dayShort(up[0].start)) : '—'}</b><small>${up[0] ? 'prochaine séance, ' + hhmm(up[0].start) : 'plus de séance prévue'}</small></div>
+      <div class="card tile"><b>${cards.length ? dueCards : '—'}</b><small>${cards.length ? 'fiches à réviser' : 'pas encore de fiches'}</small></div>
+    </div>
+    <div class="crs-acts">
+      <button class="btn" id="cSynth" ${notes.some((n) => n.summary) ? '' : 'disabled'}>${ICONS.spark}${synth ? 'Refaire la synthèse' : 'Synthèse de la matière'}</button>
+      <button class="btn" id="cAsk" ${notes.length ? '' : 'disabled'}>${ICONS.quiz}Poser une question</button>
+      <button class="btn" id="cRev" ${cards.length ? '' : 'disabled'}>${ICONS.cards}Réviser les fiches</button>
+      <button class="btn" id="cPdf" ${notes.length ? '' : 'disabled'}>${ICONS.download}PDF pour NotebookLM</button>
+    </div>`;
+  if (synthing === m.key) h += `<div class="card synth-run"><b>Synthèse en cours…</b><div class="lin" style="margin:10px 0 6px"><i style="width:60%"></i></div><div class="enh-st" id="synStatus"></div></div>`;
+  else if (synth && synth.md) h += `<details class="card synth" id="synthBox"><summary><span class="sec-ic hue" style="--h:${m.hue}">${ICONS.spark}</span><b>Synthèse de la matière</b><small>${synth.n} séance${synth.n > 1 ? 's' : ''} · ${fmtDate(synth.at)}</small></summary><div class="md">${md(synth.md, { i: 0, noEdit: true })}</div><div class="row"><button class="btn" id="cSynCopy">${ICONS.share}Copier</button></div></details>`;
+  if (up.length) h += `<div class="group">À venir</div>` + up.slice(0, 3).map((e) => evRow(e, notes, { date: true })).join('') + (up.length > 3 ? `<div class="hidden" id="cUpMore">${up.slice(3).map((e) => evRow(e, notes, { date: true })).join('')}</div><button class="linkbtn" id="cUpBtn" style="margin:2px 4px 6px">Voir les ${up.length - 3} autres séances à venir</button>` : '');
+  if (dues.length) h += `<div class="group">Échéances</div>` + dues.map((e) => evRow(e, notes, { date: true })).join('');
+  h += `<div class="group">Séances passées</div>` + (past.length ? past.map((e) => evRow(e, notes, { date: true })).join('') : '<div class="ev-empty">Aucune séance passée pour l\'instant.</div>');
+  if (loose.length) h += `<div class="group">Autres notes de la matière</div>` + loose.map((n) => `<button class="ev" data-open="${n.id}" style="--h:${m.hue}"><span class="ev-time">${new Date(n.created).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}<small>${hhmm(n.created)}</small></span><span class="ev-main"><b>${esc(n.title)}</b><small>${n.duration ? dur(n.duration) : ''}</small></span></button>`).join('');
+  h += `<div class="crs-more"><button class="linkbtn" id="cRename">Renommer</button><button class="linkbtn" id="cHide" style="color:var(--muted)">Masquer cette matière</button></div>`;
+  $('courseBody').innerHTML = h;
+  renderMath($('courseBody'));
+  wireCourseLinks($('courseBody'));
+  if ($('cUpBtn')) $('cUpBtn').onclick = () => { $('cUpMore').classList.remove('hidden'); $('cUpBtn').remove(); };
+  $('cSynth').onclick = () => courseSynth(m.key);
+  $('cAsk').onclick = () => { currentNote = null; openAsk('course', 'course', m.key); };
+  $('cRev').onclick = () => startReview(notes.filter((n) => (n.cards || []).length).map((n) => n.id));
+  $('cPdf').onclick = () => printCourse(m.key);
+  if ($('cSynCopy')) $('cSynCopy').onclick = async () => { try { await navigator.clipboard.writeText(`# ${m.name} — synthèse\n\n${synth.md}`); toast('Synthèse copiée'); } catch (e) { toast('Copie impossible'); } };
+  $('cRename').onclick = () => {
+    const name = prompt('Nom de la matière', m.name); if (name == null || !name.trim()) return;
+    const pr = crsPrefs(); pr[m.key] = { ...(pr[m.key] || {}), name: name.trim() }; lsSet('np-crs', JSON.stringify(pr)); MATS = null;
+    renameCourseNotes(m.key, m.name, name.trim()).then(renderCourse);
+  };
+  $('cHide').onclick = async () => {
+    if (!confirm(`Masquer « ${m.name} » ? Ses cours n'apparaîtront plus et ne rangeront plus de notes. (Réversible : Réglages → Emploi du temps.)`)) return;
+    const pr = crsPrefs(); pr[m.key] = { ...(pr[m.key] || {}), hidden: true }; lsSet('np-crs', JSON.stringify(pr)); MATS = null; await storeAgenda(); scheduleCourseReminders();
+    toast('Matière masquée'); show('courses');
+  };
+}
+async function renameCourseNotes(key, from, to) {
+  for (const n of await loadNotes()) {
+    if (!n.course || n.course.key !== key) continue;
+    n.tags = [...new Set((n.tags || []).map((t) => t === crsTag(from) ? crsTag(to) : t))]; n.course.name = to; await db.put(n);
+  }
+}
+const P_SYNTH = (m, body, n) => `Tu prépares la synthèse de révision d'une matière universitaire pour un étudiant : « ${m.full || m.name} »${m.code ? ` (${m.code})` : ''}${m.profs.length ? `, enseignant(s) : ${m.profs.join(', ')}` : ''}. Voici les résumés des ${n} séance${n > 1 ? 's' : ''} enregistrée${n > 1 ? 's' : ''}, dans l'ordre chronologique.
+${settings.ctx.trim() ? `Contexte donné par l'étudiant : ${settings.ctx.trim()}\n` : ''}
+Rédige en français, en Markdown, une synthèse complète et structurée, exactement avec ces rubriques :
+## Vue d'ensemble
+(le fil conducteur de la matière, en 5 à 10 lignes)
+## Plan séance par séance
+(une puce par séance : date, sujet, notions vues)
+## Notions essentielles
+(regroupées par thème, avec une explication courte de chacune)
+## Définitions et formules
+(formules en LaTeX $…$ ; un tableau Markdown si c'est plus clair)
+## Ce que l'enseignant a souligné
+(insistances, avertissements, ce qui est annoncé pour l'examen)
+## Questions d'examen probables
+(8 à 15 questions, chacune suivie de « **Éléments de réponse :** » en 2 à 4 lignes)
+## Points à retravailler
+(notions difficiles ou incomplètes, exercices à refaire)
+N'invente rien qui ne figure pas dans les résumés.
+
+Résumés des séances :
+"""
+${body}
+"""`;
+async function courseSynth(key) {
+  const m = getMat(key); if (!m) return;
+  if (synthing || busy || enhancing || writing || asking || carding) { toast('Un traitement est déjà en cours'); return; }
+  if (!hasKey(provider())) { toast('Ajoute d\'abord une clé d\'IA dans les réglages'); return; }
+  const notes = (await loadNotes()).filter((n) => n.course && n.course.key === key && n.summary).sort((a, b) => a.created - b.created);
+  if (!notes.length) { toast('Aucune séance résumée dans cette matière'); return; }
+  synthing = key; if (current === 'course') await renderCourse();
+  const prevEl = statusEl; statusEl = 'synStatus';
+  provFailed = new Set(); provOverride = null; keepAwake(true);
+  try {
+    let out = null;
+    for (;;) {
+      const budget = ({ gemini: 400000, mistral: 150000, cerebras: 40000, groq: 14000 })[provider()] || 14000;
+      const per = Math.floor(budget / notes.length) - 120;
+      const body = notes.map((n, i) => `### Séance ${i + 1} — ${new Date(n.created).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}${n.course.kind && n.course.kind !== 'cours' ? ' (' + KIND_LBL[n.course.kind] + ')' : ''} — ${n.title}\n${n.summary.length > per ? n.summary.slice(0, per) + '…' : n.summary}${n.mine ? `\nNotes perso de l'étudiant : ${n.mine.slice(0, 500)}` : ''}`).join('\n\n');
+      try { out = await llm(P_SYNTH(m, body, notes.length), provider() === 'groq' ? 2600 : 7000, 'Synthèse de la matière', true); break; }
+      catch (e) { if (e instanceof Cancelled) throw e; if (!fallBack(e)) throw e; }
+    }
+    await dbRun('pending', 'readwrite', (st) => st.put({ md: out.trim(), at: Date.now(), by: lastModel, n: notes.length }, synthKey(key)));
+    toast('Synthèse prête');
+  } catch (e) { toast(e instanceof ApiError ? e.message : 'Erreur : ' + e.message); }
+  finally { synthing = null; statusEl = prevEl; provOverride = null; provFailed = new Set(); keepAwake(false); if (current === 'course' && courseCur === key) { await renderCourse(); const sb = $('synthBox'); if (sb) sb.open = true; } }
+}
+async function printCourse(key) {
+  const m = getMat(key); if (!m) return;
+  const notes = (await loadNotes()).filter((n) => n.course && n.course.key === key).sort((a, b) => a.created - b.created);
+  openSheet(`<h3>PDF de la matière</h3><p class="sub">Un seul fichier pour NotebookLM : la synthèse (si faite), puis chaque séance (${notes.length}).</p>
+    <div class="stack"><button class="btn primary block" id="pcLight">Résumés et cours rédigés</button><button class="btn block" id="pcFull">Tout, avec les transcriptions</button></div>`, (b) => {
+    const go = async (full) => {
+      closeSheet();
+      const synth = await getSynth(key), root = $('printRoot');
+      root.innerHTML = `<h1 class="doc-title">${esc(m.name)}</h1><p class="doc-meta">${esc([m.full && m.full !== m.name ? m.full : '', m.code, m.profs.join(', '), notes.length + ' séance' + (notes.length > 1 ? 's' : '')].filter(Boolean).join(' · '))}</p>`
+        + (synth && synth.md ? `<div class="md">${md('# Synthèse de la matière\n\n' + synth.md, { i: 0, noEdit: true })}</div>` : '')
+        + notes.map((n) => `<section style="break-before:page"><h1 class="doc-title">${esc(n.title)}</h1><p class="doc-meta">${esc(dayLong(n.created))}${n.course.kind ? ' · ' + (KIND_LBL[n.course.kind] || '') : ''}${n.duration ? ' · ' + dur(n.duration) : ''}</p><div class="md">${md(full ? printMarkdown(n) : [n.summary || '', n.lecture ? '\n\n# Cours rédigé\n\n' + n.lecture : ''].join(''), { i: 0, noEdit: true })}</div></section>`).join('');
+      try { await loadKatex(); } catch (e) {}
+      await renderMath(root);
+      await new Promise((r) => setTimeout(r, 150));
+      doPrint({ title: m.name + ' — matière' });
+    };
+    b.querySelector('#pcLight').onclick = () => go(false);
+    b.querySelector('#pcFull').onclick = () => go(true);
+  });
+}
+
+/* =================== Chapitres automatiques =================== */
+let chaptering = null;
+const P_CHAP = (n, lines, total) => `Voici la transcription horodatée et condensée ${n.course ? 'd\'un cours' : 'd\'un enregistrement'} intitulé « ${n.title} », d'une durée de ${dur(total)}.
+${ctxLine()}
+Découpe-la en chapitres, comme une vidéo YouTube : entre 3 et 12 selon la durée (environ un toutes les 5 à 10 minutes), chacun commençant au moment exact où un nouveau sujet est abordé. Titres courts et précis (2 à 7 mots), en français, sans numéro.
+Réponds UNIQUEMENT avec un tableau JSON, sans texte autour : [{"t": "mm:ss", "titre": "…"}], le premier à 0:00.
+
+Transcription :
+"""
+${lines}
+"""`;
+function chapLines(n) {
+  const segs = (hasClean(n) ? n.clean : (n.segments || [])).filter((x) => !x.sep);
+  const total = n.duration || (segs.length ? segs[segs.length - 1].end || segs[segs.length - 1].start : 0);
+  const budget = ({ gemini: 120000, mistral: 60000, cerebras: 20000, groq: 9000 })[provider()] || 9000;
+  const step = Math.max(30, total / Math.max(10, Math.floor(budget / 250)));
+  const out = []; let cur = null;
+  for (const x of segs) {
+    if (!cur || x.start - cur.t >= step) { cur = { t: x.start, text: '' }; out.push(cur); }
+    if (cur.text.length < 230) cur.text += (cur.text ? ' ' : '') + x.text;
+  }
+  return { lines: out.map((c) => `[${hms(c.t)}] ${c.text.slice(0, 230)}`).join('\n'), total };
+}
+function parseChapters(out, total) {
+  let arr = null; const a = out.indexOf('['), b = out.lastIndexOf(']');
+  if (a >= 0 && b > a) { try { arr = JSON.parse(out.slice(a, b + 1)); } catch (e) {} }
+  if (!Array.isArray(arr)) return [];
+  const res = [];
+  for (const c of arr) {
+    const tt = String((c && (c.t || c.time || c.debut)) || ''), title = String((c && (c.titre || c.title)) || '').trim();
+    if (!/^\d{1,2}:\d{2}(:\d{2})?$/.test(tt) || !title) continue;
+    const t = toSec(tt); if (total && t > total + 5) continue;
+    if (res.length && t <= res[res.length - 1].t) continue;
+    res.push({ t, title: title.replace(/^\d+[.)]\s*/, '').slice(0, 80) });
+  }
+  if (res.length && res[0].t > 0 && res[0].t < 90) res[0].t = 0;
+  return res.length >= 2 ? res : [];
+}
+async function makeChapters(n) {
+  const { lines, total } = chapLines(n); if (!lines) return null;
+  let out;
+  for (;;) {
+    try { out = await llm(P_CHAP(n, lines, total), 1500, 'Chapitres', true); break; }
+    catch (e) { if (e instanceof Cancelled) throw e; if (!fallBack(e)) throw e; }
+  }
+  const chapters = parseChapters(out, total);
+  return chapters.length ? { chapters, chaptersBy: lastModel } : null;
+}
+async function chaptersFor(id) {
+  if (chaptering || busy || enhancing || writing || asking || carding || synthing) { toast('Un traitement est déjà en cours'); return; }
+  if (!hasKey(provider())) { toast('Ajoute d\'abord une clé d\'IA dans les réglages'); return; }
+  const n = await db.get(id); if (!n || !n.segments) return;
+  chaptering = id; renderChapters(n); setCourseCtx(n);
+  provFailed = new Set(); provOverride = null;
+  try {
+    const ch = await makeChapters(n);
+    if (!ch) throw new ApiError('L\'IA n\'a pas renvoyé de chapitres exploitables. Réessaie.');
+    const f = await db.get(id); Object.assign(f, ch); await db.put(f);
+    if (currentNote && currentNote.id === id) Object.assign(currentNote, ch);
+    toast(`${ch.chapters.length} chapitres créés`);
+  } catch (e) { toast(e instanceof ApiError ? e.message : 'Erreur : ' + e.message); }
+  finally { chaptering = null; provOverride = null; provFailed = new Set(); if (currentNote && currentNote.id === id) { renderChapters(currentNote); renderTranscript(); plTicks(); } }
+}
+function renderChapters(n) {
+  const box = $('chapBox'); if (!box || !n) return;
+  if (chaptering === n.id) { box.innerHTML = `<div class="card chap-make"><span class="sec-ic">${ICONS.chapters}</span><div><b>Chapitres</b><small>Création des chapitres…</small></div></div>`; return; }
+  if (n.chapters && n.chapters.length) {
+    box.innerHTML = `<details class="card chaps" open><summary><span class="sec-ic">${ICONS.chapters}</span><span class="g">Chapitres · ${n.chapters.length}</span></summary><ol>${n.chapters.map((c, i) => `<li><button type="button" data-ct="${c.t}" data-ci="${i}"><time>${hms(c.t)}</time>${esc(c.title)}</button></li>`).join('')}</ol><div class="chap-foot"><button class="linkbtn" id="chapRedo" style="color:var(--muted);font-weight:500">Refaire les chapitres</button></div></details>`;
+    box.querySelectorAll('[data-ct]').forEach((b) => b.onclick = () => jumpTo(n.id, +b.dataset.ct));
+    $('chapRedo').onclick = () => chaptersFor(n.id);
+  } else if (n.segments && (n.duration || 0) >= 180) {
+    box.innerHTML = `<div class="card chap-make"><span class="sec-ic">${ICONS.chapters}</span><div><b>Chapitres</b><small>Découper l'enregistrement en parties titrées</small></div><button class="btn" id="chapMake" type="button">Créer</button></div>`;
+    $('chapMake').onclick = () => chaptersFor(n.id);
+  } else box.innerHTML = '';
+  plTicks();
+}
+function inlineItems(n) {
+  const out = [];
+  (n.chapters || []).forEach((c, i) => out.push({ t: c.t, html: `<div class="chap-h" data-chap="${i}"><span>${hms(c.t)}</span>${esc(c.title)}</div>` }));
+  (n.photos || []).filter((x) => x.t != null).forEach((x) => out.push({ t: x.t + 0.01, html: `<button class="seg-photo" type="button" data-ph="${x.id}"><img alt="" data-img="${x.id}"><span>${ICONS.camera}Photo du tableau · ${hms(x.t)}</span></button>` }));
+  return out.sort((a, b) => a.t - b.t);
+}
+const curChapter = (n, t) => { let c = null; for (const x of (n && n.chapters) || []) { if (x.t <= t + 0.5) c = x; else break; } return c; };
+function plTicks() {
+  const box = $('plTicks'); if (!box) return;
+  const n = currentNote, tot = pl.total || (n && n.duration) || 0;
+  box.innerHTML = n && n.chapters && tot ? n.chapters.filter((c) => c.t > 0).map((c) => `<i style="left:${(100 * c.t / tot).toFixed(2)}%"></i>`).join('') : '';
+}
+
+/* =================== Photos du tableau =================== */
+/* Les photos (tableau, diapositive) se placent toutes seules au bon moment grâce à leur heure de prise de vue.
+   Avec une clé Gemini, l'IA lit leur contenu (texte, formules) : il nourrit le résumé, le cours rédigé et les questions. */
+let boarding = false;
+const phCache = new Map();
+async function phUrl(id) {
+  if (phCache.has(id)) return phCache.get(id);
+  const b = await dbRun('pending', 'readonly', (st) => st.get('img:' + id)).catch(() => null);
+  if (!b) return '';
+  if (phCache.size > 80) { for (const [k, u] of phCache) { URL.revokeObjectURL(u); phCache.delete(k); if (phCache.size < 40) break; } }
+  const u = URL.createObjectURL(b); phCache.set(id, u); return u;
+}
+async function fillImgs(root) { for (const im of root.querySelectorAll('img[data-img]')) if (!im.getAttribute('src')) { const u = await phUrl(im.dataset.img); if (u) im.src = u; } }
+const blobB64 = (b) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = () => rej(r.error); r.readAsDataURL(b); });
+async function shrinkImage(file, max = 1600, q = 0.82) {
+  try {
+    const bmp = await createImageBitmap(file);
+    const sc = Math.min(1, max / Math.max(bmp.width, bmp.height)), w = Math.round(bmp.width * sc), h = Math.round(bmp.height * sc);
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    c.getContext('2d').drawImage(bmp, 0, 0, w, h);
+    const blob = await new Promise((r) => c.toBlob(r, 'image/jpeg', q));
+    return { blob: blob || file, w, h };
+  } catch (e) { return { blob: file, w: 0, h: 0 }; }
+}
+async function storePhoto(file) {
+  const { blob, w, h } = await shrinkImage(file);
+  const id = 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  await dbRun('pending', 'readwrite', (st) => st.put(blob, 'img:' + id));
+  return { id, w, h, at: file.lastModified || Date.now() };
+}
+async function addPhotos(files) {
+  const n0 = currentNote; if (!n0 || !files.length) return;
+  const items = [];
+  for (const f of files) { if (!/^image\//.test(f.type || 'image/')) continue; items.push(await storePhoto(f)); }
+  if (!items.length) { toast('Aucune image reconnue'); return; }
+  const n = await db.get(n0.id); if (!n) return;
+  let placed = 0;
+  for (const it of items) {
+    let t = (it.at - n.created) / 1000;
+    if (!(t >= -120 && t <= (n.duration || 0) + 120)) t = null; else { t = Math.round(Math.max(0, Math.min(t, n.duration || t))); placed++; }
+    (n.photos = n.photos || []).push({ ...it, t });
+  }
+  n.photos.sort((a, b) => (a.t == null ? 1e9 : a.t) - (b.t == null ? 1e9 : b.t) || a.at - b.at);
+  await db.put(n);
+  if (currentNote && currentNote.id === n.id) currentNote.photos = n.photos;
+  toast(items.length > 1 ? `${items.length} photos ajoutées${placed ? ` (${placed} placée${placed > 1 ? 's' : ''} au bon moment)` : ''}` : placed ? 'Photo ajoutée au bon moment de l\'enregistrement' : 'Photo ajoutée');
+  renderExtras(n); renderTranscript();
+  if (settings.gkey) readBoards(n.id);
+}
+const P_BOARD = `Cette image est une photo prise pendant un cours (tableau, diapositive projetée ou feuille). Transcris fidèlement tout son contenu utile, en Markdown : titres, texte, listes ; formules en LaTeX ($…$ ou $$…$$) ; tableaux en tableau Markdown ; schémas ou graphiques décrits en une ou deux phrases entre crochets. N'ajoute aucun commentaire. Si l'image ne contient rien de lisible, réponds seulement : (rien de lisible)`;
+async function readBoards(noteId) {
+  if (boarding) return; boarding = true;
+  if (currentNote && currentNote.id === noteId) renderExtras(currentNote);
+  try {
+    for (;;) {
+      const n = await db.get(noteId); const ph = n && (n.photos || []).find((x) => !x.text && !x.textErr);
+      if (!ph) break;
+      const blob = await dbRun('pending', 'readonly', (st) => st.get('img:' + ph.id)).catch(() => null);
+      let text = '', err = '';
+      if (!blob) err = 'image introuvable';
+      else { try { text = await gemini(P_BOARD, 2000, 'Lecture du tableau', [{ inline_data: { mime_type: blob.type || 'image/jpeg', data: await blobB64(blob) } }]); } catch (e) { err = e.message || String(e); } }
+      const f = await db.get(noteId); const p2 = f && (f.photos || []).find((x) => x.id === ph.id); if (!p2) continue;
+      if (text) { p2.text = text.trim(); p2.textBy = lastModel; delete p2.textErr; } else p2.textErr = err;
+      await db.put(f);
+      if (currentNote && currentNote.id === noteId) { currentNote.photos = f.photos; renderExtras(currentNote); if (!$('lightbox').classList.contains('hidden')) drawLightbox(); }
+      if (err) break;   // quota, clé… : on n'insiste pas
+    }
+  } finally { boarding = false; if (currentNote && currentNote.id === noteId) renderExtras(currentNote); }
+}
+function withBoards(segs, photos) {
+  const ph = (photos || []).filter((x) => x.text && !/^\(rien de lisible\)/i.test(x.text.trim()));
+  if (!ph.length || !segs) return segs;
+  const out = segs.slice();
+  for (const x of ph) {
+    const t = x.t == null ? Infinity : x.t;
+    let i = out.findIndex((y) => !y.sep && y.start > t); if (i < 0) i = out.length;
+    out.splice(i, 0, { start: x.t == null ? (out.length ? out[out.length - 1].start : 0) : x.t, end: x.t || 0, text: `[Photo du tableau${x.t != null ? ' à ' + hms(x.t) : ''} : ${x.text.replace(/\s+/g, ' ').slice(0, 1500)}]`, board: true });
+  }
+  return out;
+}
+async function printPhotos(n) {
+  const ph = n.photos || []; if (!ph.length) return '';
+  let h = '<h1>Photos du tableau</h1>';
+  for (const x of ph) {
+    const b = await dbRun('pending', 'readonly', (st) => st.get('img:' + x.id)).catch(() => null);
+    const src = b ? 'data:image/jpeg;base64,' + await blobB64(b) : '';
+    h += `<figure style="break-inside:avoid;margin:0 0 14px">${src ? `<img src="${src}" style="max-width:100%;max-height:60vh;border-radius:6px">` : ''}<figcaption style="font-size:12px;color:#666">${x.t != null ? 'À ' + hms(x.t) + ' de l\'enregistrement' : 'Photo'}</figcaption>${x.text ? `<div class="md">${md(x.text, { i: 0, noEdit: true })}</div>` : ''}</figure>`;
+  }
+  return h;
+}
+function renderExtras(n) {
+  if (!n) return;
+  const ph = n.photos || [];
+  const read = ph.filter((x) => x.text).length;
+  $('phInfo').textContent = !ph.length ? 'Elles se placent toutes seules au bon moment de l\'enregistrement.'
+    : `${ph.length} photo${ph.length > 1 ? 's' : ''}` + (boarding ? ' · lecture par l\'IA…' : settings.gkey ? (read ? ` · ${read} lue${read > 1 ? 's' : ''} par l'IA` : '') : ' · ajoute une clé Gemini pour que l\'IA les lise');
+  $('phStrip').innerHTML = ph.map((x) => `<button type="button" data-ph="${x.id}"><img alt="" data-img="${x.id}">${x.t != null ? `<span>${hms(x.t)}</span>` : ''}${x.text ? '<i title="Lue par l\'IA"></i>' : ''}</button>`).join('');
+  fillImgs($('phStrip'));
+  $('phStrip').querySelectorAll('[data-ph]').forEach((b) => b.onclick = () => openLightbox(b.dataset.ph));
+  // mes notes
+  if ($('mineInput').classList.contains('hidden')) {
+    $('mineView').innerHTML = n.mine ? md(n.mine, { i: 0, noEdit: true }) : '';
+    renderMath($('mineView'));
+    $('mineEdit').textContent = n.mine ? 'Modifier' : 'Écrire';
+    $('mineInfo').textContent = n.mine ? `Modifiées ${fmtDate(n.mineAt || n.created)}` : 'Tes remarques, questions pour le prof, liens…';
+  }
+}
+const lb = { list: [], i: 0, x0: null };
+function openLightbox(id) {
+  const n = currentNote; if (!n) return;
+  lb.list = n.photos || []; lb.i = Math.max(0, lb.list.findIndex((x) => x.id === id));
+  $('lightbox').classList.remove('hidden'); document.body.style.overflow = 'hidden';
+  drawLightbox();
+}
+function closeLightbox() { $('lightbox').classList.add('hidden'); document.body.style.overflow = ''; }
+async function drawLightbox() {
+  lb.list = (currentNote && currentNote.photos) || lb.list;
+  const x = lb.list[lb.i]; if (!x) { closeLightbox(); return; }
+  $('lbImg').src = await phUrl(x.id);
+  $('lbCap').textContent = `${lb.i + 1} / ${lb.list.length}` + (x.t != null ? ` · ${hms(x.t)}` : '');
+  $('lbText').innerHTML = x.text ? `<div class="md">${md(x.text, { i: 0, noEdit: true })}</div>` : `<p>${x.textErr ? 'Lecture impossible : ' + esc(x.textErr) : settings.gkey ? (boarding ? 'Lecture par l\'IA en cours…' : 'Pas encore lue par l\'IA.') : 'Ajoute une clé Gemini (Réglages) pour que l\'IA lise le tableau.'}</p>`;
+  renderMath($('lbText'));
+  $('lbGo').classList.toggle('hidden', x.t == null);
+  $('lbRead').classList.toggle('hidden', !settings.gkey);
+  $('lbRead').textContent = x.text ? 'Relire avec l\'IA' : 'Lire avec l\'IA';
+  $('lbPrev').disabled = lb.i === 0; $('lbNext').disabled = lb.i >= lb.list.length - 1;
+}
+
+/* =================== Mes notes =================== */
+function resetMine() { $('mineInput').classList.add('hidden'); $('mineBar').classList.add('hidden'); $('mineView').classList.remove('hidden'); $('mineEdit').classList.remove('hidden'); }
+function mineEditMode(on) {
+  const n = currentNote; if (!n) return;
+  $('mineInput').classList.toggle('hidden', !on); $('mineBar').classList.toggle('hidden', !on);
+  $('mineView').classList.toggle('hidden', on); $('mineEdit').classList.toggle('hidden', on);
+  if (on) { $('mineInput').value = lsGet('np-mine-draft-' + n.id, '') || n.mine || ''; $('mineInput').focus(); }
+  else renderExtras(n);
+}
+async function mineSave() {
+  const n = currentNote; if (!n) return;
+  const v = $('mineInput').value.replace(/\s+$/, '');
+  const f = await db.get(n.id); if (!f) return;
+  if (v) { f.mine = v; f.mineAt = Date.now(); } else { delete f.mine; delete f.mineAt; }
+  await db.put(f); n.mine = f.mine; n.mineAt = f.mineAt;
+  try { localStorage.removeItem('np-mine-draft-' + n.id); } catch (e) {}
+  mineEditMode(false); toast(v ? 'Notes enregistrées' : 'Notes effacées');
+}
+
+/* =================== Sélection → « Expliquer » =================== */
+let selTimer = 0, selText = '';
+function updSelAsk() {
+  const sel = window.getSelection(), txt = String(sel || '').trim();
+  let ok = current === 'note' && txt.length >= 3 && txt.length <= 2500 && sel.rangeCount > 0;
+  if (ok) { const node = sel.getRangeAt(0).commonAncestorContainer, el = node.nodeType === 1 ? node : node.parentElement; ok = !!(el && el.closest('#noteSum, #noteLect, #noteTr, #mineView')); }
+  if (ok) selText = txt;
+  $('selAsk').classList.toggle('hidden', !ok);
+}
+function askAbout(prefix, send) {
+  const q = selText; if (!q || !currentNote) return;
+  $('selAsk').classList.add('hidden');
+  try { window.getSelection().removeAllRanges(); } catch (e) {}
+  openAsk('note', 'note');
+  setTimeout(() => { $('askInput').value = prefix + '« ' + q.slice(0, 1500) + ' »' + (send ? '' : ' : '); autoGrow(); if (send) sendAsk(); else { $('askInput').focus(); const L = $('askInput').value.length; $('askInput').setSelectionRange(L, L); } }, 60);
+}
+
+/* =================== Lecture à voix haute =================== */
+const tts = { on: false, paused: false, els: [], i: 0, cur: null, rate: +lsGet('np-tts-rate', '1') || 1 };
+const TTS_RATES = [1, 1.25, 1.5, 0.85];
+function speakTex(t) {
+  return String(t || '').replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, ' $1 sur $2 ').replace(/\^\{?2\}?/g, ' au carré ').replace(/\^\{?3\}?/g, ' au cube ').replace(/\^\{([^{}]*)\}|\^(\w)/g, ' puissance $1$2 ')
+    .replace(/_\{([^{}]*)\}|_(\w)/g, ' indice $1$2 ').replace(/\\sqrt\{([^{}]*)\}/g, ' racine de $1 ').replace(/\\(leq|le)\b/g, ' inférieur ou égal à ').replace(/\\(geq|ge)\b/g, ' supérieur ou égal à ')
+    .replace(/\\(neq|ne)\b/g, ' différent de ').replace(/\\(times|cdot)\b/g, ' fois ').replace(/\\sum\b/g, ' somme ').replace(/\\int\b/g, ' intégrale ').replace(/\\infty\b/g, ' infini ').replace(/\\to\b|\\rightarrow\b/g, ' tend vers ')
+    .replace(/\\in\b/g, ' appartient à ').replace(/\\(alpha|beta|gamma|delta|lambda|mu|pi|sigma|theta|omega|epsilon|phi)\b/g, ' $1 ').replace(/[\\{}$]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+function ttsText(el) {
+  const c = el.cloneNode(true);
+  c.querySelectorAll('.math').forEach((m) => m.replaceWith(' ' + speakTex(m.dataset.tex || m.textContent) + ' '));
+  c.querySelectorAll('time, button, .tedit, input, .tmeta').forEach((x) => x.remove());
+  return c.textContent.replace(/\s+/g, ' ').trim();
+}
+const frVoice = () => { try { const v = speechSynthesis.getVoices().filter((x) => /^fr/i.test(x.lang)); return v.find((x) => /google/i.test(x.name)) || v.find((x) => x.default) || v[0] || null; } catch (e) { return null; } };
+function ttsStart() {
+  if (!('speechSynthesis' in window)) { toast('Lecture à voix haute indisponible sur cet appareil'); return; }
+  const tab = !$('noteLectWrap').classList.contains('hidden') ? 'lecture' : !$('noteTrWrap').classList.contains('hidden') ? 'tr' : 'sum';
+  const root = tab === 'lecture' ? $('noteLect') : tab === 'tr' ? $('noteTr') : $('noteSum');
+  let els = [...root.querySelectorAll(tab === 'tr' ? '.seg > span, .chap-h' : 'h1, h2, h3, h4, p, li, td, th, summary')].filter((e) => e.offsetParent !== null && ttsText(e).length > 1);
+  els = els.filter((e) => !els.some((o) => o !== e && o.contains(e)));
+  if (!els.length) { toast(tab === 'lecture' ? 'Pas encore de cours rédigé à lire' : 'Rien à lire ici'); return; }
+  if (pl.el && !pl.el.paused) pl.el.pause();
+  let i = els.findIndex((e) => e.getBoundingClientRect().bottom > 90); if (i < 0) i = 0;
+  try { speechSynthesis.cancel(); } catch (e) {}
+  Object.assign(tts, { on: true, paused: false, els, i, tab });
+  ttsSpeak();
+}
+function ttsSpeak() {
+  if (!tts.on || tts.paused) return;
+  const el = tts.els[tts.i];
+  document.querySelectorAll('.tts-now').forEach((x) => x.classList.remove('tts-now'));
+  if (!el) { ttsStop(); toast('Lecture terminée'); return; }
+  el.classList.add('tts-now'); el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  const u = new SpeechSynthesisUtterance(ttsText(el).slice(0, 3500));
+  u.lang = 'fr-FR'; const v = frVoice(); if (v) u.voice = v; u.rate = tts.rate;
+  u.onend = () => { if (tts.on && !tts.paused && tts.cur === u) { tts.i++; ttsSpeak(); } };
+  u.onerror = (e) => { if (tts.on && !tts.paused && tts.cur === u && !/interrupted|canceled/.test(e.error || '')) { tts.i++; ttsSpeak(); } };
+  tts.cur = u;
+  speechSynthesis.speak(u);
+  ttsUI();
+}
+function ttsPause() {
+  if (!tts.on) return;
+  if (tts.paused) { tts.paused = false; ttsSpeak(); }
+  else { tts.paused = true; tts.cur = null; try { speechSynthesis.cancel(); } catch (e) {} ttsUI(); }
+}
+function ttsStop() {
+  tts.on = false; tts.paused = false; tts.cur = null;
+  try { speechSynthesis.cancel(); } catch (e) {}
+  document.querySelectorAll('.tts-now').forEach((x) => x.classList.remove('tts-now'));
+  ttsUI();
+}
+function ttsUI() {
+  $('ttsBar').classList.toggle('hidden', !tts.on);
+  document.body.classList.toggle('has-tts', tts.on);
+  if (!tts.on) return;
+  $('ttsLbl').textContent = `${tts.paused ? 'En pause' : 'Lecture'} · ${tts.tab === 'lecture' ? 'cours' : tts.tab === 'tr' ? 'transcription' : 'résumé'} · ${Math.min(tts.i + 1, tts.els.length)}/${tts.els.length}`;
+  $('ttsPause').innerHTML = tts.paused ? PLAY_SVG : PAUSE_SVG;
+  $('ttsPause').setAttribute('aria-label', tts.paused ? 'Reprendre' : 'Pause');
+  $('ttsRate').textContent = rateLbl(tts.rate);
+}
+
+/* =================== Reprendre la lecture =================== */
+const posAll = () => { try { return JSON.parse(lsGet('np-pos', '{}')); } catch (e) { return {}; } };
+function curTab() { const b = document.querySelector('.tabs-wrap .tabs button[aria-selected="true"]'); return b ? b.dataset.tab : 'sum'; }
+function savePos(tab) {
+  const n = currentNote; if (!n || current !== 'note') return;
+  const all = posAll(), maxY = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+  all[n.id] = { tab: tab || curTab(), y: tab && tab !== curTab() ? 0 : Math.round(window.scrollY), pct: tab && tab !== curTab() ? 0 : Math.min(1, window.scrollY / maxY), at: Date.now() };
+  const keys = Object.keys(all).sort((a, b) => all[b].at - all[a].at);
+  for (const k of keys.slice(40)) delete all[k];
+  lsSet('np-pos', JSON.stringify(all));
+}
+let posT = 0;
+window.addEventListener('scroll', () => { if (current !== 'note' || !currentNote) return; clearTimeout(posT); posT = setTimeout(() => savePos(), 500); }, { passive: true });
+function restorePos(n) {
+  const p = posAll()[n.id]; if (!p || Date.now() - p.at > 60 * DAY) return;
+  if (p.tab && p.tab !== 'sum' && (p.tab !== 'lecture' || n.lecture)) setTab(p.tab);
+  if (p.y > 500) {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      window.scrollTo(0, p.y);
+      toast('Repris là où tu t\'étais arrêté', { action: 'En haut', onAction: () => window.scrollTo({ top: 0, behavior: 'smooth' }) });
+    }));
+  }
+}
+async function renderResume() {
+  const box = $('resumeBox'); if (!box) return;
+  const all = posAll(), id = Object.keys(all).sort((a, b) => all[b].at - all[a].at)[0];
+  const p = id && all[id];
+  const n = p && (allNotes || []).find((x) => x.id === id);
+  if (!n || Date.now() - p.at > 2 * DAY || !(p.pct > 0.08 && p.pct < 0.92) || p.y < 500) { box.innerHTML = ''; return; }
+  const where = p.tab === 'lecture' ? 'Cours rédigé' : p.tab === 'tr' ? 'Transcription' : 'Résumé';
+  box.innerHTML = `<button class="resume-chip" id="resumeGo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5"/></svg><span><b>Reprendre « ${esc(n.title)} »</b><small>${where} · ${Math.round(p.pct * 100)} % lu</small></span><span class="lvl"><i style="width:${Math.round(p.pct * 100)}%"></i></span></button>`;
+  $('resumeGo').onclick = () => openNote(n.id);
+}
+
+/* =================== Glisser entre Résumé, Transcription et Cours =================== */
+(() => {
+  let x0 = null, y0 = 0, t0 = 0;
+  const area = $('v-note');
+  area.addEventListener('touchstart', (e) => {
+    x0 = null;
+    if (e.touches.length !== 1) return;
+    const tx = e.touches[0].clientX;
+    if (tx < 28 || tx > window.innerWidth - 28) return;   // bords : geste « retour » d'Android
+    if (e.target.closest('input, textarea, select, table, pre, .katex-display, .ph-strip, .marks-row, .tabs, .seg2, .lb, .toc, .md .math')) return;
+    x0 = tx; y0 = e.touches[0].clientY; t0 = Date.now();
+  }, { passive: true });
+  area.addEventListener('touchend', (e) => {
+    if (x0 == null) return;
+    const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null;
+    if (Math.abs(dx) < 70 || Math.abs(dx) < 2.2 * Math.abs(dy) || Date.now() - t0 > 700) return;
+    if (String(window.getSelection ? window.getSelection() : '').trim()) return;
+    swipeTab(dx < 0 ? 1 : -1);
+  }, { passive: true });
+})();
+function swipeTab(dir) {
+  if (current !== 'note' || !currentNote) return;
+  const order = ['sum', 'tr', 'lecture'], i = order.indexOf(curTab()) + dir;
+  if (i < 0 || i >= order.length) return;
+  setTab(order[i]); savePos();
+  const el = { sum: $('noteSum'), tr: $('noteTrWrap'), lecture: $('noteLectWrap') }[order[i]];
+  el.classList.remove('sw-l', 'sw-r'); void el.offsetWidth; el.classList.add(dir > 0 ? 'sw-l' : 'sw-r');
+  const tb = document.querySelector('.tabs-wrap');
+  if (tb && window.scrollY > tb.offsetTop) window.scrollTo(0, tb.offsetTop - 64);
+}
+
+/* =================== Tirer pour actualiser (accueil) =================== */
+(() => {
+  let y0 = null, dist = 0, pulling = false;
+  const ind = $('ptr');
+  window.addEventListener('touchstart', (e) => {
+    y0 = null;
+    if (current !== 'home' || window.scrollY > 0 || e.touches.length !== 1 || !$('sheet').classList.contains('hidden') || ui.sel) return;
+    y0 = e.touches[0].clientY; dist = 0;
+  }, { passive: true });
+  window.addEventListener('touchmove', (e) => {
+    if (y0 == null) return;
+    dist = e.touches[0].clientY - y0;
+    if (dist > 12 && window.scrollY <= 0) { pulling = true; ind.classList.add('show'); ind.style.transform = `translate(-50%, ${Math.min(70, dist / 2)}px)`; ind.classList.toggle('ready', dist > 130); }
+    else if (pulling && dist <= 12) { pulling = false; ind.classList.remove('show', 'ready'); ind.style.transform = ''; }
+  }, { passive: true });
+  window.addEventListener('touchend', async () => {
+    if (!pulling) { y0 = null; return; }
+    pulling = false; y0 = null;
+    const go = dist > 130;
+    ind.style.transform = ''; ind.classList.remove('ready');
+    if (!go) { ind.classList.remove('show'); return; }
+    ind.classList.add('spin');
+    try { await refreshAll(); } finally { ind.classList.remove('spin', 'show'); }
+  }, { passive: true });
+})();
+async function refreshAll() {
+  const jobs = [];
+  if (plaudOn()) jobs.push(plaudAutoCheck(true));
+  if (settings.icsUrl) jobs.push(syncAgenda(false));
+  jobs.push(updateBadge());
+  if (jobs.length === 1) { await jobs[0]; toast('Rien à actualiser : configure l\'import Plaud ou ton emploi du temps'); return; }
+  await Promise.allSettled(jobs);
+  if (current === 'home') renderHome();
+  toast('À jour');
+}
+
+/* =================== Raccourcis (appui long sur l'icône, tag NFC…) et télécommande =================== */
+function runAction(act) {
+  if (!act) return;
+  if (act === 'rec' || act === 'enregistrer') startRec();
+  else if (act === 'cours') show('courses');
+  else if (act === 'question') { currentNote = null; openAsk('all', 'home'); }
+  else if (act === 'taches') show('tasks');
+}
+document.addEventListener('keydown', (e) => {
+  if (e.target && e.target.closest && e.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+  const k = e.key;
+  if (k === 'Escape') { if (!$('lightbox').classList.contains('hidden')) closeLightbox(); else if (!$('sheet').classList.contains('hidden')) closeSheet(); return; }
+  if (current === 'rec' && rec.mr) {   // télécommande Bluetooth (Flipper en mode clavier/présentation, clicker…)
+    if (k === ' ' || k === 'k' || k === 'K' || k === 'MediaPlayPause') { e.preventDefault(); recPause(); }
+    else if (['Enter', 'ArrowRight', 'ArrowDown', 'PageDown', 'm', 'M', 'MediaTrackNext'].includes(k)) { e.preventDefault(); recMark(); }
+    return;
+  }
+  if (current === 'note' && pl.parts && pl.parts.length && !tts.on) {
+    if (k === ' ' || k === 'k' || k === 'MediaPlayPause') { e.preventDefault(); plToggle(); }
+    else if (k === 'ArrowLeft' || k === 'j') { e.preventDefault(); plSeekBy(-10); }
+    else if (k === 'ArrowRight' || k === 'l') { e.preventDefault(); plSeekBy(30); }
+  }
+});
+
 /* =================== Audio gardé + lecteur synchronisé =================== */
 /* L'audio est rangé à part des notes (magasin « pending », clé « audio:<id> ») pour que la liste reste légère.
    Une note fusionnée lit l'audio de chacune de ses parties, bout à bout. */
@@ -4444,6 +5690,12 @@ async function gcAudio() {   // audio dont plus aucune note ne se sert (note sup
     const used = new Set();
     for (const n of await db.all()) for (const p of audioParts(n)) used.add(p.id);
     for (const id of ids) if (!used.has(id)) await audioDB.del(id);
+  } catch (e) {}
+  try {
+    const keys = await dbRun('pending', 'readonly', (st) => st.getAllKeys(IDBKeyRange.bound('img:', 'img:\uffff')));
+    const used = new Set([...(rec.photos || []).map((x) => x.id)]);
+    for (const n of await db.all()) for (const ph of n.photos || []) used.add(ph.id);
+    for (const k of keys || []) if (!used.has(String(k).slice(4))) await dbRun('pending', 'readwrite', (st) => st.delete(k));
   } catch (e) {}
 }
 async function renderAudioData() {
@@ -4482,7 +5734,7 @@ async function preparePlayer(n) {
     if (b && b.size) { parts.push(p); blobs[p.id] = b; }
   }
   Object.assign(pl, { noteId: n.id, parts, blobs, idx: -1, total: n.duration || 0, segEls: null, cur: null });
-  plUI();
+  plUI(); plTicks();
 }
 function stopPlayer() {
   if (pl.el) { try { pl.el.pause(); } catch (e) {} pl.el.removeAttribute('src'); try { pl.el.load(); } catch (e) {} }
@@ -4546,6 +5798,7 @@ function plSync(force) {
   const t = plTime(), tot = plTotal();
   if (!pl.seeking) { $('plSeek').value = tot ? Math.round(1000 * Math.min(1, t / tot)) : 0; $('plCur').textContent = hms(t); }
   $('plDur').textContent = tot ? hms(tot) : '--:--';
+  { const ch = currentNote && pl.noteId === currentNote.id ? curChapter(currentNote, pl.seeking ? tot * $('plSeek').value / 1000 : t) : null; const txt = ch ? ch.title : ''; if ($('plChap').textContent !== txt) { $('plChap').textContent = txt; $('chapBox').querySelectorAll('[data-ci]').forEach((b) => b.classList.toggle('on', ch && +b.dataset.ci === currentNote.chapters.indexOf(ch))); } }
   if (pl.idx < 0 || !currentNote || pl.noteId !== currentNote.id) return;
   if (!pl.segEls || !pl.segEls.length || !pl.segEls[0].isConnected) pl.segEls = [...$('noteTr').querySelectorAll('.seg[data-t]')];
   const els = pl.segEls;
@@ -4607,18 +5860,19 @@ async function startRec() {
   catch (e) { stream.getTracks().forEach((t) => t.stop()); toast('Impossible de démarrer l\'enregistrement : ' + e.message); return; }
   if (pl.el && !pl.el.paused) pl.el.pause();
   const t0 = Date.now();
-  Object.assign(rec, { mr, stream, chunks: [], writes: [], t0, acc: 0, since: t0, paused: false, marks: [], sid: t0.toString(36), n: 0, mime: mr.mimeType || mime || 'audio/webm', lv: [] });
+  Object.assign(rec, { mr, stream, chunks: [], writes: [], t0, acc: 0, since: t0, paused: false, marks: [], sid: t0.toString(36), n: 0, mime: mr.mimeType || mime || 'audio/webm', lv: [], photos: [] });
   mr.ondataavailable = (e) => {
     if (!e.data || !e.data.size) return;
     rec.chunks.push(e.data);
     const key = `rec:${rec.sid}:${String(rec.n++).padStart(5, '0')}`;
-    const val = { blob: e.data, t0: rec.t0, mime: rec.mime, marks: rec.marks.slice(), secs: Math.round(recElapsed() / 1000) };
+    const val = { blob: e.data, t0: rec.t0, mime: rec.mime, marks: rec.marks.slice(), photos: rec.photos.slice(), secs: Math.round(recElapsed() / 1000) };
     rec.writes.push(dbRun('pending', 'readwrite', (s) => s.put(val, key)).catch(() => {}));
   };
   mr.start(5000);
   try { const AC = window.AudioContext || window.webkitAudioContext; rec.ctx = new AC(); const an = rec.ctx.createAnalyser(); an.fftSize = 1024; rec.ctx.createMediaStreamSource(stream).connect(an); const mute = rec.ctx.createGain(); mute.gain.value = 0; an.connect(mute); mute.connect(rec.ctx.destination); rec.an = an; if (rec.ctx.state === 'suspended') rec.ctx.resume().catch(() => {}); } catch (e) { rec.an = null; }
   keepAlive(true);
   recWake(true);
+  recMedia();
   clearInterval(rec.tick); rec.tick = setInterval(recTick, 125);
   show('rec');
 }
@@ -4647,6 +5901,15 @@ function recTick() {
     for (let i = 0; i < 36; i++) box.children[i].style.height = Math.round(6 + (i >= off ? rec.lv[i - off] : 0) * 94) + '%';
   }
 }
+function recMedia() {
+  if (!('mediaSession' in navigator) || !rec.mr) return;
+  try {
+    navigator.mediaSession.metadata = 'MediaMetadata' in window ? new MediaMetadata({ title: rec.paused ? 'Enregistrement en pause' : 'Enregistrement en cours', artist: 'Notes Plaud', album: '« Suivant » : marquer un moment', artwork: [{ src: 'icon-512.png', sizes: '512x512', type: 'image/png' }] }) : null;
+    navigator.mediaSession.playbackState = rec.paused ? 'paused' : 'playing';
+    const h = { nexttrack: () => recMark(), pause: () => { if (!rec.paused) recPause(); }, play: () => { if (rec.paused) recPause(); }, previoustrack: null, seekbackward: null, seekforward: null, seekto: null };
+    for (const [k, f] of Object.entries(h)) { try { navigator.mediaSession.setActionHandler(k, f); } catch (e) {} }
+  } catch (e) {}
+}
 function renderRec() {
   $('recState').textContent = rec.paused ? 'En pause' : 'Enregistrement en cours';
   $('recDot').classList.toggle('paused', rec.paused);
@@ -4662,7 +5925,7 @@ function recPause() {
   if (!rec.mr) return;
   if (rec.paused) { try { rec.mr.resume(); } catch (e) {} rec.since = Date.now(); rec.paused = false; }
   else { try { rec.mr.pause(); } catch (e) {} rec.acc += Date.now() - rec.since; rec.paused = true; }
-  renderRec();
+  renderRec(); recMedia();
 }
 function recMark() {
   if (!rec.mr) return;
@@ -4684,14 +5947,15 @@ async function stopRec(save) {
   try { if (rec.ctx) rec.ctx.close(); } catch (e) {}
   clearInterval(rec.tick);
   await recWake(false);
-  const { chunks, sid, t0, marks, mime } = rec;
+  const { chunks, sid, t0, marks, mime } = rec, photos = rec.photos || [];
   Object.assign(rec, { mr: null, stream: null, ctx: null, an: null, chunks: [], writes: [], paused: false, stopping: false });
   if (!busy && !enhancing && !writing) keepAlive(false);
   renderRecBanner();
   const clear = () => dbRun('pending', 'readwrite', (s) => s.delete(IDBKeyRange.bound(`rec:${sid}:`, `rec:${sid}:￿`))).catch(() => {});
   const blob = new Blob(chunks, { type: (mime || 'audio/webm').split(';')[0] });
-  if (!save || !blob.size) { await clear(); toast(save ? 'Enregistrement vide' : 'Enregistrement supprimé'); show(lastTab); return; }
-  await startFile(recFile(blob, t0), { created: t0, title: recName(t0), marks: marks.length ? marks : undefined, recorded: true, duration: secs });
+  if (!save || !blob.size) { await clear(); for (const ph of photos) await dbRun('pending', 'readwrite', (st) => st.delete('img:' + ph.id)).catch(() => {}); rec.photos = []; toast(save ? 'Enregistrement vide' : 'Enregistrement supprimé'); show(lastTab); return; }
+  await startFile(recFile(blob, t0), { created: t0, title: recName(t0), marks: marks.length ? marks : undefined, photos: photos.length ? photos : undefined, recorded: true, duration: secs });
+  rec.photos = [];
   await clear();
 }
 async function recoverRec() {   // enregistrement coupé net (app fermée) : on le reconstitue
@@ -4708,6 +5972,7 @@ async function recoverRec() {   // enregistrement coupé net (app fermée) : on 
       const file = recFile(new Blob(items.map((x) => x.blob), { type: (last.mime || 'audio/webm').split(';')[0] }), t0);
       const note = { id: 'n' + now.toString(36) + sid.slice(-2), created: t0, addedAt: now, fileName: file.name, size: file.size, title: recName(t0) + ' (récupéré)', status: 'transcription', audio: file, segments: null, summary: '', duration: last.secs || 0, recorded: true };
       if (last.marks && last.marks.length) note.marks = last.marks;
+      if (last.photos && last.photos.length) note.photos = last.photos;
       await db.put(note);
       toast('Un enregistrement interrompu a été récupéré');
     }
@@ -4715,14 +5980,39 @@ async function recoverRec() {   // enregistrement coupé net (app fermée) : on 
   }
 }
 
+/* =================== Retour : écran précédent =================== */
+async function navBack() {
+  while (navStack.length) {
+    const st = navStack.pop();
+    if (st.v === current && st.v !== 'note' && st.v !== 'course') continue;
+    if (st.v === 'job' && !busy) continue;
+    if (st.v === 'rec' && !rec.mr) continue;
+    if (st.v === 'review' && !rv.active) continue;
+    if (TABS.includes(st.v)) { show(st.v); return; }
+    navLock = true;
+    try {
+      if (st.v === 'note') {
+        if (!st.id || (current === 'note' && currentNote && currentNote.id === st.id)) continue;
+        if (!(await db.get(st.id))) continue;
+        await openNote(st.id);
+      } else if (st.v === 'course') {
+        if (!getMat(st.crs) || (current === 'course' && courseCur === st.crs)) continue;
+        courseCur = st.crs; show('course');
+      } else show(st.v);
+    } finally { navLock = false; }
+    return;
+  }
+  show(lastTab);
+}
+
 /* =================== Bouton « retour » d'Android =================== */
 /* Sans ça, le geste retour ferme l'app d'un coup. On garde une entrée d'historique « tampon » :
    le retour ferme d'abord le panneau ouvert, revient à l'écran précédent, puis demande confirmation. */
 let backReady = false, backArmed = 0;
 function goBack() {
+  if (!$('lightbox').classList.contains('hidden')) { closeLightbox(); return true; }
   if (!$('sheet').classList.contains('hidden')) { closeSheet(); return true; }
-  if (current === 'review' && rv.active) { rv.active = false; renderReview(); updateBadge(); return true; }
-  if (!['home', 'tasks', 'review'].includes(current)) { $('backBtn').click(); return true; }
+  if (!TABS.includes(current)) { $('backBtn').click(); return true; }
   if (ui.sel) { setSel(false); return true; }
   if (current !== 'home') { show('home'); return true; }
   if ($('search').value) { $('search').value = ''; $('search').dispatchEvent(new Event('input')); return true; }
@@ -4740,7 +6030,7 @@ function setupBack() {
 }
 
 /* =================== Mes données : sauvegarde, restauration, stockage =================== */
-const SECRET_KEYS = ['key', 'gkey', 'ckey', 'mkey', 'ptoken'];
+const SECRET_KEYS = ['key', 'gkey', 'ckey', 'mkey', 'ptoken', 'icsUrl'];
 function saveBlob(blob, name) {
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000);
@@ -4861,6 +6151,7 @@ function showSettings() {
   $('sRemind').value = settings.autoRemind || 'eve';
   $('sBg').checked = settings.bg !== false;
   $('sKeepAudio').checked = settings.keepAudio !== false;
+  $('sIcsUrl').value = settings.icsUrl || ''; $('sCourseRem').value = String(settings.courseRemind || 0); renderAgState();
   renderThemes();
   applyFs(settings.fs);
   renderData();
@@ -4881,7 +6172,7 @@ $('stats').onclick = () => { if (/tâche/.test($('stats').textContent)) show('ta
 $('shareDiagClose').onclick = () => $('shareDiag').classList.add('hidden');
 $('settingsBtn').onclick = showSettings;
 $('onboardBtn').onclick = showSettings;
-$('backBtn').onclick = () => { if (current === 'ask' && askFrom === 'note' && currentNote) show('note'); else show(lastTab); };
+$('backBtn').onclick = () => { if (current === 'review') { rv.active = false; updateBadge(); } navBack(); };
 $('jobHome').onclick = () => show('home');
 $('search').oninput = renderList;
 $('homeMode').querySelectorAll('button').forEach((b) => {
@@ -4905,7 +6196,7 @@ $('selDel').onclick = async () => {
 $('sheetBg').onclick = closeSheet;
 $('tabbar').querySelector('[data-v=home]').innerHTML = ICONS.notes + 'Notes';
 $('tabbar').querySelector('[data-v=tasks]').innerHTML = ICONS.todo + 'Tâches<span class="badge hidden"></span>';
-$('tabbar').querySelector('[data-v=review]').innerHTML = ICONS.cards + 'Réviser<span class="badge hidden"></span>';
+$('tabbar').querySelector('[data-v=courses]').innerHTML = ICONS.book + 'Cours<span class="badge dot hidden"></span>';
 $('tabbar').querySelectorAll('button').forEach((b) => b.onclick = () => { if (current !== b.dataset.v) show(b.dataset.v); });
 $('fab').innerHTML = ICONS.plus; $('fab').onclick = () => taskSheet(null);
 $('tMore').innerHTML = ICONS.more; $('tMore').onclick = tasksMenu;
@@ -4974,7 +6265,7 @@ $('sSave').onclick = () => {
     llms: $('sLlm').value.trim() || DEFAULTS.llms, ctx: $('sCtx').value,
     provider: $('sProv').value, gkey: $('sGKey').value.trim(), gmodels: $('sGModel').value.trim() || DEFAULTS.gmodels,
     ckey: $('sCKey').value.trim(), cmodels: $('sCModel').value.trim() || DEFAULTS.cmodels,
-    mkey: $('sMKey').value.trim(), mmodels: $('sMModel').value.trim() || DEFAULTS.mmodels, kind: $('sKind').value, autoRemind: $('sRemind').value, bg: $('sBg').checked, keepAudio: $('sKeepAudio').checked };
+    mkey: $('sMKey').value.trim(), mmodels: $('sMModel').value.trim() || DEFAULTS.mmodels, kind: $('sKind').value, autoRemind: $('sRemind').value, bg: $('sBg').checked, keepAudio: $('sKeepAudio').checked, icsUrl: $('sIcsUrl').value.trim(), courseRemind: +$('sCourseRem').value || 0 };
   const prev = loadSettings();
   settings.theme = prev.theme || 'auto';
   settings.fs = prev.fs || 'm';
@@ -4985,9 +6276,10 @@ $('sSave').onclick = () => {
   toast(saveSettings(settings) ? 'Réglages enregistrés' : 'Impossible d\'enregistrer (navigation privée ?)');
   show('home');
   if (plaudOn()) setTimeout(() => plaudAutoCheck(true), 300);
+  agendaSettingsChanged(prev);
 };
 $('fileInput').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) startFile(f); };
-document.querySelectorAll('.tabs-wrap .tabs button').forEach((b) => b.onclick = () => setTab(b.dataset.tab));
+document.querySelectorAll('.tabs-wrap .tabs button').forEach((b) => b.onclick = () => { setTab(b.dataset.tab); savePos(); });
 
 /* =================== Export PDF (impression) -> NotebookLM =================== */
 /* NotebookLM (grand public) n'a pas d'API : on passe par un PDF. Plutôt que de dessiner le PDF
@@ -4998,6 +6290,7 @@ document.querySelectorAll('.tabs-wrap .tabs button').forEach((b) => b.onclick = 
 function printMarkdown(n) {
   const out = [];
   if (n.summary) out.push(n.summary);
+  if (n.mine && n.mine.trim()) out.push('\n\n# Mes notes\n\n' + n.mine);
   if (n.lecture && n.lecture.trim()) out.push('\n\n# Cours rédigé\n\n' + n.lecture);
   const segs = hasClean(n) ? n.clean : (n.segments || []);
   if (segs.length) {
@@ -5010,7 +6303,7 @@ async function preparePrint(n) {
   const root = $('printRoot');
   root.innerHTML = `<h1 class="doc-title">${esc(n.title)}</h1>`
     + `<p class="doc-meta">${esc(fmtDate(n.created))}${n.duration ? ' · ' + dur(n.duration) : ''}${n.fileName ? ' · ' + esc(n.fileName) : ''}</p>`
-    + `<div class="md">${md(printMarkdown(n), { i: 0, noEdit: true })}</div>`;
+    + `<div class="md">${md(printMarkdown(n), { i: 0, noEdit: true })}</div>` + await printPhotos(n);
   try { await loadKatex(); } catch (e) {}
   await renderMath(root);
   try { await document.fonts.ready; } catch (e) {}
@@ -5088,10 +6381,10 @@ $('askScope').querySelectorAll('button').forEach((b) => b.onclick = () => { if (
 $('askClear').onclick = async () => {
   if (!confirm('Effacer cette conversation ?')) return;
   if (askScope === 'note' && currentNote) { const n = await db.get(currentNote.id); if (n) { delete n.chat; await db.put(n); } delete currentNote.chat; }
-  else lsSet(ALLCHAT, '[]');
+  else lsSet(chatKey(), '[]');
   renderAsk();
 };
-$('rvQuit').onclick = () => { rv.active = false; renderReview(); updateBadge(); };
+$('rvQuit').onclick = () => { rv.active = false; updateBadge(); navBack(); };
 $('plPlay').onclick = plToggle;
 $('plBack').onclick = () => plSeekBy(-10);
 $('plFwd').onclick = () => plSeekBy(30);
@@ -5123,6 +6416,48 @@ $('audDelAll').onclick = async () => {
   toast('Audio supprimé'); renderData();
 };
 $('recBtn').onclick = startRec;
+$('noteTr').addEventListener('click', (e) => { const b = e.target.closest('[data-ph]'); if (b) openLightbox(b.dataset.ph); });
+$('phCam').onclick = () => $('phCamInput').click();
+$('phGal').onclick = () => $('phGalInput').click();
+$('phCamInput').onchange = (e) => { const f = [...e.target.files]; e.target.value = ''; addPhotos(f); };
+$('phGalInput').onchange = (e) => { const f = [...e.target.files]; e.target.value = ''; addPhotos(f); };
+$('lbClose').onclick = closeLightbox;
+$('lbPrev').onclick = () => { if (lb.i > 0) { lb.i--; drawLightbox(); } };
+$('lbNext').onclick = () => { if (lb.i < lb.list.length - 1) { lb.i++; drawLightbox(); } };
+$('lbGo').onclick = () => { const x = lb.list[lb.i]; closeLightbox(); if (x && x.t != null) jumpTo(currentNote.id, x.t); };
+$('lbRead').onclick = async () => { const x = lb.list[lb.i]; if (!x) return; const f = await db.get(currentNote.id); const p2 = f.photos.find((y) => y.id === x.id); delete p2.text; delete p2.textErr; await db.put(f); currentNote.photos = f.photos; drawLightbox(); readBoards(f.id); };
+$('lbDel').onclick = async () => {
+  const x = lb.list[lb.i]; if (!x || !confirm('Supprimer cette photo ?')) return;
+  const f = await db.get(currentNote.id); f.photos = (f.photos || []).filter((y) => y.id !== x.id); if (!f.photos.length) delete f.photos; await db.put(f);
+  await dbRun('pending', 'readwrite', (st) => st.delete('img:' + x.id)).catch(() => {});
+  currentNote.photos = f.photos; lb.i = Math.min(lb.i, (f.photos || []).length - 1);
+  renderExtras(currentNote); renderTranscript();
+  if (!(f.photos || []).length) closeLightbox(); else drawLightbox();
+  toast('Photo supprimée');
+};
+$('lbImgBox').addEventListener('touchstart', (e) => { lb.x0 = e.touches[0].clientX; }, { passive: true });
+$('lbImgBox').addEventListener('touchend', (e) => { if (lb.x0 == null) return; const dx = e.changedTouches[0].clientX - lb.x0; lb.x0 = null; if (Math.abs(dx) > 50) (dx < 0 ? $('lbNext') : $('lbPrev')).click(); }, { passive: true });
+$('mineEdit').onclick = () => mineEditMode(true);
+$('mineCancel').onclick = () => { if (currentNote) { try { localStorage.removeItem('np-mine-draft-' + currentNote.id); } catch (e) {} } mineEditMode(false); };
+$('mineSave').onclick = mineSave;
+$('mineInput').oninput = () => { if (currentNote) lsSet('np-mine-draft-' + currentNote.id, $('mineInput').value); };
+document.addEventListener('selectionchange', () => { clearTimeout(selTimer); selTimer = setTimeout(updSelAsk, 250); });
+$('selExplain').onclick = () => askAbout('Explique-moi simplement ce passage : ', true);
+$('selQ').onclick = () => askAbout('À propos de ', false);
+$('selX').onclick = () => { $('selAsk').classList.add('hidden'); try { window.getSelection().removeAllRanges(); } catch (e) {} };
+$('ttsBtn').onclick = () => { if (tts.on) ttsStop(); else ttsStart(); };
+$('ttsPause').onclick = ttsPause;
+$('ttsStop').onclick = ttsStop;
+$('ttsRate').onclick = () => { tts.rate = TTS_RATES[(TTS_RATES.indexOf(tts.rate) + 1) % TTS_RATES.length]; lsSet('np-tts-rate', String(tts.rate)); if (tts.on && !tts.paused) { tts.cur = null; try { speechSynthesis.cancel(); } catch (e) {} ttsSpeak(); } ttsUI(); };
+$('recPhoto').onclick = () => $('recPhotoInput').click();
+$('recPhotoInput').onchange = async (e) => {
+  const fs = [...e.target.files]; e.target.value = '';
+  if (!rec.mr) return;
+  for (const f of fs) { const it = await storePhoto(f); it.t = Math.round(recElapsed() / 1000); rec.photos.push(it); toast('Photo ajoutée à ' + hms(it.t)); }
+};
+$('agSync').onclick = async () => { settings.icsUrl = $('sIcsUrl').value.trim(); saveSettings(settings); $('agState').textContent = 'Synchronisation…'; await syncAgenda(true); renderAgState(); };
+$('agFile').onclick = () => $('icsInput').click();
+$('icsInput').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) importIcsFile(f); };
 $('recBanner').onclick = () => show('rec');
 $('recStop').onclick = () => stopRec(true);
 $('recPause').onclick = recPause;
@@ -5165,7 +6500,7 @@ document.querySelectorAll('#trMode button').forEach((b) => b.onclick = () => { t
 $('runBanner').onclick = () => show('job');
 $('notifBtn').onclick = askNotif;
 $('notifHintBtn').onclick = askNotif;
-if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.open) { if (e.data.open === ':tasks') show('tasks'); else openNote(e.data.open); } });
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.open) { if (e.data.open === ':tasks') show('tasks'); else if (e.data.open === ':courses') show('courses'); else openNote(e.data.open); } });
 // Reprend automatiquement un traitement interrompu (app fermée ou mise en pause par Android)
 async function resumeInterrupted() {
   if (busy || enhancing || writing) return;
@@ -5189,14 +6524,20 @@ window.addEventListener('beforeunload', (e) => { if (busy || enhancing || writin
   try { pending = await db.takePending(); } catch (e) { pendErr = String(e && e.message || e); }
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {});
   if (pending && pending.file) { startFile(pending.file); return; }
+  await loadAgenda();
   current = '';
   show('home');
   renderNotif();
-  if (params.has('note')) { const id = params.get('note'); history.replaceState(history.state, '', location.pathname); if (id === ':tasks') show('tasks'); else openNote(id); }
+  if (params.has('note')) { const id = params.get('note'); history.replaceState(history.state, '', location.pathname); if (id === ':tasks') show('tasks'); else if (id === ':courses') show('courses'); else openNote(id); }
   await recoverRec();
+  const act = params.get('action');
+  if (act) { history.replaceState(history.state, '', location.pathname); setTimeout(() => runAction(act), 300); }
   resumeInterrupted();
   updateBadge(); scheduleReminders(); fireReminders(); setupPeriodicCheck();
   setTimeout(gcAudio, 6000);
+  scheduleCourseReminders();
+  if (settings.icsUrl && Date.now() - (AG.at || 0) > 12 * 3600000) setTimeout(() => syncAgenda(false), 2500);
+  setInterval(tickCourses, 30000);
   setTimeout(() => plaudAutoCheck(true), 1500);
   if (params.has('shared') || pending) {
     const i = (pending && pending.info) || {};

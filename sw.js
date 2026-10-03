@@ -2,9 +2,9 @@
 // - reçoit les fichiers partagés depuis Android (cible de partage)
 // - garde l'application en cache pour qu'elle s'ouvre même avec un mauvais réseau
 
-const CACHE = 'notes-plaud-v30';
+const CACHE = 'notes-plaud-v31';
 const KATEX_CACHE = 'katex-v1';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './sc-rec.png', './sc-cours.png', './sc-ask.png', './sc-tasks.png'];
 
 // --- IndexedDB minimal (même base que la page) ---
 function openDB() {
@@ -172,4 +172,21 @@ async function checkReminders() {
     });
   }
 }
-self.addEventListener('periodicsync', (e) => { if (e.tag === 'reminders') e.waitUntil(checkReminders()); });
+// ---- Rappel « pense à lancer ton Plaud » avant un cours (emploi du temps importé dans l'app) ----
+async function checkCourses() {
+  const ag = await idbReq('pending', 'readonly', (s) => s.get('agenda'));
+  if (!ag || !Array.isArray(ag.events) || !ag.remind) return;
+  const seen = (await idbReq('pending', 'readonly', (s) => s.get('crs-notified'))) || [];
+  const now = Date.now(), lead = ag.remind * 60000, hidden = ag.hidden || [];
+  // la vérification Android est espacée (environ une fois par heure) : on prévient pour les cours de la prochaine heure
+  const soon = ag.events.filter((e) => e.kind !== 'due' && !hidden.includes(e.key) && !seen.includes(e.uid) && e.start - now <= lead + 60 * 60000 && e.start - now > -10 * 60000);
+  if (!soon.length) return;
+  await idbReq('pending', 'readwrite', (s) => s.put([...seen, ...soon.map((e) => e.uid)].slice(-400), 'crs-notified'));
+  const hm = (t) => new Date(t).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  for (const e of soon) {
+    await self.registration.showNotification(`📚 ${e.base || e.title} à ${hm(e.start)}`, {
+      body: (e.location ? e.location + ' — ' : '') + 'pense à lancer ton Plaud', icon: 'icon-192.png', badge: 'icon-192.png', tag: 'crs-' + e.uid, data: { id: ':courses' },
+    });
+  }
+}
+self.addEventListener('periodicsync', (e) => { if (e.tag === 'reminders') e.waitUntil(Promise.all([checkReminders().catch(() => {}), checkCourses().catch(() => {})])); });

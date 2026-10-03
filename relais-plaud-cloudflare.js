@@ -6,8 +6,12 @@
  * (liste des enregistrements, lien MP3, téléchargement audio) et n'accepte que
  * ton site Notes Plaud. Il ne stocke rien : ton jeton Plaud passe juste au travers.
  *
- * Variable à définir dans Cloudflare (Settings → Variables and Secrets) :
+ * Il sert aussi à lire ton emploi du temps (.ics) : les serveurs d'université n'autorisent pas
+ * une app web à le lire directement. Seuls les hôtes listés dans ICS_HOSTS sont acceptés.
+ *
+ * Variables à définir dans Cloudflare (Settings → Variables and Secrets) :
  *   ALLOWED_ORIGIN = https://TON-PSEUDO.github.io
+ *   ICS_HOSTS      = (facultatif) autres hébergeurs de calendrier, séparés par des virgules, ex. : ade.univ.fr,calendar.google.com
  */
 
 const API = { us: 'https://api.plaud.ai', eu: 'https://api-euc1.plaud.ai' };
@@ -15,6 +19,8 @@ const API = { us: 'https://api.plaud.ai', eu: 'https://api-euc1.plaud.ai' };
 const ALLOWED_PATHS = [/^\/file\/simple\/web$/, /^\/file\/temp-url\/[\w-]+$/, /^\/file\/download\/[\w-]+$/, /^\/file\/detail\/[\w-]+$/, /^\/user\/me$/];
 // Hébergeurs des liens de téléchargement signés
 const AUDIO_HOSTS = /(^|\.)(amazonaws\.com|plaud\.ai|cloudfront\.net|aliyuncs\.com|googleapis\.com)$/;
+// Hébergeurs de calendriers acceptés pour /ics (Moodle UNamur, Google Agenda, Outlook…), complétés par la variable ICS_HOSTS
+const ICS_HOSTS = ['unamur.be', 'calendar.google.com', 'outlook.office365.com', 'outlook.live.com'];
 const UA = 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Mobile Safari/537.36';
 
 export default {
@@ -39,7 +45,20 @@ export default {
 
     const url = new URL(request.url);
 
-    if (url.pathname === '/ping') return reply({ ok: true, relay: 'notes-plaud', version: 1 });
+    if (url.pathname === '/ping') return reply({ ok: true, relay: 'notes-plaud', version: 2 });
+
+    // Emploi du temps : lecture d'un calendrier .ics (lecture seule, hôtes autorisés uniquement)
+    if (url.pathname === '/ics') {
+      let target;
+      try { target = new URL(url.searchParams.get('u') || ''); } catch (e) { return reply({ error: 'Adresse de calendrier invalide' }, 400); }
+      const hosts = [...ICS_HOSTS, ...String(env.ICS_HOSTS || '').split(',').map((h) => h.trim().toLowerCase()).filter(Boolean)];
+      const h = target.hostname.toLowerCase();
+      if (target.protocol !== 'https:' || !hosts.some((x) => h === x || h.endsWith('.' + x))) return reply({ error: `Hébergeur de calendrier non autorisé (${h}) : ajoute-le à la variable ICS_HOSTS du relais` }, 400);
+      const r = await fetch(target.toString(), { headers: { 'User-Agent': UA, Accept: 'text/calendar, */*' } });
+      const text = await r.text();
+      if (!r.ok || !/BEGIN:VCALENDAR/i.test(text)) return reply({ error: r.ok ? 'Cette adresse ne renvoie pas un calendrier (.ics). Vérifie le lien.' : `Le serveur du calendrier a répondu ${r.status}` }, 502);
+      return new Response(text, { status: 200, headers: { ...cors, 'Content-Type': 'text/calendar; charset=utf-8', 'Cache-Control': 'no-store' } });
+    }
 
     // Téléchargement d'un fichier audio depuis un lien signé fourni par Plaud
     if (url.pathname === '/audio') {

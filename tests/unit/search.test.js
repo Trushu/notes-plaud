@@ -26,3 +26,35 @@ test.describe('Bugs corrigés : recherche sans accents', () => {
     assert.equal(app.markHits('x <script>', 'script'), 'x &lt;<mark>script</mark>&gt;');
   });
 });
+
+test.describe('Index léger (chantier 4)', () => {
+  const full = {
+    id: 'n1', title: 'Cours d\'Algèbre', tags: ['maths'], created: 1, status: 'ok', summary: '## Résumé\n- [ ] Refaire l\'exo 3', mine: 'Mes notes',
+    segments: [{ start: 0, end: 5, text: 'La matrice inversée, déterminant non nul.' }], clean: [{ start: 0, text: 'La matrice inversée.' }],
+    lecture: '## Cours\nThéorème de Cramer', chat: [{ q: 'Q', a: 'R' }], cards: [{ id: 'c1', q: 'Q', a: 'A', due: 5 }, { id: 'c2', q: 'Q', a: 'A', due: 0 }],
+    photos: [{ id: 'p1', t: 3, text: 'Tableau : rang' }], audio: { faux: 1 }, mergedFrom: [{ id: 'a', parts: [{ id: 'a', off: 0 }] }],
+  };
+
+  test('la fiche garde le léger et résume le lourd', () => {
+    const h = app.headOf(full);
+    for (const k of ['segments', 'clean', 'lecture', 'chat', 'cards', 'photos', 'audio']) assert.equal(k in h, false, k);
+    assert.equal(h.summary, full.summary);
+    assert.equal(h.mine, 'Mes notes');
+    assert.deepEqual(h.mergedFrom, full.mergedFrom);
+    assert.deepEqual([h.hasSegs, h.hasClean, h.hasLecture, h.hasAudio], [true, true, true, true]);
+    assert.deepEqual(h.photoIds, ['p1']);
+    assert.deepEqual(h.cardDue, [5, 0]);
+    assert.ok(h.__head);
+  });
+
+  test('les mots de la note : sans accents ni majuscules, sans doublon, de tous les textes', () => {
+    const w = app.wordsOf(full);
+    for (const m of ['algebre', 'maths', 'refaire', 'matrice', 'inversee', 'determinant', 'cramer', 'theoreme', 'rang', 'notes']) assert.ok(w.includes(` ${m} `), m);
+    assert.equal(w.match(/ matrice /g).length, 1);
+    assert.ok(!/[A-ZÀ-ÿ]/.test(w));
+  });
+
+  test('une fiche ne peut jamais remplacer une note complète', async () => {
+    await assert.rejects(app.db.put(app.headOf(full)), /note incomplète/);
+  });
+});

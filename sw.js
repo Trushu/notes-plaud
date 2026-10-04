@@ -1,10 +1,20 @@
 // Service worker de Notes Plaud
 // - reçoit les fichiers partagés depuis Android (cible de partage)
 // - garde l'application en cache pour qu'elle s'ouvre même avec un mauvais réseau
+//
+// Stratégie de cache (version 34) :
+// - fichiers de l'app : réseau d'abord (pour recevoir les mises à jour), mais au plus 3,5 s d'attente si une copie
+//   est en cache : avec un réseau très lent, l'app s'ouvre tout de suite depuis le cache, et la copie est mise à jour
+//   en arrière-plan pour la prochaine ouverture ;
+// - KaTeX (formules) : cache d'abord, version figée ;
+// - installation : seuls les fichiers indispensables doivent être présents (avant, une icône de raccourci manquante
+//   sur le site empêchait toute l'installation, donc le partage depuis Plaud).
 
-const CACHE = 'notes-plaud-v32';
-const KATEX_CACHE = 'katex-v1';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './sc-rec.png', './sc-cours.png', './sc-ask.png', './sc-tasks.png'];
+const CACHE = 'notes-plaud-v35';
+const KATEX_CACHE = 'katex-v2';   // KaTeX en version figée (0.16.47), vérifiée par empreinte dans la page
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const OPTIONAL = ['./sc-rec.png', './sc-cours.png', './sc-ask.png', './sc-tasks.png'];   // icônes des raccourcis
+const NET_TIMEOUT = 3500;
 
 // --- IndexedDB minimal (même base que la page) ---
 function openDB() {
@@ -30,7 +40,12 @@ async function putPending(value) {
 }
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
+  e.waitUntil((async () => {
+    const c = await caches.open(CACHE);
+    await c.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' })));
+    await Promise.all(OPTIONAL.map((u) => c.add(new Request(u, { cache: 'reload' })).catch(() => {})));
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (e) => {
@@ -99,20 +114,28 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // Réseau d'abord (pour recevoir les mises à jour), cache si hors ligne
+  // Réseau d'abord (pour recevoir les mises à jour), mais pas plus de 3,5 s si une copie est en cache
   if (e.request.method === 'GET') {
-    e.respondWith(
-      // « no-cache » : on redemande toujours au serveur s'il y a du nouveau (GitHub Pages met sinon les fichiers en cache 10 min)
-      fetch(e.request.url, { cache: 'no-cache', credentials: 'same-origin' })
-        .then((resp) => {
-          if (resp.ok) {
-            const copy = resp.clone();
-            caches.open(CACHE).then((c) => c.put(e.request, copy));
-          }
-          return resp;
-        })
-        .catch(() => caches.match(e.request, { ignoreSearch: true }).then((r) => r || caches.match('./index.html')))
-    );
+    // « no-cache » : on redemande toujours au serveur s'il y a du nouveau (GitHub Pages met sinon les fichiers en cache 10 min)
+    const net = fetch(e.request.url, { cache: 'no-cache', credentials: 'same-origin' }).then(async (resp) => {
+      if (resp.ok) { const c = await caches.open(CACHE); await c.put(e.request, resp.clone()); }
+      return resp;
+    });
+    e.waitUntil(net.catch(() => {}));   // la copie en cache se met à jour même si on a répondu avec l'ancienne
+    const cached = async () => (await caches.match(e.request, { ignoreSearch: true })) || (e.request.mode === 'navigate' ? caches.match('./index.html') : undefined);
+    e.respondWith((async () => {
+      try {
+        const first = await Promise.race([net, new Promise((res) => setTimeout(res, NET_TIMEOUT, null))]);
+        // page d'erreur du serveur (site en cours de mise à jour…) : la copie en cache vaut mieux
+        if (first && !first.ok && e.request.mode === 'navigate') return (await cached()) || first;
+        if (first) return first;
+        return (await cached()) || (await net);   // réseau lent : la copie en cache si elle existe
+      } catch (err) {
+        const c = await cached();   // hors ligne
+        if (c) return c;
+        throw err;
+      }
+    })());
   }
 });
 
@@ -148,7 +171,10 @@ function parseTask(raw) {
   return { text: t.replace(/\s+/g, ' ').trim(), remind, due };
 }
 async function checkReminders() {
-  const notes = (await idbReq('notes', 'readonly', (s) => s.getAll())) || [];
+  // fiches légères tenues par la page (sans les transcriptions) ; sinon, les notes complètes (anciennes données)
+  const count = (await idbReq('notes', 'readonly', (s) => s.count())) || 0;
+  const heads = (await idbReq('pending', 'readonly', (s) => s.getAll(IDBKeyRange.bound('head:', 'head:\uffff')))) || [];
+  const notes = heads.length >= count ? heads : ((await idbReq('notes', 'readonly', (s) => s.getAll())) || []);
   const seen = (await idbReq('pending', 'readonly', (s) => s.get('reminded'))) || [];
   const now = Date.now(), fresh = [];
   for (const n of notes) {

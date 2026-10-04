@@ -6,6 +6,8 @@
 <title>Notes Plaud</title>
 <meta name="description" content="Transcription et résumé de tes enregistrements Plaud">
 <meta id="tc" name="theme-color" content="#f7f4ee">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <script>try{var _t=(JSON.parse(localStorage.getItem('np-settings')||'{}').theme);if(_t&&_t!=='auto')document.documentElement.dataset.theme=_t;var _f=(JSON.parse(localStorage.getItem('np-settings')||'{}').fs);if(_f&&_f!=='m')document.documentElement.dataset.fs=_f;}catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -16,12 +18,15 @@
 <style>
   :root {
     --bg: #f7f4ee; --surface: #ffffff; --surface-2: #f1ece4; --surface-3: #e9e3d9;
-    --ink: #1b1a17; --ink-2: #4a4640; --muted: #817a71; --line: #e8e2d8;
+    --ink: #1b1a17; --ink-2: #4a4640; --muted: #6f6962; --line: #e8e2d8;
     --accent: #e0572b; --accent-ink: #b8401b; --accent-soft: #fdebe3;
-    --grad: linear-gradient(135deg, #f2803f 0%, #e0572b 55%, #cf3d3a 100%);
-    --blue: #2f6bd8; --blue-soft: #e8effc; --violet: #7a55e8; --violet-soft: #efeafd;
-    --green: #15895a; --green-soft: #e3f4ec; --err: #c8382b; --err-soft: #fbe9e7;
-    --teal: #0f7f86; --teal-soft: #e0f3f3; --amber: #b26a00; --amber-soft: #fdf0d9;
+    /* dégradé et texte posé dessus (boutons principaux…) : contraste ≥ 4,5:1 sur toute la largeur */
+    --grad: linear-gradient(135deg, #c5500d 0%, #cc481e 55%, #cf3d3a 100%); --on-grad: #fff;
+    --blue: #2763d1; --blue-soft: #e8effc; --violet: #6f48e6; --violet-soft: #efeafd;
+    --green: #12774e; --green-soft: #e3f4ec; --err: #c03629; --err-soft: #fbe9e7;
+    --teal: #0e747b; --teal-soft: #e0f3f3; --amber: #965900; --amber-soft: #fdf0d9;
+    /* contour des champs et des cases à cocher : contraste ≥ 3:1 avec le fond (WCAG 1.4.11), calculé pour chaque thème */
+    --ctl: color-mix(in srgb, var(--muted) 82%, var(--surface));
     --r-lg: 22px; --r: 16px; --r-sm: 12px;
     --shadow: 0 1px 2px rgba(40, 30, 15, .04), 0 6px 20px -6px rgba(40, 30, 15, .10);
     --shadow-lg: 0 18px 40px -16px rgba(207, 61, 58, .45);
@@ -33,7 +38,8 @@
     :root:not([data-theme]) {
       --bg: #141311; --surface: #1d1c19; --surface-2: #262420; --surface-3: #312e29;
       --ink: #f3efe8; --ink-2: #cfc9bf; --muted: #9d968b; --line: #2e2b26;
-      --accent: #ff8a5b; --accent-ink: #ffa37f; --accent-soft: #3a2218;
+      --accent: #ff8a5b; --accent-ink: #ffa37f; --accent-soft: #3a2218; --on-grad: #141311;
+      --grad: linear-gradient(135deg, #ff9e6b 0%, #ff7a4d 55%, #f2603f 100%);
       --blue: #7ea6ff; --blue-soft: #1b2436; --violet: #ab93ff; --violet-soft: #251f38;
       --green: #4fd39a; --green-soft: #14291f; --err: #ff7a6b; --err-soft: #3a1c18;
       --teal: #5fd4d9; --teal-soft: #13292a; --amber: #ffc164; --amber-soft: #2f2413;
@@ -45,6 +51,7 @@
   /* ---------- Thèmes sélectionnables ---------- */
   /* « Sombre », « Nuit » et « Prune » partagent la même base sombre (couleurs sémantiques, ombres) */
   html[data-theme="dark"], html[data-theme="nuit"], html[data-theme="prune"] {
+    --on-grad: var(--bg);
     --blue: #7ea6ff; --blue-soft: #1b2436; --violet: #ab93ff; --violet-soft: #251f38;
     --green: #4fd39a; --green-soft: #14291f; --err: #ff7a6b; --err-soft: #3a1c18;
     --teal: #5fd4d9; --teal-soft: #13292a; --amber: #ffc164; --amber-soft: #2f2413;
@@ -69,30 +76,30 @@
     --bg: #17121a; --surface: #201a25; --surface-2: #2a2230; --surface-3: #362b3e;
     --ink: #f2eaf4; --ink-2: #d2c6d8; --muted: #a094a8; --line: #322838;
     --accent: #d571b4; --accent-ink: #e894cb; --accent-soft: #2f1c2c;
-    --grad: linear-gradient(135deg, #e07fbd 0%, #cf5aa6 55%, #9a54d6 100%);
+    --grad: linear-gradient(135deg, #e07fbd 0%, #cf5aa6 55%, #a362d9 100%);
     --shadow-lg: 0 18px 40px -18px rgba(200, 80, 160, .4);
   }
   html[data-theme="parchemin"] {
     --bg: #f3ead6; --surface: #fbf5e9; --surface-2: #ede0c8; --surface-3: #e3d3b5;
-    --ink: #3b2f1e; --ink-2: #5c4d38; --muted: #8a795f; --line: #e0cfae;
-    --accent: #b5722a; --accent-ink: #97591b; --accent-soft: #f2e4c9;
-    --grad: linear-gradient(135deg, #d19a4e 0%, #b5722a 55%, #9a5a22 100%);
+    --ink: #3b2f1e; --ink-2: #5c4d38; --muted: #6f614c; --line: #e0cfae;
+    --accent: #b5722a; --accent-ink: #8e5419; --accent-soft: #f2e4c9;
+    --grad: linear-gradient(135deg, #9b6b28 0%, #a26626 55%, #9a5a22 100%);
     --shadow: 0 1px 2px rgba(80, 55, 20, .05), 0 6px 20px -6px rgba(80, 55, 20, .14);
     --shadow-lg: 0 18px 40px -16px rgba(154, 90, 34, .4);
   }
   html[data-theme="ocean"] {
     --bg: #eef4f6; --surface: #ffffff; --surface-2: #e1edf1; --surface-3: #d2e3e9;
-    --ink: #14252b; --ink-2: #37505a; --muted: #6b8592; --line: #d5e4ea;
+    --ink: #14252b; --ink-2: #37505a; --muted: #576c76; --line: #d5e4ea;
     --accent: #0e7d8a; --accent-ink: #0a626d; --accent-soft: #d6eff1;
-    --grad: linear-gradient(135deg, #29a6b3 0%, #0e7d8a 55%, #0b6079 100%);
+    --grad: linear-gradient(135deg, #1f808a 0%, #0e7d8a 55%, #0b6079 100%);
     --shadow: 0 1px 2px rgba(15, 60, 70, .05), 0 6px 20px -6px rgba(15, 60, 70, .13);
     --shadow-lg: 0 18px 40px -16px rgba(11, 96, 121, .4);
   }
   html[data-theme="foret"] {
     --bg: #eef3ec; --surface: #ffffff; --surface-2: #e2ecdd; --surface-3: #d3e2cd;
-    --ink: #1a271c; --ink-2: #3b4e3c; --muted: #6f8570; --line: #d9e6d3;
+    --ink: #1a271c; --ink-2: #3b4e3c; --muted: #5a6c5b; --line: #d9e6d3;
     --accent: #2f8f52; --accent-ink: #237040; --accent-soft: #dcefdf;
-    --grad: linear-gradient(135deg, #55b071 0%, #2f8f52 55%, #1f7d5a 100%);
+    --grad: linear-gradient(135deg, #3c8151 0%, #2b834b 55%, #1f7d5a 100%);
     --shadow: 0 1px 2px rgba(20, 60, 30, .05), 0 6px 20px -6px rgba(20, 60, 30, .13);
     --shadow-lg: 0 18px 40px -16px rgba(31, 125, 90, .38);
   }
@@ -138,7 +145,7 @@
   }
   .btn:active { transform: scale(.97); }
   .btn svg { width: 18px; height: 18px; flex: none; }
-  .btn.primary { background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,0) 45%), var(--grad); border: 0; color: #fff; box-shadow: var(--shadow-lg); }
+  .btn.primary { background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,0) 45%), var(--grad); border: 0; color: var(--on-grad); box-shadow: var(--shadow-lg); }
   .btn.ghost { background: transparent; border-color: transparent; color: var(--ink-2); }
   .btn.danger { color: var(--err); }
   .btn.block { width: 100%; }
@@ -152,7 +159,7 @@
   .greet-ic { width: 27px; height: 27px; color: var(--accent); flex: none; }
   .hello p { margin: 0; color: var(--muted); font-size: 15px; }
   .hero {
-    position: relative; overflow: hidden; display: block; cursor: pointer; color: #fff;
+    position: relative; overflow: hidden; display: block; cursor: pointer; color: var(--on-grad);
     background: var(--grad); border-radius: var(--r-lg); padding: 22px 20px 20px; box-shadow: var(--shadow-lg);
     transition: transform .15s;
   }
@@ -167,7 +174,7 @@
   .hero strong { display: block; font: 600 20px/1.2 var(--serif); letter-spacing: -.01em; }
   .hero span { font-size: 14px; opacity: .88; }
   .hero-wave { position: absolute; right: -6px; bottom: -8px; display: flex; gap: 5px; align-items: flex-end; height: 70px; opacity: .22; z-index: 0; }
-  .hero-wave i { width: 7px; border-radius: 4px; background: #fff; animation: wave 1.8s ease-in-out infinite; }
+  .hero-wave i { width: 7px; border-radius: 4px; background: var(--on-grad); animation: wave 1.8s ease-in-out infinite; }
   .hero-wave i:nth-child(1) { height: 30%; animation-delay: -.2s } .hero-wave i:nth-child(2) { height: 65%; animation-delay: -.5s }
   .hero-wave i:nth-child(3) { height: 45%; animation-delay: -.9s } .hero-wave i:nth-child(4) { height: 90%; animation-delay: -.3s }
   .hero-wave i:nth-child(5) { height: 55%; animation-delay: -1.1s } .hero-wave i:nth-child(6) { height: 75%; animation-delay: -.7s }
@@ -186,10 +193,10 @@
   .search { position: relative; margin: 22px 0 4px; }
   .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
   .search input {
-    width: 100%; height: 46px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface);
+    width: 100%; height: 46px; border-radius: 14px; border: 1px solid var(--ctl); background: var(--surface);
     padding: 0 14px 0 42px; outline: none; transition: border-color .15s, box-shadow .15s;
   }
-  .search input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  .search input:focus { border-color: var(--accent-ink); box-shadow: 0 0 0 1px var(--accent-ink), 0 0 0 5px var(--accent-soft); }
   .group { font-size: 12.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 22px 4px 10px; }
   .list { display: flex; flex-direction: column; gap: 10px; }
   .item {
@@ -197,6 +204,9 @@
     background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); transition: transform .12s;
   }
   .item:active { transform: scale(.985); }
+  /* longues listes (centaines de notes ou de tâches, transcriptions de 3 h) : seuls les éléments visibles sont mis en page */
+  .list > .item, #taskList > .titem { content-visibility: auto; contain-intrinsic-size: auto 104px; }
+  .tr-list > .seg { content-visibility: auto; contain-intrinsic-size: auto 56px; }
   .item-top { display: flex; gap: 10px; align-items: baseline; }
   .item .t { flex: 1; min-width: 0; font: 600 17px/1.3 var(--serif); letter-spacing: -.005em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .item .time { font-size: 13px; color: var(--muted); flex: none; font-variant-numeric: tabular-nums; }
@@ -244,7 +254,7 @@
   .step.active { color: var(--ink); }
   .step.active .ic { border-color: var(--accent); border-right-color: transparent; animation: spin .9s linear infinite; }
   .step.done { color: var(--ink); }
-  .step.done .ic { background: var(--green); border-color: var(--green); color: #fff; }
+  .step.done .ic { background: var(--green); border-color: var(--green); color: var(--bg); }
   .step.done .ic svg { opacity: 1; }
   .step.fail .ic { background: var(--err); border-color: var(--err); }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -263,7 +273,7 @@
   .eyebrow.edit:active { background: var(--accent-soft); }
   .quick { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 16px; }
   .quick .tag { --h: 25; }
-  input[type=datetime-local] { width: 100%; min-height: 50px; padding: 10px 13px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); font-size: 17px; }
+  input[type=datetime-local] { width: 100%; min-height: 50px; padding: 10px 13px; border-radius: 12px; border: 1px solid var(--ctl); background: var(--bg); font-size: 17px; }
   .eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--accent-ink); margin-bottom: 8px; }
   .note-head h1 { font: 600 28px/1.15 var(--serif); letter-spacing: -.02em; margin: 0 0 12px; overflow-wrap: anywhere; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -288,6 +298,8 @@
   .sec.k-defs { --k: var(--teal); --ks: var(--teal-soft); }
   .sec.k-examples { --k: var(--amber); --ks: var(--amber-soft); }
   .sec.k-quiz { --k: var(--violet); --ks: var(--violet-soft); }
+  /* titre de section sur fond pastel : la teinte foncée de l'accent garde un contraste suffisant (WCAG AA) */
+  .sec.k-resume > h3, .sec:not([class*="k-"]) > h3 { color: var(--accent-ink); }
   .md li.qa { list-style: none; margin-left: -20px; padding: 0; }
   .md li.qa + li.qa { border-top: 1px solid var(--line); }
   .md details { padding: 8px 0; }
@@ -356,9 +368,9 @@
   .md code { font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-radius: 6px; }
   .md li.task { list-style: none; margin-left: -20px; padding-left: 0; }
   .md li.task label { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
-  .md li.task input { appearance: none; -webkit-appearance: none; width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--surface-3); flex: none; margin: 1px 0 0; display: grid; place-items: center; cursor: pointer; transition: all .15s; background: var(--surface); }
+  .md li.task input { appearance: none; -webkit-appearance: none; width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--ctl); flex: none; margin: 1px 0 0; display: grid; place-items: center; cursor: pointer; transition: all .15s; background: var(--surface); }
   .md li.task input:checked { background: var(--green); border-color: var(--green); }
-  .md li.task input:checked::after { content: ""; width: 10px; height: 5px; border: 2.5px solid #fff; border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
+  .md li.task input:checked::after { content: ""; width: 10px; height: 5px; border: 2.5px solid var(--surface); border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
   .md li.task input:checked + span { color: var(--muted); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--muted) 60%, transparent); }
   .tr-tools { margin: 0 0 12px; }
   .tr-tools .search { margin: 0; }
@@ -404,9 +416,9 @@
   .linkbtn { background: none; border: 0; padding: 0; color: var(--accent-ink); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
   /* Tags */
   .tag { --h: 20; display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 11px; border-radius: 99px; font-size: 13.5px; font-weight: 600;
-    background: hsl(var(--h) 75% 93%); color: hsl(var(--h) 55% 32%); border: 0; cursor: pointer; white-space: nowrap; font-family: var(--sans); }
+    background: hsl(var(--h) 75% 93%); color: hsl(var(--h) 55% 28%); border: 0; cursor: pointer; white-space: nowrap; font-family: var(--sans); }
   .tag svg { width: 13px; height: 13px; }
-  .tag .n { font-weight: 500; opacity: .7; }
+  .tag .n { font-weight: 500; }
   @media (prefers-color-scheme: dark) { html:not([data-theme]) .tag { background: hsl(var(--h) 35% 20%); color: hsl(var(--h) 70% 78%); } }
   html[data-theme="dark"] .tag, html[data-theme="nuit"] .tag, html[data-theme="prune"] .tag { background: hsl(var(--h) 35% 20%); color: hsl(var(--h) 70% 78%); }
   .tag .tn { display: inline-flex; align-items: center; gap: 4px; }
@@ -425,7 +437,7 @@
   .seg2 { display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 13px; }
   .seg2 button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font-weight: 600; font-size: 14px; cursor: pointer; }
   .seg2 button svg { width: 16px; height: 16px; }
-  .seg2 button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+  .seg2 button[aria-selected="true"], .seg2 button[aria-checked="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
   .toolbar .grow { flex: 1; }
   .toolbar .seg2 button { padding: 0 10px; gap: 5px; }
   .toolbar .tbtn { padding: 0 11px; white-space: nowrap; flex: none; }
@@ -446,22 +458,22 @@
   .cal-g { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
   .cal-g .dow { font-size: 11.5px; font-weight: 600; color: var(--muted); padding: 2px 0 6px; text-transform: uppercase; }
   .day { position: relative; aspect-ratio: 1 / 1.05; border: 0; background: transparent; border-radius: 12px; font: 500 15px/1 var(--sans); color: var(--ink); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-variant-numeric: tabular-nums; }
-  .day.out { color: var(--muted); opacity: .45; }
+  .day.out { color: var(--muted); font-weight: 400; }
   .day.today { box-shadow: 0 0 0 1.5px var(--accent) inset; }
   .day.has { font-weight: 700; }
-  .day.sel { background: var(--grad); color: #fff; }
+  .day.sel { background: var(--grad); color: var(--on-grad); }
   .day .dots { display: flex; gap: 3px; height: 5px; }
   .day .dots i { width: 5px; height: 5px; border-radius: 50%; background: hsl(var(--h, 20) 70% 50%); }
-  .day.sel .dots i { background: #fff; }
+  .day.sel .dots i { background: var(--on-grad); }
   .day:disabled { cursor: default; }
   /* Sélection multiple */
   .item { position: relative; }
   .selmode .item { padding-left: 52px; }
-  .item .ck { display: none; position: absolute; left: 16px; top: 18px; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--surface-3); background: var(--surface); }
+  .item .ck { display: none; position: absolute; left: 16px; top: 18px; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--ctl); background: var(--surface); }
   .selmode .item .ck { display: grid; place-items: center; }
-  .item.picked { border-color: var(--accent); box-shadow: 0 0 0 1.5px var(--accent) inset, var(--shadow); }
-  .item.picked .ck { background: var(--accent); border-color: var(--accent); }
-  .item.picked .ck::after { content: ""; width: 9px; height: 5px; border: 2.5px solid #fff; border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
+  .item.picked { border-color: var(--accent-ink); box-shadow: 0 0 0 1.5px var(--accent-ink) inset, var(--shadow); }
+  .item.picked .ck { background: var(--accent-ink); border-color: var(--accent-ink); }
+  .item.picked .ck::after { content: ""; width: 9px; height: 5px; border: 2.5px solid var(--surface); border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
   .selbar .bar3 { grid-template-columns: 1fr 1fr 1fr; }
   .selbar .count { grid-column: 1 / -1; text-align: center; font-size: 13.5px; font-weight: 600; color: var(--muted); margin-bottom: 2px; }
   /* Feuille du bas */
@@ -495,10 +507,10 @@
   .tabbar button { position: relative; flex: 1; max-width: 200px; display: flex; flex-direction: column; align-items: center; gap: 2px; border: 0; background: none;
     color: var(--muted); font: 600 12px/1.2 var(--sans); padding: 6px 0 4px; border-radius: 12px; cursor: pointer; }
   .tabbar button svg { width: 24px; height: 24px; }
-  .tabbar button[aria-selected="true"] { color: var(--accent-ink); }
-  .tabbar .badge { position: absolute; top: 1px; left: calc(50% + 7px); min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--err); color: #fff; font-size: 11px; line-height: 18px; }
+  .tabbar button[aria-current="page"] { color: var(--accent-ink); }
+  .tabbar .badge { position: absolute; top: 1px; left: calc(50% + 7px); min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--err); color: var(--bg); font-size: 11px; line-height: 18px; }
   .fab { position: fixed; right: 18px; bottom: calc(78px + env(safe-area-inset-bottom)); z-index: 9; width: 58px; height: 58px; border-radius: 20px; border: 0;
-    background: var(--grad); color: #fff; display: grid; place-items: center; box-shadow: var(--shadow-lg); cursor: pointer; }
+    background: var(--grad); color: var(--on-grad); display: grid; place-items: center; box-shadow: var(--shadow-lg); cursor: pointer; }
   .fab svg { width: 26px; height: 26px; }
   .fab:active { transform: scale(.95); }
   /* ----- Tâches ----- */
@@ -508,14 +520,14 @@
   .tstat span { font-size: 12.5px; font-weight: 600; color: var(--muted); }
   .tstat.late b { color: var(--err); } .tstat.today b { color: var(--accent-ink); } .tstat.week b { color: var(--blue); }
   .tstat.on { box-shadow: 0 0 0 2px var(--ink) inset; }
-  .tstat.zero b { color: var(--muted); opacity: .6; }
+  .tstat.zero b { color: var(--muted); }
   .titem { display: flex; gap: 12px; align-items: flex-start; padding: 13px 14px; border-radius: var(--r); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); transition: opacity .3s; }
   .titem.p2 { box-shadow: inset 3px 0 0 var(--err), var(--shadow); }
-  .titem.done { opacity: .6; }
+  .titem.done { opacity: 1; }
   .titem.done .tt { text-decoration: line-through; color: var(--muted); }
-  .tck { appearance: none; -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--surface-3); flex: none; margin: 0; display: grid; place-items: center; cursor: pointer; background: var(--surface); transition: all .15s; }
+  .tck { appearance: none; -webkit-appearance: none; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--ctl); flex: none; margin: 0; display: grid; place-items: center; cursor: pointer; background: var(--surface); transition: all .15s; }
   .tck:checked { background: var(--green); border-color: var(--green); }
-  .tck:checked::after { content: ""; width: 10px; height: 5px; border: 2.5px solid #fff; border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
+  .tck:checked::after { content: ""; width: 10px; height: 5px; border: 2.5px solid var(--surface); border-top: 0; border-right: 0; transform: rotate(-45deg) translate(1px, -1px); }
   .tbody { flex: 1; min-width: 0; cursor: pointer; }
   .tt { font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
   .tmeta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
@@ -524,7 +536,7 @@
   .tm.late { background: var(--err-soft); color: var(--err); } .tm.today { background: var(--accent-soft); color: var(--accent-ink); }
   .tm.prio { background: var(--err-soft); color: var(--err); }
   .tm.src { background: transparent; color: var(--muted); padding: 0 2px; font-weight: 500; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-  .tm.tagm { --h: 20; background: hsl(var(--h) 75% 93%); color: hsl(var(--h) 55% 32%); }
+  .tm.tagm { --h: 20; background: hsl(var(--h) 75% 93%); color: hsl(var(--h) 55% 28%); }
   @media (prefers-color-scheme: dark) { html:not([data-theme]) .tm.tagm { background: hsl(var(--h) 35% 20%); color: hsl(var(--h) 70% 78%); } }
   html[data-theme="dark"] .tm.tagm, html[data-theme="nuit"] .tm.tagm, html[data-theme="prune"] .tm.tagm { background: hsl(var(--h) 35% 20%); color: hsl(var(--h) 70% 78%); }
   .md .tmeta { margin-top: 5px; }
@@ -539,7 +551,7 @@
   .seg2 button { white-space: nowrap; }
   .tsheet label.f { margin-top: 14px; }
   .tsheet textarea { min-height: 64px; font-size: 16px; }
-  .tsheet input[type=date], .tsheet input[type=datetime-local] { width: 100%; min-height: 48px; padding: 10px 13px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); font-size: 16px; }
+  .tsheet input[type=date], .tsheet input[type=datetime-local] { width: 100%; min-height: 48px; padding: 10px 13px; border-radius: 12px; border: 1px solid var(--ctl); background: var(--bg); font-size: 16px; }
   .tsheet .quick { margin: 8px 0 0; }
   .tsheet .tag.lock { opacity: .75; cursor: default; }
   .tsheet .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
@@ -585,15 +597,16 @@
   /* ---------- Réglages ---------- */
   .set-group + .set-group { margin-top: 24px; }
   .h1edit { cursor: pointer; }
-  .h1edit .ti-pen { display: inline-block; width: 17px; height: 17px; margin-left: 8px; vertical-align: 3px; color: var(--muted); opacity: .6; }
-  .h1edit:hover .ti-pen, .h1edit:focus-visible .ti-pen { opacity: 1; }
+  .h1edit .ti-btn { display: inline-grid; place-items: center; width: 32px; height: 32px; margin-left: 4px; vertical-align: 1px; border: 0; border-radius: 9px; background: none; color: var(--muted); cursor: pointer; padding: 0; }
+  .h1edit .ti-pen { display: block; width: 17px; height: 17px; }
+  .h1edit .ti-btn:active { background: var(--surface-2); }
   .themes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
   .sw { border: 0; background: none; cursor: pointer; padding: 0; }
   .sw .chip { display: block; height: 46px; border-radius: 12px; border: 2px solid var(--line); position: relative; box-shadow: var(--shadow); }
   .sw .dot { position: absolute; right: 7px; bottom: 7px; width: 13px; height: 13px; border-radius: 50%; box-shadow: 0 0 0 2px rgba(127,127,127,.35); }
-  .sw[aria-selected="true"] .chip { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+  .sw[aria-checked="true"] .chip { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
   .sw small { display: block; margin-top: 5px; font-size: 12px; color: var(--muted); font-weight: 500; text-align: center; }
-  .sw[aria-selected="true"] small { color: var(--ink); font-weight: 600; }
+  .sw[aria-checked="true"] small { color: var(--ink); font-weight: 600; }
   .set-h { display: flex; align-items: center; gap: 10px; margin: 0 4px 10px; }
   .set-h .sec-ic { background: var(--accent-soft); color: var(--accent-ink); }
   .set-h b { font: 600 18px/1.2 var(--serif); }
@@ -601,10 +614,10 @@
   label.f { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
   .f-help { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
   input[type=text], input[type=password], select, textarea {
-    width: 100%; min-height: 46px; padding: 10px 13px; border-radius: 12px; border: 1px solid var(--line);
+    width: 100%; min-height: 46px; padding: 10px 13px; border-radius: 12px; border: 1px solid var(--ctl);
     background: var(--bg); outline: none; transition: border-color .15s, box-shadow .15s;
   }
-  input[type=text]:focus, input[type=password]:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  input[type=text]:focus, input[type=password]:focus, select:focus, textarea:focus { border-color: var(--accent-ink); box-shadow: 0 0 0 1px var(--accent-ink), 0 0 0 5px var(--accent-soft); }
   textarea { min-height: 90px; resize: vertical; }
   .keyrow { display: flex; gap: 8px; }
   .keyrow input { flex: 1; min-width: 0; }
@@ -631,7 +644,7 @@
   .tr-list .seg { font-size: calc(16px * var(--rd)); }
   .fs-row { display: flex; gap: 8px; margin-top: 14px; }
   .fs-row button { flex: 1; min-height: 46px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink-2); font-family: var(--serif); font-weight: 600; cursor: pointer; }
-  .fs-row button[aria-selected="true"] { border-color: var(--accent); color: var(--ink); box-shadow: 0 0 0 1px var(--accent); }
+  .fs-row button[aria-checked="true"] { border-color: var(--accent); color: var(--ink); box-shadow: 0 0 0 1px var(--accent); }
   /* Épingles, extraits de recherche, sommaire, remonter */
   .item .pin { display: inline-flex; color: var(--accent); margin-right: 6px; vertical-align: -2px; }
   .item .pin svg { width: 15px; height: 15px; }
@@ -663,7 +676,7 @@
   .ask-head .iconbtn { flex: none; }
   .ask-list { display: flex; flex-direction: column; gap: 12px; padding-bottom: 150px; }
   .msg { max-width: 92%; border-radius: 18px; padding: 11px 15px; line-height: 1.55; overflow-wrap: anywhere; }
-  .msg.me { align-self: flex-end; background: var(--grad); color: #fff; border-bottom-right-radius: 6px; white-space: pre-wrap; font-size: calc(15.5px * var(--rd)); }
+  .msg.me { align-self: flex-end; background: var(--grad); color: var(--on-grad); border-bottom-right-radius: 6px; white-space: pre-wrap; font-size: calc(15.5px * var(--rd)); }
   .msg.ai { align-self: flex-start; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); border-bottom-left-radius: 6px; }
   .msg.ai .md { font-size: calc(15.5px * var(--rd)); }
   .msg.ai .md p:first-child { margin-top: 0; } .msg.ai .md p:last-child { margin-bottom: 0; }
@@ -718,7 +731,7 @@
   .rv-hint { color: var(--muted); font-size: 13px; margin-top: auto; }
   .rv-grade { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
   .rv-grade .btn { flex-direction: column; gap: 1px; min-height: 58px; font-weight: 700; padding: 0 4px; white-space: nowrap; }
-  .rv-grade .btn small { font-weight: 500; font-size: 12px; opacity: .8; }
+  .rv-grade .btn small { font-weight: 500; font-size: 12px; }
   .rv-grade [data-g="0"] { color: var(--err); }
   .rv-grade [data-g="2"] { color: var(--green); }
   .rv-done { text-align: center; padding: 26px 18px; }
@@ -726,7 +739,7 @@
   .rv-done .big { font-size: 44px; }
   /* ---- Lecteur audio ---- */
   .player { max-width: 640px; margin: 0 auto 10px; display: flex; align-items: center; gap: 8px; }
-  .pl-play { width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--grad); color: #fff; display: grid; place-items: center; flex: none; cursor: pointer; box-shadow: var(--shadow-lg); }
+  .pl-play { width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--grad); color: var(--on-grad); display: grid; place-items: center; flex: none; cursor: pointer; box-shadow: var(--shadow-lg); }
   .pl-play svg { width: 20px; height: 20px; }
   .pl-mid { flex: 1; min-width: 0; }
   .pl-seek { display: block; width: 100%; margin: 0; height: 22px; accent-color: var(--accent); cursor: pointer; }
@@ -737,9 +750,9 @@
   body.has-player #toTop { bottom: 150px; }
   .tr-list.can-play .seg[data-t] { cursor: pointer; }
   .seg.now { margin: 0 -16px; padding-left: 16px; padding-right: 16px; background: color-mix(in srgb, var(--accent) 11%, transparent); }
-  .seg.now time { background: var(--accent); color: #fff; }
+  .seg.now time { background: var(--accent-ink); color: var(--surface); }
   .seg.mark time::before { content: '★ '; color: var(--amber); }
-  .seg.now.mark time::before { color: #fff; }
+  .seg.now.mark time::before { color: var(--surface); }
   .pl-hint { display: flex; align-items: center; gap: 6px; margin: 0 4px 10px; }
   .pl-hint svg { width: 14px; height: 14px; flex: none; }
   .marks-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 2px 12px; font-size: 13px; font-weight: 600; color: var(--muted); }
@@ -756,7 +769,7 @@
   .rec-wave i { flex: 1; max-width: 6px; height: 6%; min-height: 4px; border-radius: 3px; background: var(--grad); transition: height .12s linear; }
   .rec-marks { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; min-height: 28px; margin: 0 10px 12px; }
   .rec-ctrl { display: flex; align-items: flex-start; justify-content: center; gap: 30px; margin: 6px 0 12px; }
-  .rec-main { width: 86px; height: 86px; border-radius: 50%; border: 0; background: var(--err); color: #fff; display: grid; place-items: center; cursor: pointer; box-shadow: 0 14px 30px -12px color-mix(in srgb, var(--err) 80%, transparent); }
+  .rec-main { width: 86px; height: 86px; border-radius: 50%; border: 0; background: var(--err); color: var(--surface); display: grid; place-items: center; cursor: pointer; box-shadow: 0 14px 30px -12px color-mix(in srgb, var(--err) 80%, transparent); }
   .rec-main svg { width: 30px; height: 30px; }
   .rec-side { width: 70px; display: flex; flex-direction: column; align-items: center; gap: 7px; border: 0; background: none; color: var(--ink-2); font: 600 13px/1.1 var(--sans); cursor: pointer; padding: 9px 0 0; }
   .rec-side svg { width: 54px; height: 54px; padding: 15px; border-radius: 50%; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); }
@@ -784,6 +797,7 @@
   .home-crs b { display: block; font: 600 17px/1.25 var(--serif); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .home-crs span.d { display: block; color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .home-crs .btn { min-height: 40px; padding: 0 12px; flex: none; }
+  .home-crs .crs-open { flex: 1; min-width: 0; border: 0; background: none; padding: 0; text-align: left; font: inherit; color: inherit; cursor: pointer; }
   .wk-nav { display: flex; align-items: center; gap: 8px; margin: 6px 0 2px; }
   .wk-nav b { flex: 1; text-align: center; font-weight: 600; font-size: 15px; line-height: 1.25; }
   .wk-nav b small { display: block; color: var(--muted); font-weight: 500; font-size: 12.5px; }
@@ -888,13 +902,13 @@
   /* ---- Mes notes ---- */
   .mine .sec-ic { background: var(--amber-soft); color: var(--amber); flex: none; }
   .mine-view { margin-top: 6px; } .mine-view:empty { display: none; }
-  .mine textarea { width: 100%; min-height: 150px; margin-top: 10px; border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 12px; background: var(--surface); font: inherit; line-height: 1.5; resize: vertical; }
-  .mine textarea:focus { outline: none; border-color: var(--accent); }
+  .mine textarea { width: 100%; min-height: 150px; margin-top: 10px; border: 1.5px solid var(--ctl); border-radius: 12px; padding: 10px 12px; background: var(--surface); font: inherit; line-height: 1.5; resize: vertical; }
+  .mine textarea:focus { outline: none; border-color: var(--accent-ink); box-shadow: 0 0 0 1px var(--accent-ink); }
   .mine .row { margin-top: 8px; }
   /* ---- Sélection → expliquer ---- */
   .sel-ask { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(92px + env(safe-area-inset-bottom)); z-index: 30; display: flex; gap: 6px; padding: 6px; border-radius: 16px; background: var(--ink); box-shadow: 0 10px 30px -8px rgba(0,0,0,.45); }
   .sel-ask button { border: 0; border-radius: 11px; padding: 9px 13px; font: 600 14px/1 var(--sans); background: transparent; color: var(--bg); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-  .sel-ask button:first-child { background: var(--accent); color: #fff; }
+  .sel-ask button:first-child { background: var(--accent-ink); color: var(--surface); }
   .sel-ask svg { width: 15px; height: 15px; }
   body.has-player .sel-ask { bottom: calc(150px + env(safe-area-inset-bottom)); }
   /* ---- Lecture à voix haute ---- */
@@ -944,6 +958,9 @@
   #noteSum .sec:nth-child(4) { animation-delay: .15s; }
   #noteSum .sec:nth-child(5) { animation-delay: .2s; }
   #noteSum .sec:nth-child(n+6) { animation-delay: .24s; }
+  /* Accessibilité : contour visible pour la navigation au clavier (clavier Bluetooth, télécommande, lecteur d'écran) */
+  :focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
+  .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
     .item:hover, .hero:hover { transform: none; }
@@ -968,7 +985,7 @@
       <span class="logo"><svg viewBox="0 0 24 24" fill="#fff"><rect x="3" y="9" width="2.6" height="6" rx="1.3"/><rect x="7.4" y="5.5" width="2.6" height="13" rx="1.3"/><rect x="11.8" y="8" width="2.6" height="8" rx="1.3"/><rect x="16.2" y="4" width="2.6" height="16" rx="1.3"/><rect x="20.4" y="9.5" width="2.2" height="5" rx="1.1"/></svg></span>
       <b>Notes Plaud</b>
     </div>
-    <h1 id="title" class="hidden"></h1>
+    <h1 id="title" class="hidden" tabindex="-1"></h1>
     <button class="iconbtn" id="settingsBtn" aria-label="Réglages">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg>
     </button>
@@ -983,8 +1000,8 @@
   <!-- ===== Accueil ===== -->
   <section id="v-home" class="view">
     <div class="hello">
-      <h1 id="greet">Bonjour</h1>
-      <p id="stats" role="button" style="cursor:pointer"></p>
+      <h1 id="greet" tabindex="-1">Bonjour</h1>
+      <p id="stats"></p>
     </div>
     <div id="resumeBox"></div>
 
@@ -1020,10 +1037,10 @@
       <div><b>Traitement en cours</b><small id="runBannerName"></small></div>
       <span class="pct2" id="runBannerPct"></span>
     </button>
-    <label class="hero" for="fileInput">
+    <label class="hero" for="fileInput" role="button" tabindex="0">
       <div class="hero-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       <div class="hero-row">
-        <span class="hero-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>
+        <span class="hero-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></span>
         <div><strong>Nouvel enregistrement</strong><span>Choisir un fichier audio, ou partager depuis Plaud</span></div>
       </div>
     </label>
@@ -1040,9 +1057,9 @@
 
     <div id="browse" class="hidden">
       <div class="toolbar">
-        <div class="seg2" id="homeMode" role="tablist">
-          <button data-mode="list" aria-selected="true"></button>
-          <button data-mode="cal" aria-selected="false"></button>
+        <div class="seg2" id="homeMode" role="tablist" aria-label="Affichage des notes">
+          <button data-mode="list" role="tab" aria-selected="true"></button>
+          <button data-mode="cal" role="tab" aria-selected="false"></button>
         </div>
         <span class="grow"></span>
         <button class="tbtn" id="selectBtn">Sélectionner</button>
@@ -1055,10 +1072,10 @@
         </div>
         <div class="cal-g" id="calGrid"></div>
       </div>
-      <div class="tagbar" id="tagBar"></div>
+      <div class="tagbar" id="tagBar" role="group" aria-label="Filtrer par tag"></div>
       <div class="search" id="searchWrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-        <input type="search" id="search" placeholder="Rechercher dans mes notes" autocomplete="off">
+        <input type="search" id="search" placeholder="Rechercher dans mes notes" aria-label="Rechercher dans mes notes" autocomplete="off">
       </div>
       <div class="filters" id="filters"></div>
     </div>
@@ -1068,9 +1085,9 @@
   <!-- ===== Traitement ===== -->
   <section id="v-job" class="view hidden">
     <div class="job-hero">
-      <div class="ring" id="jobVis">
+      <div class="ring" id="jobVis" role="progressbar" aria-label="Progression du traitement" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
         <svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-fg" id="jobBar" cx="60" cy="60" r="52"/></svg>
-        <div class="ring-in"><div class="eq"><i></i><i></i><i></i><i></i><i></i></div><div class="pct" id="jobPct">0 %</div></div>
+        <div class="ring-in"><div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><div class="pct" id="jobPct">0 %</div></div>
       </div>
       <div class="job-name" id="jobName">—</div>
       <div class="job-size" id="jobSize"></div>
@@ -1096,13 +1113,13 @@
   <section id="v-note" class="view hidden">
     <div class="note-head">
       <button class="eyebrow edit" id="noteDate" aria-label="Modifier la date"></button>
-      <h1 id="noteTitle" class="h1edit" role="button" tabindex="0" aria-label="Modifier le titre"></h1>
+      <h1 id="noteTitle" class="h1edit" tabindex="-1"></h1>
       <div class="chips" id="noteMeta"></div>
       <div class="tags" id="noteTags"></div>
     </div>
     <div id="mergeHint"></div>
     <div class="tabs-wrap">
-      <div class="tabs" role="tablist">
+      <div class="tabs" role="tablist" aria-label="Contenu de la note">
         <button role="tab" aria-selected="true" data-tab="sum">Résumé</button>
         <button role="tab" aria-selected="false" data-tab="tr">Transcription</button>
         <button role="tab" aria-selected="false" data-tab="lecture">Cours</button>
@@ -1124,7 +1141,7 @@
       <div class="card xcard mine" id="mineBox">
         <div class="x-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span><div><b>Mes notes</b><small id="mineInfo">Tes remarques, questions pour le prof, liens…</small></div><button class="btn" id="mineEdit" type="button">Écrire</button></div>
         <div class="md mine-view" id="mineView"></div>
-        <textarea id="mineInput" class="hidden" placeholder="Écris librement. Markdown accepté : **gras**, listes, $formules$…"></textarea>
+        <textarea id="mineInput" class="hidden" aria-label="Mes notes" placeholder="Écris librement. Markdown accepté : **gras**, listes, $formules$…"></textarea>
         <div class="row hidden" id="mineBar"><button class="btn primary" id="mineSave" type="button">Enregistrer</button><button class="btn ghost" id="mineCancel" type="button">Annuler</button></div>
       </div>
     </div>
@@ -1134,9 +1151,9 @@
           <span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></span>
           <div><b>Transcription brute</b><small>L'IA peut corriger les mots mal reconnus, enlever les hésitations et reformuler en phrases claires, d'après le contexte. Rien n'est résumé ni supprimé.</small></div>
         </div>
-        <div class="tabs mini hidden" id="trMode">
-          <button data-mode="clean" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/></svg>Améliorée</button>
-          <button data-mode="raw" aria-selected="false">Brute</button>
+        <div class="tabs mini hidden" id="trMode" role="tablist" aria-label="Version de la transcription">
+          <button data-mode="clean" role="tab" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/></svg>Améliorée</button>
+          <button data-mode="raw" role="tab" aria-selected="false">Brute</button>
         </div>
         <div class="enh-prog hidden" id="enhProg">
           <b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/></svg>Amélioration en cours…</b>
@@ -1151,7 +1168,7 @@
       <div class="tr-tools">
         <div class="search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-          <input type="search" id="trSearch" placeholder="Rechercher dans la transcription" autocomplete="off">
+          <input type="search" id="trSearch" placeholder="Rechercher dans la transcription" aria-label="Rechercher dans la transcription" autocomplete="off">
         </div>
       </div>
       <div id="chapBox"></div>
@@ -1190,7 +1207,7 @@
 
   <!-- ===== Cours (emploi du temps) ===== -->
   <section id="v-courses" class="view hidden">
-    <div class="hello"><h1>Cours</h1><p id="crsSub"></p></div>
+    <div class="hello"><h1 tabindex="-1">Cours</h1><p id="crsSub"></p></div>
     <div id="crsBody"></div>
   </section>
   <section id="v-course" class="view hidden">
@@ -1223,10 +1240,10 @@
   <!-- ===== Questions ===== -->
   <section id="v-ask" class="view hidden">
     <div class="ask-head">
-      <div class="seg2" id="askScope" role="tablist"><button data-s="note" aria-selected="true">Cette note</button><button data-s="course" aria-selected="false" class="hidden">La matière</button><button data-s="all" aria-selected="false">Toutes</button></div>
+      <div class="seg2" id="askScope" role="tablist" aria-label="Notes interrogées"><button data-s="note" role="tab" aria-selected="true">Cette note</button><button data-s="course" role="tab" aria-selected="false" class="hidden">La matière</button><button data-s="all" role="tab" aria-selected="false">Toutes</button></div>
       <button class="iconbtn" id="askClear" type="button" aria-label="Effacer la conversation" title="Effacer la conversation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button>
     </div>
-    <div class="ask-list" id="askList"></div>
+    <div class="ask-list" id="askList" role="log" aria-label="Questions et réponses"></div>
   </section>
 
   <!-- ===== Réviser ===== -->
@@ -1241,15 +1258,15 @@
   <!-- ===== Tâches ===== -->
   <section id="v-tasks" class="view hidden">
     <div class="hello">
-      <h1>Tâches</h1>
+      <h1 tabindex="-1">Tâches</h1>
       <p id="tStats"></p>
     </div>
-    <div class="tstats" id="tTiles"></div>
+    <div class="tstats" id="tTiles" role="group" aria-label="Filtrer par échéance"></div>
     <div class="toolbar">
-      <div class="seg2" id="tMode" role="tablist">
-        <button data-mode="due" aria-selected="true">Échéance</button>
-        <button data-mode="tag" aria-selected="false">Par tag</button>
-        <button data-mode="cal" aria-selected="false">Calendrier</button>
+      <div class="seg2" id="tMode" role="tablist" aria-label="Affichage des tâches">
+        <button data-mode="due" role="tab" aria-selected="true">Échéance</button>
+        <button data-mode="tag" role="tab" aria-selected="false">Par tag</button>
+        <button data-mode="cal" role="tab" aria-selected="false">Calendrier</button>
       </div>
       <span class="grow"></span>
       <button class="iconbtn" id="tMore" aria-label="Plus d'options"></button>
@@ -1262,7 +1279,7 @@
       </div>
       <div class="cal-g" id="tCalGrid"></div>
     </div>
-    <div class="tagbar" id="tTagBar"></div>
+    <div class="tagbar" id="tTagBar" role="group" aria-label="Filtrer par tag"></div>
     <div class="filters" id="tFilters"></div>
     <div class="list" id="taskList"></div>
   </section>
@@ -1270,26 +1287,26 @@
   <!-- ===== Réglages ===== -->
   <section id="v-settings" class="view hidden">
     <div class="set-group">
-      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/></svg></span><div><b>Apparence</b><small>Thème de l'application</small></div></div>
+      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/></svg></span><div><b role="heading" aria-level="2">Apparence</b><small>Thème de l'application</small></div></div>
       <div class="card pad">
-        <div class="themes" id="themeGrid"></div>
-        <div class="f" style="margin-top:18px">Taille du texte des notes</div>
-        <div class="fs-row" id="fsRow" role="radiogroup" aria-label="Taille du texte">
-          <button type="button" data-fs="s" style="font-size:14px">A</button>
-          <button type="button" data-fs="m" style="font-size:17px">A</button>
-          <button type="button" data-fs="l" style="font-size:20px">A</button>
-          <button type="button" data-fs="xl" style="font-size:23px">A</button>
+        <div class="themes" id="themeGrid" role="radiogroup" aria-label="Thème"></div>
+        <div class="f" style="margin-top:18px" id="fsLbl">Taille du texte des notes</div>
+        <div class="fs-row" id="fsRow" role="radiogroup" aria-labelledby="fsLbl">
+          <button type="button" role="radio" data-fs="s" style="font-size:14px" aria-label="Petit">A</button>
+          <button type="button" role="radio" data-fs="m" style="font-size:17px" aria-label="Moyen">A</button>
+          <button type="button" role="radio" data-fs="l" style="font-size:20px" aria-label="Grand">A</button>
+          <button type="button" role="radio" data-fs="xl" style="font-size:23px" aria-label="Très grand">A</button>
         </div>
       </div>
     </div>
     <div class="set-group">
-      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span><div><b>Transcription</b><small>Groq · Whisper</small></div></div>
+      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span><div><b role="heading" aria-level="2">Transcription</b><small>Groq · Whisper</small></div></div>
       <div class="card pad stack">
         <div>
           <label class="f" for="sKey">Clé API Groq</label>
           <div class="keyrow">
             <input type="password" id="sKey" autocomplete="off" spellcheck="false" placeholder="gsk_…">
-            <button class="btn" id="sKeyShow" type="button">Voir</button>
+            <button class="btn" id="sKeyShow" type="button" aria-label="Voir la clé Groq">Voir</button>
           </div>
           <div class="f-help">Crée-la sur <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> (gratuit, sans carte bancaire).</div>
         </div>
@@ -1315,7 +1332,7 @@
     </div>
 
     <div class="set-group">
-      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></span><div><b>Résumé</b><small>Gemini ou Groq</small></div></div>
+      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></span><div><b role="heading" aria-level="2">Résumé</b><small>Gemini ou Groq</small></div></div>
       <div class="card pad stack">
         <div>
           <label class="f" for="sProv">IA utilisée (résumé et amélioration)</label>
@@ -1333,7 +1350,7 @@
             <label class="f" for="sGKey">Clé API Gemini</label>
             <div class="keyrow">
               <input type="password" id="sGKey" autocomplete="off" spellcheck="false" placeholder="AIza…">
-              <button class="btn" id="sGKeyShow" type="button">Voir</button>
+              <button class="btn" id="sGKeyShow" type="button" aria-label="Voir la clé Gemini">Voir</button>
             </div>
             <div class="f-help">Crée-la sur <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (gratuit, sans carte bancaire). Sur l'offre gratuite, Google peut utiliser les textes envoyés pour améliorer ses modèles.</div>
           </div>
@@ -1348,7 +1365,7 @@
             <label class="f" for="sCKey">Clé API Cerebras (facultatif)</label>
             <div class="keyrow">
               <input type="password" id="sCKey" autocomplete="off" spellcheck="false" placeholder="csk-…">
-              <button class="btn" id="sCKeyShow" type="button">Voir</button>
+              <button class="btn" id="sCKeyShow" type="button" aria-label="Voir la clé Cerebras">Voir</button>
             </div>
             <div class="f-help">Gratuite sur <a href="https://cloud.cerebras.ai" target="_blank" rel="noopener">cloud.cerebras.ai</a> (menu API Keys). Très rapide, limite par minute bien plus large que Groq.</div>
           </div>
@@ -1362,7 +1379,7 @@
             <label class="f" for="sMKey">Clé API Mistral (facultatif)</label>
             <div class="keyrow">
               <input type="password" id="sMKey" autocomplete="off" spellcheck="false" placeholder="…">
-              <button class="btn" id="sMKeyShow" type="button">Voir</button>
+              <button class="btn" id="sMKeyShow" type="button" aria-label="Voir la clé Mistral">Voir</button>
             </div>
             <div class="f-help">Gratuite sur <a href="https://console.mistral.ai/api-keys" target="_blank" rel="noopener">console.mistral.ai</a> (offre « Experiment »). Très bon en français. Sur l'offre gratuite, Mistral peut utiliser les textes envoyés pour entraîner ses modèles.</div>
           </div>
@@ -1380,7 +1397,7 @@
     </div>
 
     <div class="set-group">
-      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><div><b>Personnalisation</b><small>Pour des résumés plus pertinents</small></div></div>
+      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span><div><b role="heading" aria-level="2">Personnalisation</b><small>Pour des résumés plus pertinents</small></div></div>
       <div class="card pad">
         <label class="f" for="sKind">Type d'enregistrement</label>
         <select id="sKind">
@@ -1397,7 +1414,7 @@
     </div>
 
     <div class="set-group" id="agSet">
-      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5"/><path d="M9 7.5h7M9 11h5"/></svg></span><b>Emploi du temps</b></div>
+      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5"/><path d="M9 7.5h7M9 11h5"/></svg></span><b role="heading" aria-level="2">Emploi du temps</b></div>
       <div class="card pad stack">
         <div>
           <label class="f" for="sIcsUrl">Adresse de ton calendrier (.ics)</label>
@@ -1416,7 +1433,7 @@
     </div>
 
     <div class="set-group">
-      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-.5-9A6 6 0 0 1 18 8.5a4 4 0 0 1-.5 9.5"/><path d="M12 12v8M9 17l3 3 3-3"/></svg></span><div><b>Import depuis Plaud</b><small>Sans exporter à la main (facultatif)</small></div></div>
+      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-.5-9A6 6 0 0 1 18 8.5a4 4 0 0 1-.5 9.5"/><path d="M12 12v8M9 17l3 3 3-3"/></svg></span><div><b role="heading" aria-level="2">Import depuis Plaud</b><small>Sans exporter à la main (facultatif)</small></div></div>
       <div class="card pad stack">
         <div>
           <label class="f" for="sPRelay">Adresse de ton relais Cloudflare</label>
@@ -1426,7 +1443,7 @@
           <label class="f" for="sPToken">Jeton Plaud</label>
           <div class="keyrow">
             <input type="password" id="sPToken" autocomplete="off" spellcheck="false" placeholder="eyJ…">
-            <button class="btn" id="sPTokenShow" type="button">Voir</button>
+            <button class="btn" id="sPTokenShow" type="button" aria-label="Voir le jeton Plaud">Voir</button>
           </div>
           <ol class="steps-mini">
             <li>Sur un ordinateur, connecte-toi à <a href="https://web.plaud.ai" target="_blank" rel="noopener">web.plaud.ai</a>.</li>
@@ -1444,12 +1461,12 @@
     </div>
 
     <div class="set-group">
-      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12.5V4.5a1 1 0 0 1 1-1h8l8 8-9 9z"/><circle cx="8" cy="8" r="1.4" fill="currentColor"/></svg></span><div><b>Tags</b><small>Renommer ou supprimer</small></div></div>
+      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12.5V4.5a1 1 0 0 1 1-1h8l8 8-9 9z"/><circle cx="8" cy="8" r="1.4" fill="currentColor"/></svg></span><div><b role="heading" aria-level="2">Tags</b><small>Renommer ou supprimer</small></div></div>
       <div class="card pad" id="tagAdmin"></div>
     </div>
 
     <div class="set-group">
-      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg></span><div><b>Notifications</b><small>Quand une note est prête</small></div></div>
+      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg></span><div><b role="heading" aria-level="2">Notifications</b><small>Quand une note est prête</small></div></div>
       <div class="card pad notif-row">
         <div><b>Me prévenir quand une note est prête</b><small id="notifState"></small></div>
         <button class="btn" id="notifBtn" type="button">Activer</button>
@@ -1472,7 +1489,7 @@
     </div>
 
     <div class="set-group">
-      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v6.5c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V5.5"/><path d="M4.5 12v6.5c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V12"/></svg></span><div><b>Mes données</b><small>Sauvegarde et stockage</small></div></div>
+      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="7.5" ry="2.8"/><path d="M4.5 5.5v6.5c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V5.5"/><path d="M4.5 12v6.5c0 1.5 3.4 2.8 7.5 2.8s7.5-1.3 7.5-2.8V12"/></svg></span><div><b role="heading" aria-level="2">Mes données</b><small>Sauvegarde et stockage</small></div></div>
       <div class="card pad stack">
         <div class="notif-row"><div><b id="stoLine">Stockage</b><small id="stoState"></small></div><button class="btn hidden" id="persistBtn" type="button">Protéger</button></div>
         <div class="notif-row"><div><b id="audLine">Audio</b><small>Supprimer l'audio garde les transcriptions, résumés, cours et fiches.</small></div><button class="btn hidden" id="audDelAll" type="button">Supprimer</button></div>
@@ -1508,21 +1525,21 @@
   </div>
 </div>
 <button class="fab hidden" id="fab" aria-label="Nouvelle tâche"></button>
-<div class="ptr" id="ptr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></div>
+<div class="ptr" id="ptr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></div>
 <div class="sel-ask hidden" id="selAsk"><button id="selExplain" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z"/></svg>Expliquer</button><button id="selQ" type="button">Question…</button><button id="selX" type="button" aria-label="Fermer">✕</button></div>
-<div class="lb hidden" id="lightbox">
+<div class="lb hidden" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo du tableau">
   <div class="lb-top"><button class="iconbtn" id="lbClose" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button><b id="lbCap"></b><button class="iconbtn" id="lbPrev" aria-label="Précédente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><button class="iconbtn" id="lbNext" aria-label="Suivante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
   <div class="lb-img" id="lbImgBox"><img id="lbImg" alt="Photo du tableau"></div>
   <div class="lb-txt" id="lbText"></div>
   <div class="lb-acts"><button class="btn" id="lbGo" type="button">Aller au moment</button><button class="btn" id="lbRead" type="button">Lire avec l'IA</button><button class="btn" id="lbDel" type="button">Supprimer</button></div>
 </div>
-<nav class="tabbar hidden" id="tabbar">
-  <button data-v="home" aria-selected="true"></button>
-  <button data-v="courses" aria-selected="false"></button>
-  <button data-v="tasks" aria-selected="false"></button>
+<nav class="tabbar hidden" id="tabbar" aria-label="Navigation principale">
+  <button data-v="home" aria-current="page"></button>
+  <button data-v="courses"></button>
+  <button data-v="tasks"></button>
 </nav>
 <div class="ask-bar hidden" id="askBar"><div>
-  <textarea id="askInput" rows="1" placeholder="Pose ta question…" enterkeyhint="send"></textarea>
+  <textarea id="askInput" rows="1" placeholder="Pose ta question…" aria-label="Ta question" enterkeyhint="send"></textarea>
   <button class="btn primary" id="askSend" type="button" aria-label="Envoyer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
 </div></div>
 <div class="actions selbar hidden" id="selBar">
@@ -1535,14 +1552,15 @@
   </div>
 </div>
 <div class="sheet-bg hidden" id="sheetBg"></div>
-<div class="sheet hidden" id="sheet" role="dialog" aria-modal="true"><div class="grab"></div><div id="sheetBody"></div></div>
+<div class="sheet hidden" id="sheet" role="dialog" aria-modal="true" tabindex="-1"><div class="grab"></div><div id="sheetBody"></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="sr-only" id="srLive" aria-live="polite" aria-atomic="true"></div>
 <div id="printRoot" aria-hidden="true"></div>
 <button id="toTop" aria-label="Remonter en haut"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></button>
 
 <script>
 'use strict';
-const APP_VERSION = '32 · 4 oct. 2026';
+const APP_VERSION = '35 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -1613,11 +1631,38 @@ async function dbRun(store, mode, fn, retry) {
     t.onabort = () => rej(t.error || new Error('Transaction annulée'));
   });
 }
+// Transaction sur plusieurs magasins à la fois (tout ou rien)
+async function dbTx(stores, mode, fn, retry) {
+  const d = await openDB();
+  let t;
+  try { t = d.transaction(stores, mode); }
+  catch (e) { if (!retry) { dbConn = null; return dbTx(stores, mode, fn, true); } throw e; }
+  return new Promise((res, rej) => {
+    fn(t);
+    t.oncomplete = () => res();
+    t.onerror = () => rej(t.error);
+    t.onabort = () => rej(t.error || new Error('Transaction annulée'));
+  });
+}
 const db = {
   all: () => dbRun('notes', 'readonly', (s) => s.getAll()),
+  keys: () => dbRun('notes', 'readonly', (s) => s.getAllKeys()),
   get: (id) => dbRun('notes', 'readonly', (s) => s.get(id)),
-  put: (n) => dbRun('notes', 'readwrite', (s) => s.put(n)),
-  del: (id) => dbRun('notes', 'readwrite', (s) => s.delete(id)),
+  // chaque enregistrement met à jour, dans la même transaction, la fiche légère et les mots de la note (voir « Index léger »)
+  put: async (n) => {
+    if (!n || n.__head) throw new Error('Enregistrement refusé : note incomplète (fiche d\'index).');
+    const h = headOf(n), w = wordsOf(n);
+    await dbTx(['notes', 'pending'], 'readwrite', (t) => { t.objectStore('notes').put(n); t.objectStore('pending').put(h, HK(n.id)); t.objectStore('pending').put(w, WK(n.id)); });
+    idxSet(n.id, h, w);
+  },
+  del: async (id) => {
+    await dbTx(['notes', 'pending'], 'readwrite', (t) => { t.objectStore('notes').delete(id); t.objectStore('pending').delete(HK(id)); t.objectStore('pending').delete(WK(id)); });
+    idxSet(id, null, null);
+  },
+  // parcourt toutes les notes complètes une à une (sans les garder toutes en mémoire)
+  each: async (fn) => {
+    for (const id of await db.keys()) { const n = await db.get(id); if (n) await fn(n); }
+  },
   takePending: async () => {
     const v = await dbRun('pending', 'readonly', (s) => s.get('shared'));
     if (!v) return null;
@@ -1633,6 +1678,95 @@ const db = {
     return { file, info: v.info || {} };
   },
 };
+
+/* =================== Index léger des notes =================== */
+/* Avec des centaines de notes et des enregistrements de 3 h, relire toutes les transcriptions à chaque affichage
+   de l'accueil, de l'onglet Tâches ou à chaque lettre tapée dans la recherche prenait plusieurs secondes et ~80 Mo.
+   Chaque note a donc, à part (magasin « pending ») :
+   - une fiche légère « head:<id> » : tout sauf les textes longs (transcriptions, cours rédigé, fiches, photos…) ;
+   - la liste de ses mots « words:<id> » (sans accents ni majuscules), pour trouver vite les notes qui contiennent un mot.
+   Elles sont réécrites dans la même transaction que la note (db.put) : toujours à jour. */
+const HEAD_V = 1;
+const HK = (id) => 'head:' + id, WK = (id) => 'words:' + id;
+const HEAVY = ['segments', 'clean', 'lecture', 'chat', 'audio', 'photos', 'cards', 'partial', 'sumPartial', 'cleanPartial', 'lecturePartial'];
+function headOf(n) {
+  const h = { __head: HEAD_V };
+  for (const k of Object.keys(n)) if (!HEAVY.includes(k)) h[k] = n[k];
+  h.hasSegs = !!(n.segments && n.segments.length);
+  h.hasClean = !!(n.clean && n.clean.length);
+  h.hasLecture = !!(n.lecture && String(n.lecture).trim());
+  h.hasAudio = !!n.audio;
+  h.photoIds = (n.photos || []).map((x) => x.id);
+  h.cardDue = (n.cards || []).map((c) => c.due || 0);
+  return h;
+}
+// Tout le texte cherchable d'une note complète (même ordre que l'ancienne recherche)
+const noteText = (n) => `${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''} ${n.lecture || ''} ${(n.segments || []).map((s) => s.text).join(' ')} ${(n.clean || []).map((s) => s.text).join(' ')} ${n.mine || ''} ${(n.photos || []).map((x) => x.text || '').join(' ')}`;
+const WORD_SPLIT = /[^\p{L}\p{N}]+/u;
+const wordsOf = (n) => ' ' + [...new Set(norm(noteText(n)).split(WORD_SPLIT).filter(Boolean))].join(' ') + ' ';
+let headMap = null, headsReady = null, wordMap = null, wordsReady = null;
+function idxSet(id, h, w) {
+  const apply = (m, v) => { if (v == null) m.delete(id); else m.set(id, v); };
+  if (headMap) apply(headMap, h); else if (headsReady) headsReady.then((m) => apply(m, h), () => {});
+  if (wordMap) apply(wordMap, w); else if (wordsReady) wordsReady.then((m) => apply(m, w), () => {});
+}
+// Parcourt toutes les notes complètes dans une seule transaction (une à la fois en mémoire)
+function scanNotes(fn) {
+  return openDB().then((d) => new Promise((res, rej) => {
+    const r = d.transaction('notes', 'readonly').objectStore('notes').openCursor();
+    r.onsuccess = () => { const c = r.result; if (!c) return res(); try { fn(c.value); } catch (e) { return rej(e); } c.continue(); };
+    r.onerror = () => rej(r.error);
+  }));
+}
+// Fiches de toutes les notes ; la première fois après la mise à jour, elles sont créées en relisant chaque note une fois
+function ensureHeads(onProgress) {
+  if (headMap) return Promise.resolve(headMap);
+  if (!headsReady) headsReady = (async () => {
+    const [keys, hs] = await Promise.all([db.keys(), dbRun('pending', 'readonly', (st) => st.getAll(IDBKeyRange.bound('head:', 'head:\uffff')))]);
+    const m = new Map();
+    for (const h of hs || []) if (h && h.__head === HEAD_V) m.set(h.id, h);
+    const want = new Set(keys), missing = new Set(keys.filter((id) => !m.has(id)));
+    if (missing.size) {   // un seul parcours des notes ; les mots, plus longs à calculer, attendront la première recherche
+      const made = [];
+      await scanNotes((n) => { if (!missing.has(n.id)) return; const h = headOf(n); m.set(n.id, h); made.push(h); if (onProgress) onProgress(made.length, missing.size); });
+      for (let i = 0; i < made.length; i += 100) await dbTx(['pending'], 'readwrite', (t) => { const st = t.objectStore('pending'); for (const h of made.slice(i, i + 100)) st.put(h, HK(h.id)); });
+    }
+    for (const id of [...m.keys()]) if (!want.has(id)) { m.delete(id); dbTx(['pending'], 'readwrite', (t) => { t.objectStore('pending').delete(HK(id)); t.objectStore('pending').delete(WK(id)); }).catch(() => {}); }
+    headMap = m;
+    return m;
+  })().catch((e) => { headsReady = null; throw e; });
+  return headsReady;
+}
+// Mots de toutes les notes (chargés à la première recherche seulement)
+function ensureWords() {
+  if (wordMap) return Promise.resolve(wordMap);
+  if (!wordsReady) wordsReady = (async () => {
+    await ensureHeads();
+    const m = new Map();
+    await new Promise((res, rej) => {
+      openDB().then((d) => {
+        const t = d.transaction('pending', 'readonly'), r = t.objectStore('pending').openCursor(IDBKeyRange.bound('words:', 'words:\uffff'));
+        r.onsuccess = () => { const c = r.result; if (c) { m.set(String(c.key).slice(6), c.value); c.continue(); } else res(); };
+        r.onerror = () => rej(r.error);
+      }, rej);
+    });
+    const missing = new Set([...headMap.keys()].filter((id) => !m.has(id)));
+    if (missing.size) {
+      const made = [];
+      await scanNotes((n) => { if (missing.has(n.id)) { const w = wordsOf(n); m.set(n.id, w); made.push([n.id, w]); } });
+      for (let i = 0; i < made.length; i += 100) await dbTx(['pending'], 'readwrite', (t) => { const st = t.objectStore('pending'); for (const [id, w] of made.slice(i, i + 100)) st.put(w, WK(id)); });
+    }
+    wordMap = m;
+    return m;
+  })().catch((e) => { wordsReady = null; throw e; });
+  return wordsReady;
+}
+// Notes complètes choisies d'après leur fiche (lues une à une)
+async function fullNotes(pick) {
+  const out = [];
+  for (const h of (await ensureHeads()).values()) if (h.id !== INBOX && pick(h)) { const n = await db.get(h.id); if (n) out.push(n); }
+  return out;
+}
 
 /* =================== Utilitaires =================== */
 const $ = (id) => document.getElementById(id);
@@ -1691,12 +1825,16 @@ function restoreMath(html, maths) {
 }
 const mathify = (text) => { const maths = []; return restoreMath(esc(protectMath(text, maths)), maths); };
 let katexLoad = null;
+// Version exacte + empreintes : le navigateur refuse le fichier s'il a été modifié (le script aurait accès aux clés)
+const KATEX_BASE = 'https://cdn.jsdelivr.net/npm/katex@0.16.47/dist/';
+const KATEX_SRI = { js: 'sha384-CwjPRVHTvLiMBFjEoij+QZViMV5rhTOIp7CJzl24JEqpRDA1sJFHVXXLURktbYYp', css: 'sha384-nH0MfJ44wi1dd7w6jinlyBgljjS8EJAh2JBoRad8a3VDw2K69vfaaqm4WnR+gXtA' };
+const KATEX_OPTS = { throwOnError: false, strict: 'ignore', output: 'htmlAndMathml', trust: false, maxSize: 20, maxExpand: 300 };
 function loadKatex() {
   if (window.katex) return Promise.resolve();
   if (!katexLoad) katexLoad = new Promise((res, rej) => {
-    const base = 'https://cdn.jsdelivr.net/npm/katex@0.16/dist/';
-    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = base + 'katex.min.css'; document.head.appendChild(l);
-    const sc = document.createElement('script'); sc.src = base + 'katex.min.js';
+    const base = KATEX_BASE;
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = base + 'katex.min.css'; l.integrity = KATEX_SRI.css; l.crossOrigin = 'anonymous'; document.head.appendChild(l);
+    const sc = document.createElement('script'); sc.src = base + 'katex.min.js'; sc.integrity = KATEX_SRI.js; sc.crossOrigin = 'anonymous';
     sc.onload = () => res(); sc.onerror = () => { katexLoad = null; rej(new Error('KaTeX indisponible')); };
     document.head.appendChild(sc);
   });
@@ -1707,7 +1845,7 @@ async function renderMath(root) {
   if (!els.length) return;
   try { await loadKatex(); } catch (e) { return; } // hors ligne : les formules restent lisibles en texte brut
   for (const el of els) {
-    try { window.katex.render(el.dataset.tex, el, { displayMode: el.dataset.display === '1', throwOnError: false, strict: 'ignore', output: 'htmlAndMathml' }); el.classList.add('done'); }
+    try { window.katex.render(el.dataset.tex, el, { ...KATEX_OPTS, displayMode: el.dataset.display === '1' }); el.classList.add('done'); }
     catch (e) {}
   }
 }
@@ -2107,7 +2245,83 @@ async function parseMp4Audio(file) {
   }
   return null;
 }
-async function decodeToWavParts(file, info, onPrep) {
+/* ---- Lecture des fichiers WebM (enregistrements faits avec le téléphone : Opus dans WebM) ----
+   On parcourt la structure EBML du fichier par fenêtres de 4 Mo, pour repérer chaque paquet audio (SimpleBlock)
+   et son horodatage ; le décodage se fait ensuite par petits paquets, comme pour le M4A. */
+async function parseWebmAudio(file) {
+  const ID = { SEGMENT: 0x18538067, CLUSTER: 0x1F43B675, BLOCKGROUP: 0xA0, INFO: 0x1549A966, TIMECODESCALE: 0x2AD7B1, TIMECODE: 0xE7,
+    SIMPLEBLOCK: 0xA3, BLOCK: 0xA1, TRACKS: 0x1654AE6B, TRACKENTRY: 0xAE, TRACKNUMBER: 0xD7, TRACKTYPE: 0x83, CODECID: 0x86,
+    CODECPRIVATE: 0x63A2, AUDIO: 0xE1, SAMPLINGFREQ: 0xB5, CHANNELS: 0x9F };
+  const ENTER = new Set([ID.SEGMENT, ID.CLUSTER, ID.BLOCKGROUP, ID.INFO]);
+  let base = 0, buf = new Uint8Array(0);
+  const load = async (pos, need) => {
+    if (pos >= base && pos + need <= base + buf.length) return;
+    base = pos; buf = new Uint8Array(await file.slice(pos, Math.min(file.size, pos + Math.max(4 << 20, need))).arrayBuffer());
+  };
+  const at = (pos) => buf[pos - base];
+  // nombre de taille variable d'EBML ; marker : on garde le bit de longueur (identifiants)
+  const vint = (pos, marker) => {
+    const b0 = at(pos); if (b0 == null || b0 === 0) return null;
+    let len = 1, mask = 0x80; while (!(b0 & mask)) { len++; mask >>= 1; }
+    let v = marker ? b0 : b0 & (mask - 1), ones = (b0 & (mask - 1)) === mask - 1;
+    for (let i = 1; i < len; i++) { const c = at(pos + i); if (c == null) return null; v = v * 256 + c; if (c !== 0xFF) ones = false; }
+    return { v, len, unknown: !marker && ones };
+  };
+  const uint = (pos, n) => { let v = 0; for (let i = 0; i < n; i++) v = v * 256 + at(pos + i); return v; };
+  const float = (pos, n) => { const dv = new DataView(buf.buffer, buf.byteOffset + pos - base, n); return n === 4 ? dv.getFloat32(0) : dv.getFloat64(0); };
+  function readTracks(a, b) {
+    let pos = a, cur = null; const tracks = [];
+    while (pos < b) {
+      const id = vint(pos, true), sz = id && vint(pos + id.len, false); if (!id || !sz || sz.unknown) break;
+      const st = pos + id.len + sz.len;
+      if (id.v === ID.TRACKENTRY) { cur = { end: st + sz.v }; tracks.push(cur); pos = st; continue; }
+      if (id.v === ID.AUDIO) { pos = st; continue; }
+      if (cur && st <= cur.end) {
+        if (id.v === ID.TRACKNUMBER) cur.number = uint(st, sz.v);
+        else if (id.v === ID.TRACKTYPE) cur.type = uint(st, sz.v);
+        else if (id.v === ID.CODECID) cur.codec = String.fromCharCode(...buf.subarray(st - base, st - base + sz.v)).replace(/\0+$/, '');
+        else if (id.v === ID.CODECPRIVATE) cur.priv = buf.slice(st - base, st - base + sz.v);
+        else if (id.v === ID.SAMPLINGFREQ) cur.rate = float(st, sz.v);
+        else if (id.v === ID.CHANNELS) cur.channels = uint(st, sz.v);
+      }
+      pos = st + sz.v;
+    }
+    return tracks.find((t) => t.type === 2 || /^A_/.test(t.codec || '')) || null;
+  }
+  let pos = 0, scale = 1e6, track = null, clusterTime = 0;
+  const times = [], offs = [], sizes = [];
+  while (pos < file.size) {
+    await load(pos, 16);
+    const id = vint(pos, true), sz = id && vint(pos + id.len, false);
+    if (!id || !sz) break;
+    const st = pos + id.len + sz.len;
+    if (ENTER.has(id.v)) { pos = st; continue; }   // conteneur : on lit ce qu'il contient
+    if (sz.unknown) return null;
+    if (id.v === ID.TIMECODESCALE) { await load(st, sz.v); scale = uint(st, sz.v) || 1e6; }
+    else if (id.v === ID.TIMECODE) { await load(st, sz.v); clusterTime = uint(st, sz.v); }
+    else if (id.v === ID.TRACKS) { await load(st, sz.v); track = readTracks(st, st + sz.v); }
+    else if ((id.v === ID.SIMPLEBLOCK || id.v === ID.BLOCK) && track) {
+      await load(st, 16);
+      const tn = vint(st, false);
+      if (tn && tn.v === track.number) {
+        if (at(st + tn.len + 2) & 0x06) return null;   // paquets regroupés (« lacing ») : non pris en charge
+        let tc = (at(st + tn.len) << 8) | at(st + tn.len + 1); if (tc & 0x8000) tc -= 0x10000;
+        const h = tn.len + 3;
+        times.push((clusterTime + tc) * scale / 1000); offs.push(st + h); sizes.push(sz.v - h);
+      }
+    }
+    pos = st + sz.v;
+  }
+  if (!track || !times.length) return null;
+  const codec = track.codec === 'A_OPUS' ? 'opus' : track.codec === 'A_VORBIS' ? 'vorbis' : null;
+  return { codec, description: codec === 'opus' && track.priv ? track.priv : null, sampleRate: Math.round(track.rate || 48000), channels: track.channels || 1,
+    count: times.length, offsets: Float64Array.from(offs), sizes: Uint32Array.from(sizes), times: Float64Array.from(times),
+    totalSec: (times[times.length - 1] - times[0]) / 1e6 + 0.02 };
+}
+/* ---- Décodage progressif en morceaux WAV 16 kHz mono ----
+   Avant, tout l'audio décodé était gardé en mémoire avant l'envoi (≈ 350 Mo pour 3 h) : un morceau n'est plus
+   décodé qu'au moment où il va être envoyé. Le nombre de morceaux est connu d'avance (durée du fichier). */
+async function decodeLazy(file, info, onPrep) {
   const unsupported = new ApiError(`Ce téléphone ne sait pas décoder ce fichier ${info.codec ? '(' + info.codec + ')' : ''} pour le découper. Exporte l'enregistrement en MP3 depuis Plaud (1 h ≈ 12 Mo).`);
   if (!info.codec || !('AudioDecoder' in window)) throw unsupported;
   const cfg = { codec: info.codec, sampleRate: info.sampleRate, numberOfChannels: info.channels };
@@ -2115,57 +2329,76 @@ async function decodeToWavParts(file, info, onPrep) {
   let ok = false;
   try { ok = (await AudioDecoder.isConfigSupported(cfg)).supported; } catch (e) {}
   if (!ok) throw unsupported;
-  const perPart = Math.floor((CONFIG.maxAudioChunk - 64) / 2), parts = [];
-  let out = new Int16Array(perPart), n = 0, outRate = 0, ratio = 1, acc = 0, cnt = 0, pos = 0, next = 1, err = null;
-  const flushPart = () => {
-    if (!n) return;
-    const pcm = out.slice(0, n);
-    parts.push({ blob: new Blob([wavHeader(monoHeaderFor(outRate), n * 2), pcm.buffer], { type: 'audio/wav' }), name: 'audio.wav', duration: n / outRate });
-    n = 0;
-  };
+  if (!info.times) {   // M4A : horodatages tirés des durées des échantillons
+    const times = new Float64Array(info.count); let t = 0;
+    for (let k = 0; k < info.count; k++) { times[k] = t * 1e6 / info.timescale; t += info.deltas[k]; }
+    info.times = times; info.totalSec = t / info.timescale;
+  }
+  const perPart = Math.floor((CONFIG.maxAudioChunk - 64) / 2);
+  const total = info.totalSec * Math.min(16000, info.sampleRate);
+  let n = Math.max(1, Math.ceil(total / perPart));
+  if (n > 1 && total - (n - 1) * perPart < perPart / 16) n--;   // dernier morceau minuscule : rattaché au précédent
+  const st = { i: 0, outRate: 0, ratio: 1, acc: 0, cnt: 0, pos: 0, next: 1, err: null, done: false, made: 0, buf: new Int16Array(perPart), len: 0, tail: [] };
+  const ready = new Map();
+  const finish = (pcm) => { ready.set(st.made++, { blob: new Blob([wavHeader(monoHeaderFor(st.outRate), pcm.byteLength), pcm.buffer], { type: 'audio/wav' }), name: 'audio.wav', duration: pcm.length / st.outRate }); };
   const dec = new AudioDecoder({
     output: (d) => {
       try {
-        if (!outRate) { outRate = Math.min(16000, d.sampleRate); ratio = d.sampleRate / outRate; next = ratio; }
+        if (!st.outRate) { st.outRate = Math.min(16000, d.sampleRate); st.ratio = d.sampleRate / st.outRate; st.next = st.ratio; }
         const ch = d.numberOfChannels, fr = d.numberOfFrames, planes = [];
         for (let c = 0; c < ch; c++) { const a = new Float32Array(fr); d.copyTo(a, { planeIndex: c, format: 'f32-planar' }); planes.push(a); }
         for (let i = 0; i < fr; i++) {
           let v = 0; for (let c = 0; c < ch; c++) v += planes[c][i];
-          acc += v / ch; cnt++; pos++;
-          if (pos >= next) {
-            out[n++] = Math.max(-1, Math.min(1, acc / cnt)) * 32767;
-            acc = 0; cnt = 0; next += ratio;
-            if (n === perPart) flushPart();
+          st.acc += v / ch; st.cnt++; st.pos++;
+          if (st.pos >= st.next) {
+            st.buf[st.len++] = Math.max(-1, Math.min(1, st.acc / st.cnt)) * 32767;
+            st.acc = 0; st.cnt = 0; st.next += st.ratio;
+            if (st.len === perPart) {
+              if (st.made < n - 1) finish(st.buf.slice());   // morceau complet
+              else st.tail.push(st.buf.slice());           // dernier morceau : il garde tout ce qui reste
+              st.len = 0;
+            }
           }
         }
-      } catch (e) { err = e; } finally { d.close(); }
+      } catch (e) { st.err = e; } finally { d.close(); }
     },
-    error: (e) => { err = e; },
+    error: (e) => { st.err = e; },
   });
   dec.configure(cfg);
-  let i = 0, t = 0;
-  while (i < info.count) {
-    let j = i, start = info.offsets[i], end = start + info.sizes[i];
-    while (j + 1 < info.count && info.offsets[j + 1] === end && end - start < (2 << 20)) { j++; end += info.sizes[j]; }
-    const bytes = new Uint8Array(await file.slice(start, end).arrayBuffer());
+  async function step() {   // décode un paquet d'environ 2 Mo de données
+    let j = st.i, a = info.offsets[st.i], b = a + info.sizes[st.i];
+    while (j + 1 < info.count && info.offsets[j + 1] === b && b - a < (2 << 20)) { j++; b += info.sizes[j]; }
+    const bytes = new Uint8Array(await file.slice(a, b).arrayBuffer());
     let o = 0;
-    for (let k = i; k <= j; k++) {
-      dec.decode(new EncodedAudioChunk({ type: 'key', timestamp: Math.round(t * 1e6 / info.timescale),
-        duration: Math.round(info.deltas[k] * 1e6 / info.timescale), data: bytes.subarray(o, o + info.sizes[k]) }));
-      o += info.sizes[k]; t += info.deltas[k];
+    for (let k = st.i; k <= j; k++) {
+      const offset = info.offsets[k] - a;
+      dec.decode(new EncodedAudioChunk({ type: 'key', timestamp: Math.round(info.times[k]), data: bytes.subarray(offset, offset + info.sizes[k]) }));
+      o = offset + info.sizes[k];
     }
-    i = j + 1;
-    while (dec.decodeQueueSize > 100 && !err) await sleep(4);
-    if (err) break;
-    onPrep && onPrep(i / info.count);
+    st.i = j + 1;
+    while (dec.decodeQueueSize > 100 && !st.err) await sleep(4);
     await sleep(0);
   }
-  if (!err) { try { await dec.flush(); } catch (e) { err = err || e; } }
-  try { dec.close(); } catch (e) {}
-  if (err) throw new ApiError('Le décodage du fichier a échoué (' + (err.message || err) + '). Exporte l\'enregistrement en MP3 depuis Plaud.');
-  flushPart();
-  if (!parts.length) throw new ApiError('Aucun son n\'a pu être extrait de ce fichier.');
-  return parts;
+  async function want(k) {
+    while (!ready.has(k) && !st.done) {
+      if (st.err) break;
+      if (st.i < info.count) { await step(); if (onPrep && k === 0) onPrep(Math.min(1, st.i / info.count * n)); continue; }
+      try { await dec.flush(); } catch (e) { st.err = st.err || e; }
+      try { dec.close(); } catch (e) {}
+      const rest = [...st.tail, st.buf.slice(0, st.len)], len = rest.reduce((x, r) => x + r.length, 0);
+      if (len && st.outRate) { const pcm = new Int16Array(len); let o = 0; for (const r of rest) { pcm.set(r, o); o += r.length; } finish(pcm); }
+      st.done = true;
+    }
+    if (st.err) { try { dec.close(); } catch (e) {} throw new ApiError('Le décodage du fichier a échoué (' + (st.err.message || st.err) + '). Exporte l\'enregistrement en MP3 depuis Plaud.'); }
+  }
+  // chaque fonction rend son morceau (ou null s'il n'y a plus de son) ; les morceaux déjà envoyés sont oubliés
+  return Array.from({ length: n }, (_, k) => async () => {
+    await want(k);
+    for (const j of [...ready.keys()]) if (j < k) ready.delete(j);
+    const p = ready.get(k) || null; ready.delete(k);
+    if (!p && k === 0) throw new ApiError('Aucun son n\'a pu être extrait de ce fichier.');
+    return p;
+  });
 }
 
 // Renvoie une liste de fonctions, chacune produisant un morceau { blob, name } au moment de l'envoi
@@ -2215,10 +2448,12 @@ async function splitAudio(file, onPrep) {
   }
   if (/^(m4a|mp4|aac|m4b|mov|3gp)$/.test(ext) || /mp4|m4a|aac/.test(file.type)) {
     const info = await parseMp4Audio(file).catch(() => null);
-    if (info) {
-      const parts = await decodeToWavParts(file, info, onPrep);
-      return parts.map((x) => async () => x);
-    }
+    if (info) return decodeLazy(file, info, onPrep);
+  }
+  // enregistrement fait avec le téléphone (WebM/Opus) : avant, au-delà de ~43 min (20 Mo), il ne pouvait pas être transcrit
+  if (/^(webm|weba|mka)$/.test(ext) || /webm|matroska/.test(file.type)) {
+    const info = await parseWebmAudio(file).catch(() => null);
+    if (info) return decodeLazy(file, info, onPrep);
   }
   throw new ApiError(`Ce fichier .${ext} fait ${mb(file.size)}, au-delà de la limite de 25 Mo de Groq, et ce format ne peut pas être découpé dans le téléphone. Exporte l'enregistrement en MP3 depuis Plaud (1 h ≈ 12 Mo).`);
 }
@@ -2269,6 +2504,7 @@ async function transcribe(file, onPart, onPrep, saved, onSave) {
   for (let i = start; i < parts.length; i++) {
     onPart(i, parts.length);
     const part = await parts[i]();
+    if (!part) continue;   // plus de son à la fin du fichier
     const { j, model } = await transcribePart(part, i, parts.length, (m) => onPart(i, parts.length, m));
     if (!models.includes(model)) models.push(model);
     language = language || j.language || '';
@@ -2645,8 +2881,8 @@ function parseTask(raw) {
   return { text: t.replace(/\s+/g, ' ').trim(), due, remind, prio, doneAt, tags };
 }
 function buildTask(o) {
-  let s = o.text.trim();
-  for (const t of o.tags || []) s += ' #' + t.replace(/\s+/g, '-');
+  let s = String(o.text || '').replace(/\s+/g, ' ').trim();
+  for (const t of o.tags || []) s += ' #' + String(t).trim().replace(/\s+/g, '-');
   if (o.prio === 2) s += ' ⏫'; else if (o.prio === 1) s += ' 🔼'; else if (o.prio === -1) s += ' 🔽';
   if (o.remind) s += ' ⏰ ' + o.remind.replace('T', ' ');
   if (o.due) s += ' 📅 ' + o.due;
@@ -2696,8 +2932,9 @@ async function addTask(o) {
   await db.put(n);
   scheduleReminders();
 }
-async function loadNotes() { return (await db.all()).filter((n) => n.id !== INBOX).sort((a, b) => b.created - a.created); }
-async function allTasks() { return (await db.all()).flatMap(tasksOf); }
+// Fiches légères (sans transcriptions) de toutes les notes, les plus récentes d'abord. Pour modifier une note : db.get(id).
+async function loadNotes(onProgress) { return [...(await ensureHeads(onProgress)).values()].filter((n) => n.id !== INBOX).sort((a, b) => b.created - a.created); }
+async function allTasks() { return [...(await ensureHeads()).values()].flatMap(tasksOf); }
 // Rappel automatique pour les tâches avec échéance (réglage)
 function remindFor(due) {
   if (!due || settings.autoRemind === 'none') return null;
@@ -2801,6 +3038,7 @@ function bar(p) {
   $('runBannerPct').textContent = Math.round(p * 100) + ' %';
   $('jobBar').style.strokeDashoffset = String(RING * (1 - p));
   $('jobPct').textContent = Math.round(p * 100) + ' %';
+  $('jobVis').setAttribute('aria-valuenow', String(Math.round(p * 100)));
 }
 
 /* ---- Date d'un enregistrement ----
@@ -2830,7 +3068,7 @@ function dateSheet(n) {
   if (fromName) quick.push(['Date du nom du fichier', fromName]);
   if (n.addedAt && Math.abs(n.addedAt - n.created) > 60000) quick.push(['Date d\'ajout', n.addedAt]);
   openSheet(`<h3>Date de l'enregistrement</h3><p class="sub">Elle sert au tri, aux groupes et au calendrier.</p>
-    <input type="datetime-local" id="dateIn" value="${toLocalInput(n.created)}" max="${toLocalInput(Date.now() + 86400000)}">
+    <input type="datetime-local" id="dateIn" aria-label="Date et heure de l'enregistrement" value="${toLocalInput(n.created)}" max="${toLocalInput(Date.now() + 86400000)}">
     <div class="quick">${quick.map(([l, t], i) => `<button class="tag" data-i="${i}">${l}</button>`).join('')}</div>
     <button class="btn primary block" id="dateOk">Enregistrer</button>`, (body) => {
     body.querySelectorAll('.quick .tag').forEach((b) => b.onclick = () => { body.querySelector('#dateIn').value = toLocalInput(quick[+b.dataset.i][1]); });
@@ -2860,9 +3098,10 @@ function showDiag(title, text) {
   $('shareDiagTitle').textContent = title; $('shareDiagTxt').textContent = text;
   $('shareDiag').classList.remove('hidden');
 }
+const isIcsFile = (f) => !!f && (/\.ics$/i.test(f.name || '') || /calendar/i.test(f.type || ''));
 // Renvoie false si le fichier n'a pas pu être gardé
 async function startFile(file, extra) {
-  if (file && (/\.ics$/i.test(file.name || '') || /calendar/i.test(file.type || ''))) { importIcsFile(file); return true; }
+  if (isIcsFile(file)) { importIcsFile(file); return true; }
   if (!file || !file.size) { toast('Aucun fichier audio reçu'); return false; }
   const now = Date.now();
   const note = {
@@ -3000,7 +3239,7 @@ async function run(note, opts = {}) {
     $('jobError').classList.remove('hidden');
     $('jobRetry').onclick = () => run(note);
     notify('Échec du traitement', $('jobErrorMsg').textContent, note.id);
-    if (current === 'job') show('job', true);
+    if (current === 'job') { show('job', true); announce('Échec du traitement. ' + $('jobErrorMsg').textContent); }
     else { toast('Échec du traitement : ouvre la note pour voir le détail'); if (current === 'home') renderHome(); }
     setTimeout(resumeInterrupted, 800);
   }
@@ -3016,7 +3255,7 @@ function show(v, keepScroll) {
     if (TABS.includes(v)) navStack.length = 0;
     else { navStack.push({ v: current, id: currentNote ? currentNote.id : null, crs: courseCur }); if (navStack.length > 30) navStack.shift(); }
   }
-  const changed = v !== current;
+  const changed = v !== current, first = !current;
   current = v;
   for (const id of ['home', 'tasks', 'courses', 'course', 'review', 'job', 'note', 'settings', 'ask', 'rec']) {
     const el = $('v-' + id);
@@ -3033,7 +3272,7 @@ function show(v, keepScroll) {
   $('spacer').classList.toggle('hidden', tab || lockBack || v === 'note');
   $('noteHdr').classList.toggle('hidden', v !== 'note');
   $('tabbar').classList.toggle('hidden', !tab || ui.sel);
-  $('tabbar').querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.v === v)));
+  $('tabbar').querySelectorAll('button').forEach((b) => { if (b.dataset.v === v) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
   $('fab').classList.toggle('hidden', v !== 'tasks');
   if (tab) lastTab = v;
   $('noteActions').classList.toggle('hidden', v !== 'note');
@@ -3054,6 +3293,19 @@ function show(v, keepScroll) {
   if (backReady && !(history.state && history.state.np === 1)) { try { history.pushState({ np: 1 }, ''); } catch (e) {} }
   if (v === 'ask') renderAsk();
   updToTop();
+  if (changed && !first) focusView(v);
+}
+// Lecteur d'écran / clavier : en changeant d'écran, le focus va sur son titre (sinon il reste sur un bouton disparu)
+function focusView(v) {
+  const h = v === 'home' ? $('greet') : v === 'courses' ? $('v-courses').querySelector('h1') : v === 'tasks' ? $('v-tasks').querySelector('h1') : v === 'note' ? $('noteTitle') : $('title');
+  if (h && !h.classList.contains('hidden') && !(document.activeElement && document.activeElement.closest && document.activeElement.closest('.sheet, .lb'))) { try { h.focus({ preventScroll: true }); } catch (e) {} }
+}
+// Annonce discrète pour le lecteur d'écran (résultats de recherche…)
+function announce(msg) { const el = $('srLive'); if (!el) return; el.textContent = ''; setTimeout(() => { el.textContent = msg; }, 60); }
+// Une rangée de boutons redessinée garde le focus clavier sur le même bouton (sinon le lecteur d'écran repart du début de la page)
+function refocus(box, attr) {
+  const a = document.activeElement, v = a && box.contains(a) ? a.getAttribute(attr) : null;
+  return () => { if (v == null) return; const b = [...box.querySelectorAll(`[${attr}]`)].find((x) => x.getAttribute(attr) === v); if (b) { try { b.focus({ preventScroll: true }); } catch (e) {} } };
 }
 let lastTab = 'home';
 
@@ -3117,7 +3369,7 @@ async function renderHome() {
   $('runBanner').classList.toggle('hidden', !runningId);
   $('onboard').classList.toggle('hidden', !!settings.key);
   $('greet').innerHTML = greetIcon() + '<span>' + esc(greeting()) + '</span>';
-  try { allNotes = await loadNotes(); }
+  try { allNotes = await loadNotes((k, n) => { if (k % 10 === 1 || k === n) $('stats').textContent = `Préparation de la liste après la mise à jour… ${k}/${n}`; }); }
   catch (e) {   // IndexedDB indisponible (navigation privée, stockage effacé ou corrompu…)
     allNotes = [];
     $('stats').textContent = '';
@@ -3129,6 +3381,7 @@ async function renderHome() {
   $('stats').textContent = allNotes.length
     ? [`${allNotes.length} note${allNotes.length > 1 ? 's' : ''}`, total ? `${dur(total)} transcrites` : '', todo ? `${todo} tâche${todo > 1 ? 's' : ''} à faire` : ''].filter(Boolean).join(' · ')
     : 'Prêt pour ton premier enregistrement.';
+  if ($('search').value.trim()) ui.hitsStale = true;   // résultats à recalculer en arrière-plan (une note a pu changer)
   renderBrowse();
   renderList();
   renderBkRemind();
@@ -3166,24 +3419,62 @@ function filtered(ignoreDay) {
     if (ui.day != null) notes = notes.filter((n) => dayStart(n.created) === ui.day);
     else if (ui.mode === 'cal') notes = notes.filter((n) => monthStart(n.created) === ui.month);
   }
-  const q = norm($('search').value.trim());
-  if (q) notes = notes.filter((n) => norm(`${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''} ${n.lecture || ''} ${(n.segments || []).map((s) => s.text).join(' ')} ${(n.clean || []).map((s) => s.text).join(' ')} ${n.mine || ''} ${(n.photos || []).map((x) => x.text || '').join(' ')}`).includes(q));
+  // recherche : résultat calculé à part (searchNotes), sans relire les transcriptions à chaque affichage
+  const q = $('search').value.trim();
+  if (q) notes = ui.hits && ui.hitsQ === q ? notes.filter((n) => ui.hits.has(n.id)) : [];
   // les notes épinglées d'abord (hors filtre par jour)
   if (ui.day == null && ui.mode !== 'cal') notes = [...notes.filter((n) => n.pinned), ...notes.filter((n) => !n.pinned)];
   return notes;
 }
+/* ---- Recherche dans toutes les notes ----
+   1. les mots de chaque note (index « words ») donnent tout de suite les notes candidates ;
+   2. pour une expression de plusieurs mots (ou avec ponctuation), on vérifie le texte exact des candidates seulement.
+   Même résultat qu'une recherche dans tout le texte, sans accents ni majuscules. */
+let searchTok = 0, searchT = 0;
+async function searchNotes(qRaw) {
+  const q = norm(qRaw), tok = ++searchTok;
+  const heads = await ensureHeads();
+  const terms = q.split(WORD_SPLIT).filter(Boolean);
+  const notes = [...heads.values()].filter((n) => n.id !== INBOX);
+  if (!terms.length) return new Set(notes.filter((n) => norm(`${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''} ${n.mine || ''}`).includes(q)).map((n) => n.id));
+  const words = await ensureWords();
+  if (tok !== searchTok) return null;
+  const cands = notes.filter((n) => { const w = words.get(n.id) || ''; return terms.every((t) => w.includes(t)); });
+  if (terms.length === 1 && terms[0] === q) return new Set(cands.map((n) => n.id));   // un seul mot : l'index suffit
+  const out = new Set();
+  for (const n of cands) {
+    if (tok !== searchTok) return null;   // une autre recherche a commencé
+    if (norm(`${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''}`).includes(q)) { out.add(n.id); continue; }
+    const f = await db.get(n.id);
+    if (f && norm(noteText(f)).includes(q)) out.add(n.id);
+  }
+  return tok === searchTok ? out : null;
+}
+async function runSearch() {
+  const q = $('search').value.trim();
+  if (!q) { ui.hits = null; ui.hitsQ = ''; renderBrowse(); renderList(); return; }
+  const slow = setTimeout(() => { if (ui.hitsQ !== q) $('notesList').innerHTML = '<div class="empty-s" role="status">Recherche…</div>'; }, 250);
+  let hits;
+  try { hits = await searchNotes(q); } finally { clearTimeout(slow); }
+  if (!hits || $('search').value.trim() !== q) return;   // dépassée par une frappe plus récente
+  ui.hits = hits; ui.hitsQ = q;
+  renderBrowse(); renderList();
+  announce(hits.size ? `${hits.size} note${hits.size > 1 ? 's' : ''} trouvée${hits.size > 1 ? 's' : ''}` : 'Aucune note trouvée');
+}
+function scheduleSearch() { clearTimeout(searchT); searchT = setTimeout(runSearch, 150); }
 // Où la recherche a trouvé le texte, avec un extrait surligné
 const plainMd = (t, dropHeads) => String(t || '').split('\n').filter((l) => !(dropHeads && /^#{1,6}\s/.test(l))).join('\n').replace(/^\s*[-*•]\s+\[[ xX]\]\s*/gm, '').replace(/^\s*[-*•]\s+/gm, '').replace(/[📅⏰⏫🔼🔽✅]\s*\d{4}-\d{2}-\d{2}(?:[ T]\d{1,2}:\d{2})?/gu, '').replace(/\$\$?|\\[()[\]]/g, '').replace(/[*_`#>|]/g, ' ').replace(/\s+/g, ' ').trim();
-function findSnippet(n, qRaw) {
+// light : n est une fiche (sans transcription) ; renvoie undefined si l'extrait est peut-être dans la note complète
+function findSnippet(n, qRaw, light) {
   const q = norm(qRaw); if (!q) return null;
-  const places = [
+  if (norm(n.title).includes(q)) return null;
+  const places = light ? [['sum', 'Résumé', plainMd(n.summary, true)]] : [
     ['sum', 'Résumé', plainMd(n.summary, true)],
     ['lecture', 'Cours', plainMd(n.lecture)],
     ['tr', 'Transcription', (hasClean(n) ? n.clean : (n.segments || [])).map((x) => x.text).join(' ')],
     ['mine', 'Mes notes', plainMd(n.mine)],
     ['sum', 'Tableau', plainMd((n.photos || []).map((x) => x.text || '').join(' '))],
   ];
-  if (norm(n.title).includes(q)) return null;
   for (const [where, label, text] of places) {
     const hit = norm(text).includes(q) && findAll(text, qRaw, 1)[0];
     if (!hit) continue;
@@ -3192,7 +3483,7 @@ function findSnippet(n, qRaw) {
     const html = (a ? '…' : '') + esc(text.slice(a, i)) + '<mark>' + esc(text.slice(i, j)) + '</mark>' + esc(text.slice(j, b)) + (b < text.length ? '…' : '');
     return { where, label, html };
   }
-  return null;
+  return light ? undefined : null;
 }
 // Surligne les occurrences dans un bloc déjà affiché, et fait défiler jusqu'à la première
 function highlightIn(root, qRaw) {
@@ -3221,11 +3512,13 @@ function renderBrowse() {
   $('selectBtn').textContent = ui.sel ? 'Terminer' : 'Sélectionner';
   const tags = tagCounts();
   $('tagBar').classList.toggle('hidden', !tags.length);
-  $('tagBar').innerHTML = `<button class="tag all${ui.tag ? '' : ' on'}" data-t="">Toutes</button>` +
-    tags.map(([t, c]) => `<button class="tag${ui.tag === t ? ' on' : ''}" style="--h:${tagHue(t)}" data-t="${esc(t)}">${esc(t)} <span class="n">${c}</span></button>`).join('');
+  const backTag = refocus($('tagBar'), 'data-t');
+  $('tagBar').innerHTML = `<button class="tag all${ui.tag ? '' : ' on'}" data-t="" aria-pressed="${!ui.tag}">Toutes</button>` +
+    tags.map(([t, c]) => `<button class="tag${ui.tag === t ? ' on' : ''}" style="--h:${tagHue(t)}" data-t="${esc(t)}" aria-pressed="${ui.tag === t}" aria-label="${esc(t)} ${c} note${c > 1 ? 's' : ''}">${esc(t)} <span class="n">${c}</span></button>`).join('');
+  backTag();
   $('tagBar').querySelectorAll('button').forEach((b) => b.onclick = () => { ui.tag = b.dataset.t && ui.tag !== b.dataset.t ? b.dataset.t : null; renderBrowse(); renderList(); });
   $('filters').innerHTML = ui.day != null
-    ? `<button class="fchip" id="clearDay">${new Date(ui.day).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}${ICONS.x}</button>` : '';
+    ? `<button class="fchip" id="clearDay" aria-label="Retirer le filtre : ${new Date(ui.day).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}">${new Date(ui.day).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}${ICONS.x}</button>` : '';
   if (ui.day != null) $('clearDay').onclick = () => { ui.day = null; renderBrowse(); renderList(); };
   if (ui.mode === 'cal') renderCal();
 }
@@ -3242,7 +3535,7 @@ function renderCal() {
     const list = byDay.get(d) || [];
     const cls = ['day', dn.getMonth() !== mo ? 'out' : '', d === today ? 'today' : '', list.length ? 'has' : '', ui.day === d ? 'sel' : ''].join(' ');
     const dots = list.slice(0, 3).map((n) => `<i style="--h:${n.tags && n.tags[0] ? tagHue(n.tags[0]) : 20}"></i>`).join('');
-    html += `<button class="${cls}" data-d="${d}" aria-label="${dn.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })}, ${list.length} note(s)">${dn.getDate()}<span class="dots">${dots}</span></button>`;
+    html += `<button class="${cls}" data-d="${d}" aria-label="${dn.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}, ${list.length ? list.length + ' note' + (list.length > 1 ? 's' : '') : 'aucune note'}">${dn.getDate()}<span class="dots">${dots}</span></button>`;
   }
   $('calGrid').innerHTML = html;
   $('calGrid').querySelectorAll('.day').forEach((b) => b.onclick = () => {
@@ -3267,57 +3560,130 @@ function updSel() {
   $('selMerge').disabled = n < 2;
 }
 
-function renderList() {
-  const list = $('notesList');
-  list.classList.toggle('selmode', ui.sel);
-  if (!allNotes.length) { list.innerHTML = EMPTY; return; }
-  const notes = filtered(false);
-  if (!notes.length) {
-    const q = $('search').value.trim();
-    list.innerHTML = `<div class="empty-s">${q ? `Aucune note ne contient « ${esc(q)} ».` : ui.day != null ? 'Aucune note ce jour-là.' : ui.mode === 'cal' ? 'Aucune note ce mois-ci.' : 'Aucune note avec ce tag.'}</div>`;
-    return;
-  }
-  let html = '', g = '';
-  const qRaw = $('search').value.trim();
-  for (const n of notes) {
-    const gg = ui.day != null ? '' : (n.pinned && ui.mode !== 'cal' ? 'Épinglées' : groupOf(n.created));
-    if (gg !== g) { html += `<div class="group">${gg}</div>`; g = gg; }
-    const tasks = openTasks(n);
-    const badge = n.id === runningId ? `<span class="pill run">${ICONS.clock}En cours…</span>` : n.status === 'ok' ? '' :
-      n.status === 'resume-err' ? `<span class="pill err">${ICONS.alert}Résumé à refaire</span>` :
-      n.status === 'err' ? `<span class="pill err">${ICONS.alert}Échec</span>` : `<span class="pill run">${ICONS.alert}Interrompu</span>`;
-    const crsM = n.course ? getMat(n.course.key) : null, hue = crsM ? crsM.hue : null;
-    const tags = (n.tags || []).filter((t) => !n.course || t !== crsTag(n.course.name)).slice(0, 3).map((t) => tagHtml(t)).join('');
-    html += `
-      <button class="item${ui.picked.has(n.id) ? ' picked' : ''}${n.course ? ' has-crs' : ''}" data-id="${n.id}"${hue != null ? ` style="--h:${hue}"` : ''}>
+/* La liste s'affiche par pages de 60 (la suite arrive en défilant) : avec 500 notes, tout dessiner d'un coup était lent. */
+const PAGE = 60;
+const lst = { notes: [], pos: 0, g: '', q: '', tok: 0, obs: null };
+function noteItem(n) {
+  const tasks = openTasks(n);
+  const badge = n.id === runningId ? `<span class="pill run">${ICONS.clock}En cours…</span>` : n.status === 'ok' ? '' :
+    n.status === 'resume-err' ? `<span class="pill err">${ICONS.alert}Résumé à refaire</span>` :
+    n.status === 'err' ? `<span class="pill err">${ICONS.alert}Échec</span>` : `<span class="pill run">${ICONS.alert}Interrompu</span>`;
+  const crsM = n.course ? getMat(n.course.key) : null, hue = crsM ? crsM.hue : null;
+  const tags = (n.tags || []).filter((t) => !n.course || t !== crsTag(n.course.name)).slice(0, 3).map((t) => tagHtml(t)).join('');
+  const ex = excerpt(n);
+  return `
+      <button class="item${ui.picked.has(n.id) ? ' picked' : ''}${n.course ? ' has-crs' : ''}" data-id="${esc(n.id)}"${ui.sel ? ` aria-pressed="${ui.picked.has(n.id)}"` : ''}${hue != null ? ` style="--h:${hue}"` : ''}>
         <span class="ck"></span>
         <span class="item-top"><span class="t">${n.pinned ? `<span class="pin">${ICONS.pin}</span>` : ''}${esc(n.title)}</span><span class="time">${shortTime(n.created)}</span></span>
-        ${excerpt(n) ? `<span class="ex">${esc(excerpt(n))}</span>` : ''}
-        ${qRaw ? (() => { const sn = findSnippet(n, qRaw); return sn ? `<span class="snip" data-where="${sn.where}"><b>${sn.label}</b>${sn.html}</span>` : ''; })() : ''}
+        ${ex ? `<span class="ex">${esc(ex)}</span>` : ''}
+        ${lst.q ? '<span class="snipbox"></span>' : ''}
         <span class="m">${n.course ? `<span class="pill hue"${hue != null ? ` style="--h:${hue}"` : ''}>${ICONS.book}${esc(n.course.name)}${n.course.kind && n.course.kind !== 'cours' ? ' · ' + (KIND_LBL[n.course.kind] || '') : ''}</span>` : ''}${n.duration ? `<span class="pill">${ICONS.clock}${dur(n.duration)}</span>` : ''}${tasks ? `<span class="pill task">${ICONS.check}${tasks} à faire</span>` : ''}${badge}</span>
         ${tags ? `<span class="tags">${tags}</span>` : ''}
       </button>`;
-  }
-  list.innerHTML = html;
-  list.querySelectorAll('.item').forEach((b) => b.onclick = () => {
-    const id = b.dataset.id;
-    if (!ui.sel) { const sn = b.querySelector('.snip'); return openNote(id, sn ? { q: $('search').value.trim(), where: sn.dataset.where } : null); }
-    if (ui.picked.has(id)) ui.picked.delete(id); else ui.picked.add(id);
-    b.classList.toggle('picked', ui.picked.has(id)); updSel();
-  });
 }
+function renderList() {
+  const list = $('notesList');
+  list.classList.toggle('selmode', ui.sel);
+  if (lst.obs) { lst.obs.disconnect(); lst.obs = null; }
+  lst.tok++;
+  if (!allNotes.length) { list.innerHTML = EMPTY; return; }
+  const q = $('search').value.trim();
+  if (q && ui.hitsQ !== q) { list.innerHTML = '<div class="empty-s" role="status">Recherche…</div>'; scheduleSearch(); return; }
+  if (q && ui.hitsStale) { ui.hitsStale = false; scheduleSearch(); }
+  const notes = filtered(false);
+  if (!notes.length) {
+    list.innerHTML = `<div class="empty-s">${q ? `Aucune note ne contient « ${esc(q)} ».` : ui.day != null ? 'Aucune note ce jour-là.' : ui.mode === 'cal' ? 'Aucune note ce mois-ci.' : 'Aucune note avec ce tag.'}</div>`;
+    return;
+  }
+  Object.assign(lst, { notes, pos: 0, g: '', q });
+  list.innerHTML = '';
+  morePage();
+}
+function morePage() {
+  const list = $('notesList'), tok = lst.tok;
+  const slice = lst.notes.slice(lst.pos, lst.pos + PAGE);
+  let html = '';
+  for (const n of slice) {
+    const gg = ui.day != null ? '' : (n.pinned && ui.mode !== 'cal' ? 'Épinglées' : groupOf(n.created));
+    if (gg !== lst.g) { html += `<div class="group" role="heading" aria-level="2">${gg}</div>`; lst.g = gg; }
+    html += noteItem(n);
+  }
+  const old = $('listMore'); if (old) old.remove();
+  list.insertAdjacentHTML('beforeend', html);
+  lst.pos += slice.length;
+  if (lst.q) fillSnippets(slice, lst.q, tok);
+  if (lst.pos >= lst.notes.length) return;
+  list.insertAdjacentHTML('beforeend', `<button class="btn ghost block" id="listMore" type="button">Afficher plus (${lst.notes.length - lst.pos} autres)</button>`);
+  $('listMore').onclick = morePage;
+  if ('IntersectionObserver' in window) {
+    lst.obs = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting) && tok === lst.tok) { lst.obs.disconnect(); lst.obs = null; morePage(); } }, { rootMargin: '600px' });
+    lst.obs.observe($('listMore'));
+  }
+}
+// Extraits trouvés par la recherche : calculés après l'affichage, note par note
+async function fillSnippets(notes, qRaw, tok) {
+  for (const h of notes) {
+    if (tok !== lst.tok) return;
+    let sn = findSnippet(h, qRaw, true);   // d'abord dans la fiche (résumé, mes notes)
+    if (sn === undefined) { const n = await db.get(h.id); if (tok !== lst.tok) return; sn = n ? findSnippet(n, qRaw) : null; }
+    const box = sn && $('notesList').querySelector(`.item[data-id="${CSS.escape(h.id)}"] .snipbox`);
+    if (box) box.outerHTML = `<span class="snip" data-where="${sn.where}"><b>${sn.label}</b>${sn.html}</span>`;
+  }
+}
+// un seul écouteur pour toute la liste
+$('notesList').addEventListener('click', (e) => {
+  const b = e.target.closest('.item'); if (!b) return;
+  const id = b.dataset.id;
+  if (!ui.sel) { const q = $('search').value.trim(); return openNote(id, q ? { q } : null); }
+  if (ui.picked.has(id)) ui.picked.delete(id); else ui.picked.add(id);
+  b.classList.toggle('picked', ui.picked.has(id)); b.setAttribute('aria-pressed', String(ui.picked.has(id))); updSel();
+});
 
 /* ---- Feuille du bas ---- */
+let sheetOpener = null;
 function openSheet(html, mount) {
+  if ($('sheet').classList.contains('hidden')) sheetOpener = document.activeElement;
   $('sheetBody').innerHTML = html;
+  const h = $('sheetBody').querySelector('h3');
+  if (h) { h.id = 'sheetTitle'; $('sheet').setAttribute('aria-labelledby', 'sheetTitle'); } else $('sheet').removeAttribute('aria-labelledby');
   $('sheet').classList.remove('hidden'); $('sheetBg').classList.remove('hidden');
   requestAnimationFrame(() => requestAnimationFrame(() => { $('sheet').classList.add('open'); $('sheetBg').classList.add('open'); }));
   if (mount) mount($('sheetBody'));
+  // le lecteur d'écran et le clavier entrent dans la boîte de dialogue
+  setTimeout(() => { if (!$('sheet').contains(document.activeElement)) { $('sheet').focus({ preventScroll: true }); } }, 30);
 }
 function closeSheet() {
   $('sheet').classList.remove('open'); $('sheetBg').classList.remove('open');
   setTimeout(() => { $('sheet').classList.add('hidden'); $('sheetBg').classList.add('hidden'); }, 260);
+  const back = sheetOpener; sheetOpener = null;
+  if (back && back.isConnected && back.focus && $('sheet').contains(document.activeElement)) { try { back.focus({ preventScroll: true }); } catch (e) {} }
 }
+// Tab reste dans la boîte de dialogue ouverte (feuille du bas ou visionneuse)
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Tab') return;
+  const box = !$('lightbox').classList.contains('hidden') ? $('lightbox') : !$('sheet').classList.contains('hidden') ? $('sheet') : null;
+  if (!box) return;
+  const els = [...box.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')].filter((x) => !x.disabled && x.offsetParent !== null);
+  if (!els.length) return;
+  const a = els[0], b = els[els.length - 1];
+  if (!box.contains(document.activeElement)) { e.preventDefault(); a.focus(); }
+  else if (e.shiftKey && document.activeElement === a) { e.preventDefault(); b.focus(); }
+  else if (!e.shiftKey && document.activeElement === b) { e.preventDefault(); a.focus(); }
+});
+// Éléments « bouton » qui ne sont pas des <button> : Entrée et Espace les activent aussi
+document.addEventListener('keydown', (e) => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.matches && e.target.matches('[role="button"]:not(button)')) { e.preventDefault(); e.target.click(); }
+});
+// Choix exclusifs (thème, taille du texte, priorité) et onglets : les flèches passent d'une option à l'autre
+document.addEventListener('keydown', (e) => {
+  const k = e.key, t = e.target;
+  if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(k) || !t || !t.matches || !t.matches('[role="radio"], [role="tab"]')) return;
+  const g = t.closest('[role="radiogroup"], [role="tablist"]'); if (!g) return;
+  const items = [...g.querySelectorAll('[role="radio"], [role="tab"]')].filter((x) => !x.disabled && x.offsetParent !== null);
+  let i = items.indexOf(t); if (i < 0) return;
+  i = k === 'Home' ? 0 : k === 'End' ? items.length - 1 : (i + (k === 'ArrowLeft' || k === 'ArrowUp' ? -1 : 1) + items.length) % items.length;
+  e.preventDefault(); items[i].focus(); items[i].click();
+});
 // Ajouter / retirer des tags sur une ou plusieurs notes
 async function openTagSheet(ids) {
   const notes = (await Promise.all(ids.map((id) => db.get(id)))).filter(Boolean);
@@ -3326,9 +3692,11 @@ async function openTagSheet(ids) {
   const all = tagCounts().map(([t]) => t);
   const has = (t) => notes.every((n) => (n.tags || []).includes(t));
   const draw = (body) => {
+    const back = refocus(body.querySelector('#tagChoices'), 'data-t');
     body.querySelector('#tagChoices').innerHTML = all.length
-      ? all.map((t) => `<button class="tag${has(t) ? ' on' : ''}" style="--h:${tagHue(t)}" data-t="${esc(t)}">${esc(t)}</button>`).join('')
+      ? all.map((t) => `<button class="tag${has(t) ? ' on' : ''}" style="--h:${tagHue(t)}" data-t="${esc(t)}" aria-pressed="${has(t)}">${esc(t)}</button>`).join('')
       : '<span class="muted" style="font-size:14px">Aucun tag pour l\'instant.</span>';
+    back();
     body.querySelectorAll('#tagChoices .tag').forEach((b) => b.onclick = () => toggle(b.dataset.t, body));
   };
   const save = async () => { for (const n of notes) await db.put(n); if (currentNote) { const c = notes.find((n) => n.id === currentNote.id); if (c) { currentNote.tags = c.tags; renderNoteTags(); } } };
@@ -3339,7 +3707,7 @@ async function openTagSheet(ids) {
   };
   openSheet(`<h3>${notes.length > 1 ? `Tags de ${notes.length} notes` : 'Tags de la note'}</h3>
     <p class="sub">Touche un tag pour l'ajouter ou le retirer.</p>
-    <div class="tagin"><input type="text" id="newTag" placeholder="Nouveau tag (ex. algorithmique)" maxlength="30" autocomplete="off"><button class="btn primary" id="addTag">Ajouter</button></div>
+    <div class="tagin"><input type="text" id="newTag" placeholder="Nouveau tag (ex. algorithmique)" aria-label="Nouveau tag" maxlength="30" autocomplete="off"><button class="btn primary" id="addTag">Ajouter</button></div>
     <div class="tags" id="tagChoices" style="margin-bottom:16px"></div>
     <button class="btn block" id="sheetOk">Terminé</button>`, (body) => {
     draw(body);
@@ -3357,7 +3725,7 @@ async function openTagSheet(ids) {
 }
 function renderNoteTags() {
   const n = currentNote; if (!n) return;
-  $('noteTags').innerHTML = (n.tags || []).filter((t) => !n.course || t !== crsTag(n.course.name)).map((t) => `<span class="tag" style="--h:${tagHue(t)}"><span class="tn" data-t="${esc(t)}" role="button">${ICONS.tag}${esc(t)}</span><span class="tx" data-rm="${esc(t)}" role="button" aria-label="Retirer">${ICONS.x}</span></span>`).join('')
+  $('noteTags').innerHTML = (n.tags || []).filter((t) => !n.course || t !== crsTag(n.course.name)).map((t) => `<span class="tag" style="--h:${tagHue(t)}"><span class="tn" data-t="${esc(t)}" role="button" tabindex="0" aria-label="Notes avec le tag ${esc(t)}">${ICONS.tag}${esc(t)}</span><span class="tx" data-rm="${esc(t)}" role="button" tabindex="0" aria-label="Retirer le tag ${esc(t)}">${ICONS.x}</span></span>`).join('')
     + `<button class="tag add" id="addNoteTag">${ICONS.plus}Tag</button>`;
   $('noteTags').querySelectorAll('[data-rm]').forEach((x) => x.onclick = async () => { n.tags = n.tags.filter((t) => t !== x.dataset.rm); await db.put(n); renderNoteTags(); });
   $('noteTags').querySelectorAll('[data-t]').forEach((x) => x.onclick = () => { ui.tag = x.dataset.t; ui.day = null; show('home'); });
@@ -3377,7 +3745,14 @@ async function renderTagAdmin() {
       <button class="iconbtn" data-ren="${esc(t)}" aria-label="Renommer">${I('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>')}</button>
       <button class="iconbtn" data-del="${esc(t)}" aria-label="Supprimer">${ICONS.trash}</button></div>`).join('')
     : '<span class="muted" style="font-size:14px">Aucun tag pour l\'instant. Les résumés en proposent automatiquement, et tu peux en ajouter depuis une note.</span>';
-  const apply = async (fn) => { for (const n of allNotes) { const before = JSON.stringify(n.tags || []); fn(n); if (JSON.stringify(n.tags || []) !== before) await db.put(n); } renderTagAdmin(); };
+  const apply = async (fn) => {
+    for (const h of allNotes) {
+      const probe = { tags: [...(h.tags || [])] }; fn(probe);
+      if (JSON.stringify(probe.tags) === JSON.stringify(h.tags || [])) continue;
+      const n = await db.get(h.id); if (n) { fn(n); await db.put(n); }
+    }
+    renderTagAdmin();
+  };
   $('tagAdmin').querySelectorAll('[data-ren]').forEach((b) => b.onclick = () => {
     const old = b.dataset.ren, nv = cleanTag(prompt('Nouveau nom du tag :', old) || '');
     if (!nv || nv === old) return;
@@ -3448,8 +3823,12 @@ function renderSummary(n) {
 let trMode = 'clean', enhancing = null, writing = null;
 const hasClean = (n) => !!(n && n.clean && n.clean.length);
 const curSegs = (n) => (trMode === 'clean' && hasClean(n)) ? n.clean : (n.segments || []);
+let trDirty = false, lectDirty = false;
 function renderTranscript() {
   const n = currentNote; if (!n) return;
+  // onglet caché : on dessinera en l'ouvrant (une transcription de 3 h, c'est des milliers de paragraphes)
+  if ($('noteTrWrap').classList.contains('hidden')) { trDirty = true; return; }
+  trDirty = false;
   const q = $('trSearch').value.trim();
   const para = trMode === 'clean' && hasClean(n);
   // même recherche que l'accueil : sans tenir compte des accents ni des majuscules
@@ -3465,7 +3844,7 @@ function renderTranscript() {
     if (s.sep) return `<div class="seg-sep">${ICONS.file}<span>${esc(s.text)}</span></div>`;
     const pre = before(s.start);
     const t = q ? markHits(s.text, q) : mathify(s.text);
-    return pre + `<div class="seg${para ? ' para' : ''}${marked.has(s) ? ' mark' : ''}" data-t="${s.start}"><time>${hms(s.start)}</time><span>${t}</span></div>`;
+    return pre + `<div class="seg${para ? ' para' : ''}${marked.has(s) ? ' mark' : ''}" data-t="${+s.start || 0}"><time>${hms(s.start)}</time><span>${t}</span></div>`;
   }).join('') + (segs.length ? inl.slice(ii).map((x) => x.html).join('') : '') || `<p class="muted" style="padding:10px 0">${n.segments ? 'Aucun passage ne correspond.' : 'Pas de transcription.'}</p>`;
   renderMath($('noteTr'));
   fillImgs($('noteTr'));
@@ -3666,6 +4045,8 @@ function renderLecture() {
   $('lectBtn').innerHTML = part ? `${ICONS.refresh}Reprendre la rédaction (${part} % fait)` : has ? `${ICONS.refresh}Refaire le cours rédigé` : `${ICONS.defs}Rédiger le cours`;
   if (running) $('lectErr').classList.add('hidden');
   const box = $('noteLect');
+  if (has && !running && $('noteLectWrap').classList.contains('hidden')) { lectDirty = true; return; }
+  lectDirty = false;
   if (has && !running) {
     box.classList.remove('hidden'); box.innerHTML = `<div class="md lect">${md(n.lecture, { i: 0, noEdit: true })}</div>`; renderMath(box);
     // Sommaire cliquable quand le cours est long
@@ -3741,7 +4122,7 @@ async function generateLecture() {
   }
 }
 
-const PEN = '<svg class="ti-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+const PEN = '<button class="ti-btn" type="button" aria-label="Modifier le titre"><svg class="ti-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>';
 async function renameNote() {
   const n = currentNote; if (!n) return;
   const t = (prompt('Titre de la note :', n.title) || '').trim();
@@ -3774,6 +4155,8 @@ async function openNote(id, opts) {
   trMode = 'clean';
   $('enhErr').classList.add('hidden');
   $('lectErr').classList.add('hidden');
+  $('noteTr').innerHTML = ''; $('noteLect').innerHTML = '';   // libère la note précédente (elle peut faire 3 h)
+  setTab('sum');   // d'abord, pour ne pas dessiner les onglets cachés
   renderEnh();
   renderTranscript();
   renderLecture();
@@ -3789,6 +4172,7 @@ async function openNote(id, opts) {
   resetMine();
   renderExtras(n);
   renderChapters(n);
+  if (opts && opts.q && !opts.where) { const sn = findSnippet(n, opts.q); if (sn) opts = { ...opts, where: sn.where }; else opts = null; }
   if (!(opts && opts.q) && !(opts && opts.noRestore)) restorePos(n);
   if (opts && opts.q) {
     if (opts.where === 'tr') { setTab('tr'); $('trSearch').value = opts.q; renderTranscript(); }
@@ -3814,6 +4198,7 @@ function setTab(t) {
   $('noteTrWrap').classList.toggle('hidden', t !== 'tr');
   $('noteLectWrap').classList.toggle('hidden', t !== 'lecture');
   if (t === 'lecture') renderLecture();
+  if (t === 'tr' && trDirty) renderTranscript();
 }
 // cocher une action : on met à jour le Markdown de la note (et donc les exports)
 $('noteSum').addEventListener('change', async (e) => {
@@ -3844,8 +4229,11 @@ function plaudRegion() {
 }
 const importedIds = () => { try { return JSON.parse(localStorage.getItem('np-plaud-imported') || '[]'); } catch (e) { return []; } };
 const markImported = (ids) => lsSet('np-plaud-imported', JSON.stringify([...new Set([...importedIds(), ...ids])].slice(-3000)));
+const relayOk = (u) => /^https:\/\/[^\s/?#]+/i.test(String(u || '').trim());
+const RELAY_VERSION = 3;   // version du code « relais-plaud-cloudflare.js » livré avec cette app
 async function plaudApi(path) {
   if (!plaudOn()) throw new ApiError('Import Plaud non configuré : ajoute l\'adresse du relais et ton jeton dans les réglages.');
+  if (!relayOk(relayBase())) throw new ApiError('Adresse du relais invalide : elle doit commencer par https:// (sinon ton jeton Plaud circulerait en clair).');
   for (let i = 0; i < 3; i++) {
     let r;
     try {
@@ -4005,8 +4393,11 @@ async function plaudTest() {
   try {
     const list = await plaudList();
     const exp = jwtClaims(plaudToken()).exp;
-    $('pTestState').innerHTML = `<span style="color:var(--green)">Connecté</span> : ${list.length} enregistrement${list.length > 1 ? 's' : ''} dans ton cloud Plaud (région ${plaudRegion().toUpperCase()}).`
-      + (exp ? ` Jeton valable jusqu'au ${new Date(exp * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}.` : '');
+    let ver = 0;
+    try { const r = await tfetch(relayBase() + '/ping', {}, 10000); ver = +(JSON.parse(r.text) || {}).version || 0; } catch (e) {}
+    $('pTestState').innerHTML = `<span style="color:var(--green)">Connecté</span> : ${list.length} enregistrement${list.length > 1 ? 's' : ''} dans ton cloud Plaud (région ${esc(plaudRegion().toUpperCase())}).`
+      + (exp ? ` Jeton valable jusqu'au ${new Date(exp * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}.` : '')
+      + (ver && ver < RELAY_VERSION ? ' <b>Ton relais est une ancienne version : remplace son code par le nouveau relais-plaud-cloudflare.js (sécurité renforcée, voir le guide).</b>' : '');
     keep.pregion = settings.pregion;
   } catch (e) { $('pTestState').innerHTML = `<span style="color:var(--err)">${esc(e.message)}</span>`; }
   finally { settings = keep; }
@@ -4058,7 +4449,7 @@ async function mergeSheet(ids, pre) {
     <label class="chkline"><input type="checkbox" class="tck" id="mDel"><span>Supprimer les notes d'origine après la fusion</span></label>
     <button class="btn primary block" id="mGo"></button>`, (body) => {
     const draw = () => {
-      body.querySelector('#mList').innerHTML = all.map((n) => `<label class="mrow"><input type="checkbox" class="tck" data-id="${n.id}" ${picked.has(n.id) ? 'checked' : ''}>
+      body.querySelector('#mList').innerHTML = all.map((n) => `<label class="mrow"><input type="checkbox" class="tck" data-id="${esc(n.id)}" ${picked.has(n.id) ? 'checked' : ''}>
         <div><b>${esc(n.title)}</b><small>${fmtDate(n.created)}${n.duration ? ' · ' + dur(n.duration) : ''}</small></div></label>`).join('');
       body.querySelectorAll('#mList .tck').forEach((c) => c.onchange = () => { if (c.checked) picked.add(c.dataset.id); else picked.delete(c.dataset.id); upd(); });
       upd();
@@ -4092,7 +4483,7 @@ async function renderMergeHint(n) {
 }
 
 /* =================== Onglet Tâches =================== */
-const tui = { mode: lsGet('np-tmode', 'due'), tag: null, stat: null, showDone: false, day: null, month: monthStart(Date.now()) };
+const tui = { mode: lsGet('np-tmode', 'due'), tag: null, stat: null, showDone: false, day: null, month: monthStart(Date.now()), limit: 150 };
 let taskCache = [];
 const DAY = 86400000;
 const inlineMd = (t) => md(t, { i: 0, noEdit: true }).replace(/^<p>|<\/p>$/g, '');
@@ -4127,9 +4518,9 @@ function dueGroup(t) {
 }
 function taskItem(t) {
   const src = t.noteTitle ? `<span class="tm src">${ICONS.resume}${esc(t.noteTitle)}</span>` : '';
-  return `<div class="titem${t.prio === 2 && !t.done ? ' p2' : ''}${t.done ? ' done' : ''}" data-id="${t.id}">
-    <input type="checkbox" class="tck" data-id="${t.id}" ${t.done ? 'checked' : ''} aria-label="Terminée">
-    <div class="tbody" data-open="${t.id}"><div class="tt">${inlineMd(t.text)}</div>${taskMeta({ ...t, showTags: t.allTags }, t.done, src)}</div>
+  return `<div class="titem${t.prio === 2 && !t.done ? ' p2' : ''}${t.done ? ' done' : ''}" data-id="${esc(t.id)}">
+    <input type="checkbox" class="tck" data-id="${esc(t.id)}" ${t.done ? 'checked' : ''} aria-label="Terminée : ${esc(t.text)}">
+    <div class="tbody" data-open="${esc(t.id)}" role="button" tabindex="0"><div class="tt">${inlineMd(t.text)}</div>${taskMeta({ ...t, showTags: t.allTags }, t.done, src)}</div>
   </div>`;
 }
 async function updateBadge() {
@@ -4147,7 +4538,9 @@ async function renderTasks() {
   const isToday = (t) => !t.done && t.due && isoDay(t.due) === today;
   const isWeek = (t) => !t.done && t.due && isoDay(t.due) >= today && isoDay(t.due) < today + 7 * DAY;
   const tiles = [['late', 'En retard', all.filter(isLate).length], ['today', 'Aujourd\'hui', all.filter(isToday).length], ['week', 'Sous 7 jours', all.filter(isWeek).length]];
-  $('tTiles').innerHTML = tiles.map(([k, l, c]) => `<button class="tstat ${k}${c ? '' : ' zero'}${tui.stat === k ? ' on' : ''}" data-k="${k}"><b>${c}</b><span>${l}</span></button>`).join('');
+  const backTile = refocus($('tTiles'), 'data-k');
+  $('tTiles').innerHTML = tiles.map(([k, l, c]) => `<button class="tstat ${k}${c ? '' : ' zero'}${tui.stat === k ? ' on' : ''}" data-k="${k}" aria-pressed="${tui.stat === k}"><b>${c}</b> <span>${l}</span></button>`).join('');
+  backTile();
   $('tTiles').querySelectorAll('.tstat').forEach((b) => b.onclick = () => { tui.stat = tui.stat === b.dataset.k ? null : b.dataset.k; renderTasks(); });
   $('tStats').textContent = all.length ? (open.length ? `${open.length} à faire · ${all.length - open.length} terminée${all.length - open.length > 1 ? 's' : ''}` : 'Tout est fait, bravo !') : '';
   $('tMode').querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === tui.mode)));
@@ -4158,8 +4551,10 @@ async function renderTasks() {
   const tags = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
   if (tui.tag && !counts.has(tui.tag)) tui.tag = null;
   $('tTagBar').classList.toggle('hidden', !tags.length);
-  $('tTagBar').innerHTML = `<button class="tag all${tui.tag ? '' : ' on'}" data-t="">Tous</button>` +
-    tags.map(([t, c]) => `<button class="tag${tui.tag === t ? ' on' : ''}" style="--h:${tagHue(t)}" data-t="${esc(t)}">${esc(t)} <span class="n">${c}</span></button>`).join('');
+  const backTTag = refocus($('tTagBar'), 'data-t');
+  $('tTagBar').innerHTML = `<button class="tag all${tui.tag ? '' : ' on'}" data-t="" aria-pressed="${!tui.tag}">Tous</button>` +
+    tags.map(([t, c]) => `<button class="tag${tui.tag === t ? ' on' : ''}" style="--h:${tagHue(t)}" data-t="${esc(t)}" aria-pressed="${tui.tag === t}" aria-label="${esc(t)} ${c} tâche${c > 1 ? 's' : ''}">${esc(t)} <span class="n">${c}</span></button>`).join('');
+  backTTag();
   $('tTagBar').querySelectorAll('button').forEach((b) => b.onclick = () => { tui.tag = b.dataset.t && tui.tag !== b.dataset.t ? b.dataset.t : null; renderTasks(); });
   // filtres
   let list = all;
@@ -4169,7 +4564,7 @@ async function renderTasks() {
     drawTaskCal(list);
     list = tui.day != null ? list.filter((t) => t.due && isoDay(t.due) === tui.day) : list.filter((t) => t.due && monthStart(isoDay(t.due)) === tui.month);
   }
-  $('tFilters').innerHTML = tui.mode === 'cal' && tui.day != null ? `<button class="fchip" id="tClearDay">${new Date(tui.day).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}${ICONS.x}</button>` : '';
+  $('tFilters').innerHTML = tui.mode === 'cal' && tui.day != null ? `<button class="fchip" id="tClearDay" aria-label="Retirer le filtre : ${new Date(tui.day).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}">${new Date(tui.day).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}${ICONS.x}</button>` : '';
   if ($('tClearDay')) $('tClearDay').onclick = () => { tui.day = null; renderTasks(); };
   const doneCount = list.filter((t) => t.done).length;
   if (!tui.showDone) list = list.filter((t) => !t.done);
@@ -4182,19 +4577,22 @@ async function renderTasks() {
       <h3>Aucune tâche pour l'instant</h3><p>Les tâches trouvées dans tes résumés (devoirs, exercices, actions…) apparaîtront ici. Tu peux aussi en ajouter avec le bouton +.</p></div>`;
     return;
   }
-  let html = '';
+  let html = '', left = tui.limit;   // au-delà, « Afficher plus » (des centaines de tâches à dessiner d'un coup, c'est lent)
+  const items = (arr) => { const k = Math.max(0, Math.min(arr.length, left)); left -= k; return arr.slice(0, k).map(taskItem).join(''); };
   if (!list.length) html = `<div class="empty-s">${tui.stat || tui.tag || tui.mode === 'cal' ? 'Aucune tâche ici.' : 'Rien à faire, tout est coché !'}</div>`;
   else if (tui.mode === 'due') {
     const groups = new Map(); for (const t of list) { const g = dueGroup(t); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(t); }
-    for (const g of DUE_ORDER) if (groups.has(g)) html += `<div class="group">${g} · ${groups.get(g).length}</div>` + groups.get(g).map(taskItem).join('');
+    for (const g of DUE_ORDER) if (groups.has(g) && left > 0) html += `<div class="group" role="heading" aria-level="2">${g} · ${groups.get(g).length}</div>` + items(groups.get(g));
   } else if (tui.mode === 'tag') {
     const groups = new Map(); for (const t of list) { const g = tui.tag || t.allTags[0] || 'Sans tag'; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(t); }
     const keys = [...groups.keys()].sort((a, b) => (a === 'Sans tag') - (b === 'Sans tag') || groups.get(b).length - groups.get(a).length || a.localeCompare(b));
-    for (const g of keys) html += `<div class="group">${g === 'Sans tag' ? g : `<span class="tag" style="--h:${tagHue(g)};height:24px;font-size:12px">${ICONS.tag}${esc(g)}</span>`} · ${groups.get(g).length}</div>` + groups.get(g).map(taskItem).join('');
-  } else html += list.map(taskItem).join('');
+    for (const g of keys) if (left > 0) html += `<div class="group" role="heading" aria-level="2">${g === 'Sans tag' ? g : `<span class="tag" style="--h:${tagHue(g)};height:24px;font-size:12px">${ICONS.tag}${esc(g)}</span>`} · ${groups.get(g).length}</div>` + items(groups.get(g));
+  } else html += items(list);
+  if (list.length > tui.limit) html += `<button class="btn ghost block" id="tMoreItems" type="button">Afficher plus (${list.length - tui.limit} autres tâches)</button>`;
   if (!tui.showDone && doneCount) html += `<button class="btn ghost donebtn" id="showDone">${ICONS.eye}Voir les ${doneCount} tâche${doneCount > 1 ? 's' : ''} terminée${doneCount > 1 ? 's' : ''}</button>`;
   else if (tui.showDone && doneCount) html += `<button class="btn ghost donebtn" id="showDone">Masquer les tâches terminées</button>`;
   box.innerHTML = html;
+  if ($('tMoreItems')) $('tMoreItems').onclick = () => { tui.limit += 300; renderTasks(); };
   if ($('showDone')) $('showDone').onclick = () => { tui.showDone = !tui.showDone; renderTasks(); };
   renderMath(box);
   updateBadge();
@@ -4211,7 +4609,7 @@ function drawTaskCal(list) {
     const d = new Date(y, mo, 1 - offset + i).getTime(), dn = new Date(d), ts = byDay.get(d) || [];
     const cls = ['day', dn.getMonth() !== mo ? 'out' : '', d === today ? 'today' : '', ts.length ? 'has' : '', tui.day === d ? 'sel' : ''].join(' ');
     const dots = ts.slice(0, 3).map((t) => `<i style="--h:${t.done ? 140 : d < today ? 5 : t.allTags[0] ? tagHue(t.allTags[0]) : 20}"></i>`).join('');
-    html += `<button class="${cls}" data-d="${d}">${dn.getDate()}<span class="dots">${dots}</span></button>`;
+    html += `<button class="${cls}" data-d="${d}" aria-label="${dn.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}, ${ts.length ? ts.length + ' tâche' + (ts.length > 1 ? 's' : '') : 'aucune tâche'}">${dn.getDate()}<span class="dots">${dots}</span></button>`;
   }
   $('tCalGrid').innerHTML = html;
   $('tCalGrid').querySelectorAll('.day').forEach((b) => b.onclick = () => {
@@ -4259,18 +4657,18 @@ async function taskSheet(t) {
   openSheet(`<div class="tsheet">
     <h3>${isNew ? 'Nouvelle tâche' : 'Tâche'}</h3>
     ${t.noteTitle ? `<p class="sub">Issue de « ${esc(t.noteTitle)} »${t.section ? ' · ' + esc(t.section) : ''}</p>` : '<p class="sub">Commence par un verbe : « Réviser le chapitre 3 », « Envoyer le mail à… »</p>'}
-    <textarea id="tText" placeholder="Que faut-il faire ?">${esc(t.text)}</textarea>
+    <textarea id="tText" placeholder="Que faut-il faire ?" aria-label="Tâche">${esc(t.text)}</textarea>
     <label class="f" for="tDue">Échéance</label>
     <input type="date" id="tDue" value="${st.due || ''}">
     <div class="quick" id="qDue"></div>
     <label class="f" for="tRem">Rappel</label>
     <input type="datetime-local" id="tRem" value="${st.remind || ''}">
     <div class="quick" id="qRem"></div>
-    <label class="f">Priorité</label>
-    <div class="seg2" id="tPrio"><button data-p="-1">Basse</button><button data-p="0">Normale</button><button data-p="2">Haute</button></div>
-    <label class="f">Tags</label>
+    <div class="f" id="tPrioLbl">Priorité</div>
+    <div class="seg2" id="tPrio" role="radiogroup" aria-labelledby="tPrioLbl"><button role="radio" data-p="-1">Basse</button><button role="radio" data-p="0">Normale</button><button role="radio" data-p="2">Haute</button></div>
+    <div class="f" id="tTagsLbl">Tags</div>
     <div class="tags" id="tTags" style="margin-top:0"></div>
-    <div class="tagin" style="margin-top:8px"><input type="text" id="tNewTag" placeholder="Nouveau tag" maxlength="30" autocomplete="off"><button class="btn" id="tAddTag">Ajouter</button></div>
+    <div class="tagin" style="margin-top:8px"><input type="text" id="tNewTag" placeholder="Nouveau tag" aria-label="Nouveau tag" maxlength="30" autocomplete="off"><button class="btn" id="tAddTag">Ajouter</button></div>
     <button class="btn primary block" id="tSave" style="margin-top:16px">${isNew ? 'Ajouter la tâche' : 'Enregistrer'}</button>
     <div class="row2">
       <button class="btn" id="tGcal">${ICONS.cal}Google Agenda</button>
@@ -4298,12 +4696,14 @@ async function taskSheet(t) {
       q('#qRem').querySelectorAll('.tag').forEach((b) => b.onclick = () => { q('#tRem').value = b.dataset.v; });
     };
     q('#tDue').onchange = drawQuick; drawQuick();
-    const drawPrio = () => q('#tPrio').querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(+b.dataset.p === st.prio || (st.prio === 1 && b.dataset.p === '0'))));
+    const drawPrio = () => q('#tPrio').querySelectorAll('button').forEach((b) => b.setAttribute('aria-checked', String(+b.dataset.p === st.prio || (st.prio === 1 && b.dataset.p === '0'))));
     q('#tPrio').querySelectorAll('button').forEach((b) => b.onclick = () => { st.prio = +b.dataset.p; drawPrio(); }); drawPrio();
     const drawTags = () => {
+      const back = refocus(q('#tTags'), 'data-t');
       q('#tTags').innerHTML = noteTags.map((g) => `<span class="tag lock on" style="--h:${tagHue(g)}" title="Tag de la note">${ICONS.tag}${esc(g)}</span>`).join('')
-        + [...new Set([...st.tags, ...known])].map((g) => `<button class="tag${st.tags.includes(g) ? ' on' : ''}" style="--h:${tagHue(g)}" data-t="${esc(g)}">${esc(g)}</button>`).join('')
+        + [...new Set([...st.tags, ...known])].map((g) => `<button class="tag${st.tags.includes(g) ? ' on' : ''}" style="--h:${tagHue(g)}" data-t="${esc(g)}" aria-pressed="${st.tags.includes(g)}">${esc(g)}</button>`).join('')
         || '<span class="muted" style="font-size:14px">Aucun tag.</span>';
+      back();
       q('#tTags').querySelectorAll('button[data-t]').forEach((b) => b.onclick = () => { const g = b.dataset.t; st.tags = st.tags.includes(g) ? st.tags.filter((x) => x !== g) : [...st.tags, g]; drawTags(); });
     };
     drawTags();
@@ -4529,9 +4929,8 @@ async function jumpTo(noteId, sec) {
 }
 async function askNotes() {
   if (askScope === 'note' && currentNote) return [await db.get(currentNote.id) || currentNote];
-  const all = (await loadNotes()).filter((n) => n.segments && n.segments.length);
-  if (askScope === 'course') return all.filter((n) => n.course && n.course.key === askCourse).sort((a, b) => a.created - b.created);
-  return all;
+  if (askScope === 'course') return (await fullNotes((h) => h.hasSegs && h.course && h.course.key === askCourse)).sort((a, b) => a.created - b.created);
+  return (await fullNotes((h) => h.hasSegs)).sort((a, b) => b.created - a.created);
 }
 const chatKey = () => askScope === 'course' ? 'np-chat-crs-' + askCourse : ALLCHAT;
 async function getChat() {
@@ -4706,7 +5105,7 @@ async function renderReview() {
 }
 async function startReview(noteId) {
   const ids = Array.isArray(noteId) ? noteId : noteId ? [noteId] : null;
-  const notes = ids ? (await Promise.all(ids.map((id) => db.get(id)))).filter(Boolean) : await loadNotes();
+  const notes = ids ? (await Promise.all(ids.map((id) => db.get(id)))).filter(Boolean) : await fullNotes((h) => (h.cardDue || []).length);
   let cards = notes.flatMap((n) => (n.cards || []).map((c) => ({ ...c, noteId: n.id, noteTitle: n.title })));
   let q = cards.filter(isDue);
   if (!q.length && ids) q = cards;   // « Revoir » : toutes les fiches
@@ -4718,8 +5117,10 @@ async function startReview(noteId) {
   Object.assign(rv, { active: true, queue: q, i: 0, ok: 0, again: 0, shown: false, total: q.length });
   show('review');
 }
-function drawCard() {
+function drawCard(focus) {
   const st = $('rvStage');
+  // clavier / lecteur d'écran : la carte est redessinée, le focus va sur la réponse ou la question suivante
+  const moveFocus = (sel) => { const f = focus && st.querySelector(sel); if (f) { f.tabIndex = -1; try { f.focus({ preventScroll: true }); } catch (e) {} } };
   const done = rv.i >= rv.queue.length;
   $('rvProg').textContent = done ? '' : `${Math.min(rv.i + 1, rv.queue.length)} / ${rv.queue.length}`;
   $('rvBar').style.width = Math.round(100 * Math.min(rv.i, rv.queue.length) / rv.queue.length) + '%';
@@ -4727,23 +5128,25 @@ function drawCard() {
     const pct = rv.total ? Math.round(100 * rv.ok / rv.total) : 0;
     st.innerHTML = `<div class="card rv-done"><div class="big">${pct >= 80 ? '🎉' : pct >= 50 ? '👏' : '💪'}</div><b>Session terminée</b><p class="muted">${rv.ok} sue${rv.ok > 1 ? 's' : ''} du premier coup sur ${rv.total} · ${rv.again} à revoir</p><button class="btn primary block" id="rvEnd">Retour</button></div>`;
     $('rvEnd').onclick = () => { rv.active = false; updateBadge(); navBack(); };
+    moveFocus('.rv-done b');
     return;
   }
   const c = rv.queue[rv.i];
   const lbl = (g) => { const d = nextDays(c, g); return d ? (d === 1 ? 'demain' : `dans ${d} j`) : 'dans 10 min'; };
   st.innerHTML = `<div class="card rv-card" id="rvCard"><div class="rv-deck">${esc(c.noteTitle || '')}</div><div class="rv-q md">${md(c.q, { i: 0, noEdit: true })}</div>
       <div class="rv-a md${rv.shown ? '' : ' hidden'}">${md(c.a, { i: 0, noEdit: true })}</div>${rv.shown ? '' : '<div class="rv-hint">Réfléchis, puis touche la carte pour voir la réponse.</div>'}</div>
-    ${rv.shown ? `<div class="rv-grade"><button class="btn" data-g="0">À revoir<small>${lbl(0)}</small></button><button class="btn" data-g="1">Difficile<small>${lbl(1)}</small></button><button class="btn" data-g="2">Je savais<small>${lbl(2)}</small></button></div>`
+    ${rv.shown ? `<div class="rv-grade"><button class="btn" data-g="0" aria-label="À revoir, ${lbl(0)}">À revoir<small>${lbl(0)}</small></button><button class="btn" data-g="1" aria-label="Difficile, ${lbl(1)}">Difficile<small>${lbl(1)}</small></button><button class="btn" data-g="2" aria-label="Je savais, ${lbl(2)}">Je savais<small>${lbl(2)}</small></button></div>`
       : `<button class="btn primary block" id="rvShow" style="margin-top:12px">Afficher la réponse</button>`}
     <div style="text-align:center;margin-top:14px"><button class="linkbtn" id="rvDel" style="color:var(--muted);font-weight:500">Supprimer cette fiche</button></div>`;
   renderMath(st);
-  const reveal = () => { if (!rv.shown) { rv.shown = true; drawCard(); } };
+  moveFocus(rv.shown ? '.rv-a' : '.rv-q');
+  const reveal = () => { if (!rv.shown) { rv.shown = true; drawCard(true); } };
   $('rvCard').onclick = reveal; if ($('rvShow')) $('rvShow').onclick = reveal;
   st.querySelectorAll('[data-g]').forEach((b) => b.onclick = () => gradeCard(+b.dataset.g));
   $('rvDel').onclick = async () => {
     const n = await db.get(c.noteId); if (!n) return;
     n.cards = (n.cards || []).filter((x) => x.id !== c.id); await db.put(n);
-    rv.queue.splice(rv.i, 1); rv.total--; rv.shown = false; toast('Fiche supprimée'); drawCard();
+    rv.queue.splice(rv.i, 1); rv.total--; rv.shown = false; toast('Fiche supprimée'); drawCard(true);
   };
 }
 async function gradeCard(g) {
@@ -4759,7 +5162,7 @@ async function gradeCard(g) {
   }
   if (g === 0) { rv.again++; if (!c.requeued) { rv.queue.splice(Math.min(rv.queue.length, rv.i + 4), 0, { ...c, requeued: true }); } }
   else if (!c.requeued) rv.ok++;
-  rv.i++; rv.shown = false; drawCard();
+  rv.i++; rv.shown = false; drawCard(true);
 }
 
 /* =================== Emploi du temps (calendrier .ics) =================== */
@@ -5161,7 +5564,7 @@ function nowCard(e, notes) {
     <b class="crs-now-t" data-mat="${esc(e.key)}">${esc(m ? m.name : e.base)}</b>
     <div class="crs-now-d">${KIND_LBL[e.kind] || 'Cours'} · ${dayShort(e.start)}, ${hhmm(e.start)}–${hhmm(e.end)}${e.location ? ' · ' + esc(e.location) : ''}</div>
     ${e.prof ? `<div class="crs-now-d">${esc(e.prof)}</div>` : ''}
-    <div class="row" style="margin-top:12px">${note ? `<button class="btn primary" data-open="${note.id}">${ICONS.file}Ouvrir la note</button>` : canRec ? `<button class="btn primary" data-rec="1">${ICONS.mic}Enregistrer</button>` : ''}<button class="btn" data-mat="${esc(e.key)}">${ICONS.book}La matière</button></div></div>`;
+    <div class="row" style="margin-top:12px">${note ? `<button class="btn primary" data-open="${esc(note.id)}">${ICONS.file}Ouvrir la note</button>` : canRec ? `<button class="btn primary" data-rec="1">${ICONS.mic}Enregistrer</button>` : ''}<button class="btn" data-mat="${esc(e.key)}">${ICONS.book}La matière</button></div></div>`;
 }
 const weekStartOf = (t, k = 0) => { const d = new Date(t); const back = (d.getDay() + 6) % 7; return new Date(d.getFullYear(), d.getMonth(), d.getDate() - back + 7 * k).getTime(); };
 async function renderCourses() {
@@ -5191,8 +5594,8 @@ async function renderCourses() {
     html += `<div class="ev-day${today ? ' today' : ''}">${today ? 'Aujourd\'hui · ' : ''}${new Date(a).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</div>` + day.map((e) => evRow(e, notes)).join('');
   }
   const dues = evs.filter((e) => e.kind === 'due' && e.start > now && e.start < now + 30 * DAY && (e.start < w0 || e.start >= w1));
-  if (dues.length) html += `<div class="group">Échéances à venir</div>` + dues.map((e) => evRow(e, notes, { date: true })).join('');
-  html += `<div class="group">Matières</div><div class="mats">` + mats.map((m) => {
+  if (dues.length) html += `<div class="group" role="heading" aria-level="2">Échéances à venir</div>` + dues.map((e) => evRow(e, notes, { date: true })).join('');
+  html += `<div class="group" role="heading" aria-level="2">Matières</div><div class="mats">` + mats.map((m) => {
     const sess = m.events.filter((e) => e.kind !== 'due'), past = sess.filter((e) => e.start <= now), rec = past.filter((e) => noteOfEvent(e, notes)).length;
     const nx = sess.find((e) => e.start > now);
     return `<button class="card mat" data-mat="${esc(m.key)}" style="--h:${m.hue}"><b>${esc(m.name)}</b><small>${past.length ? `${rec}/${past.length} séance${past.length > 1 ? 's' : ''} enregistrée${rec > 1 ? 's' : ''}` : 'Pas encore commencé'}</small><small>${nx ? 'Prochaine : ' + dayShort(nx.start) + ' ' + hhmm(nx.start) : 'Plus de séance prévue'}</small><span class="lvl"><i style="width:${past.length ? Math.round(100 * rec / past.length) : 0}%"></i></span></button>`;
@@ -5218,10 +5621,10 @@ async function renderHomeCourse() {
   const notes = allNotes && allNotes.length ? allNotes : await loadNotes();
   const m = getMat(e.key), note = noteOfEvent(e, notes), now = Date.now();
   const canRec = !note && now >= e.start - 15 * 60000 && now < e.end;
-  box.innerHTML = `<div class="card home-crs" role="button" tabindex="0" style="--h:${m ? m.hue : 20}"><div><small>${live ? '<span class="live-dot"></span>En cours' : 'Prochain cours · <span data-rel="' + e.start + '">' + relIn(e.start) + '</span>'}</small><b>${esc(m ? m.name : e.base)}</b><span class="d">${KIND_LBL[e.kind] || 'Cours'} · ${hhmm(e.start)}–${hhmm(e.end)}${e.location ? ' · ' + esc(e.location) : ''}</span></div>
-    ${note ? `<button class="btn" data-open="${note.id}">Ouvrir</button>` : canRec ? `<button class="btn primary" data-rec="1">${ICONS.mic}Enregistrer</button>` : ''}</div>`;
+  box.innerHTML = `<div class="card home-crs" style="--h:${m ? m.hue : 20}"><button class="crs-open" type="button"><small>${live ? '<span class="live-dot"></span>En cours' : 'Prochain cours · <span data-rel="' + e.start + '">' + relIn(e.start) + '</span>'}</small><b>${esc(m ? m.name : e.base)}</b><span class="d">${KIND_LBL[e.kind] || 'Cours'} · ${hhmm(e.start)}–${hhmm(e.end)}${e.location ? ' · ' + esc(e.location) : ''}</span></button>
+    ${note ? `<button class="btn" data-open="${esc(note.id)}">Ouvrir</button>` : canRec ? `<button class="btn primary" data-rec="1">${ICONS.mic}Enregistrer</button>` : ''}</div>`;
   const card = box.firstElementChild;
-  card.onclick = (ev) => { if (ev.target.closest('button')) return; show('courses'); };
+  card.querySelector('.crs-open').onclick = () => show('courses');
   wireCourseLinks(box);
 }
 async function evSheet(uid) {
@@ -5234,7 +5637,7 @@ async function evSheet(uid) {
     <div class="stack">
       ${note ? `<button class="btn primary block" id="evOpen">${ICONS.file}Ouvrir « ${esc(note.title.slice(0, 40))} »</button>` : ''}
       ${canRec ? `<button class="btn primary block" id="evRec">${ICONS.mic}Enregistrer avec le téléphone</button>` : ''}
-      ${cands.length ? `<div class="f" style="margin:6px 0 0">Associer une note de ce jour</div>` + cands.map((n) => `<button class="btn block" data-link="${n.id}" style="justify-content:flex-start">${ICONS.file}${esc(n.title.slice(0, 44))} · ${hhmm(n.created)}</button>`).join('') : ''}
+      ${cands.length ? `<div class="f" style="margin:6px 0 0">Associer une note de ce jour</div>` + cands.map((n) => `<button class="btn block" data-link="${esc(n.id)}" style="justify-content:flex-start">${ICONS.file}${esc(n.title.slice(0, 44))} · ${hhmm(n.created)}</button>`).join('') : ''}
       ${!note && e.kind !== 'due' && e.end < now && !cands.length ? '<p class="f-help" style="margin:0">Aucun enregistrement ce jour-là. S\'il arrive plus tard depuis Plaud, il sera rangé ici tout seul.</p>' : ''}
       <button class="btn block" id="evMat">${ICONS.book}Voir la matière</button>
       ${note ? '<button class="btn ghost block" id="evUnlink">Détacher la note de ce cours</button>' : ''}
@@ -5297,7 +5700,7 @@ async function renderCourse() {
   const now = Date.now(), sess = m.events.filter((e) => e.kind !== 'due');
   const past = sess.filter((e) => e.start <= now).sort((a, b) => b.start - a.start), up = sess.filter((e) => e.start > now);
   const rec = past.filter((e) => noteOfEvent(e, notes)).length, audio = notes.reduce((a, n) => a + (n.duration || 0), 0);
-  const cards = notes.flatMap((n) => n.cards || []), dueCards = cards.filter(isDue).length;
+  const cards = notes.flatMap((n) => n.cardDue || []), dueCards = cards.filter((d) => !d || d <= Date.now()).length;
   const synth = await getSynth(m.key);
   const loose = notes.filter((n) => !n.course.uid || !m.events.some((e) => e.uid === n.course.uid));
   const dues = m.events.filter((e) => e.kind === 'due' && e.start > now - DAY);
@@ -5316,10 +5719,10 @@ async function renderCourse() {
     </div>`;
   if (synthing === m.key) h += `<div class="card synth-run"><b>Synthèse en cours…</b><div class="lin" style="margin:10px 0 6px"><i style="width:60%"></i></div><div class="enh-st" id="synStatus"></div></div>`;
   else if (synth && synth.md) h += `<details class="card synth" id="synthBox"><summary><span class="sec-ic hue" style="--h:${m.hue}">${ICONS.spark}</span><b>Synthèse de la matière</b><small>${synth.n} séance${synth.n > 1 ? 's' : ''} · ${fmtDate(synth.at)}</small></summary><div class="md">${md(synth.md, { i: 0, noEdit: true })}</div><div class="row"><button class="btn" id="cSynCopy">${ICONS.share}Copier</button></div></details>`;
-  if (up.length) h += `<div class="group">À venir</div>` + up.slice(0, 3).map((e) => evRow(e, notes, { date: true })).join('') + (up.length > 3 ? `<div class="hidden" id="cUpMore">${up.slice(3).map((e) => evRow(e, notes, { date: true })).join('')}</div><button class="linkbtn" id="cUpBtn" style="margin:2px 4px 6px">Voir les ${up.length - 3} autres séances à venir</button>` : '');
-  if (dues.length) h += `<div class="group">Échéances</div>` + dues.map((e) => evRow(e, notes, { date: true })).join('');
-  h += `<div class="group">Séances passées</div>` + (past.length ? past.map((e) => evRow(e, notes, { date: true })).join('') : '<div class="ev-empty">Aucune séance passée pour l\'instant.</div>');
-  if (loose.length) h += `<div class="group">Autres notes de la matière</div>` + loose.map((n) => `<button class="ev" data-open="${n.id}" style="--h:${m.hue}"><span class="ev-time">${new Date(n.created).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}<small>${hhmm(n.created)}</small></span><span class="ev-main"><b>${esc(n.title)}</b><small>${n.duration ? dur(n.duration) : ''}</small></span></button>`).join('');
+  if (up.length) h += `<div class="group" role="heading" aria-level="2">À venir</div>` + up.slice(0, 3).map((e) => evRow(e, notes, { date: true })).join('') + (up.length > 3 ? `<div class="hidden" id="cUpMore">${up.slice(3).map((e) => evRow(e, notes, { date: true })).join('')}</div><button class="linkbtn" id="cUpBtn" style="margin:2px 4px 6px">Voir les ${up.length - 3} autres séances à venir</button>` : '');
+  if (dues.length) h += `<div class="group" role="heading" aria-level="2">Échéances</div>` + dues.map((e) => evRow(e, notes, { date: true })).join('');
+  h += `<div class="group" role="heading" aria-level="2">Séances passées</div>` + (past.length ? past.map((e) => evRow(e, notes, { date: true })).join('') : '<div class="ev-empty">Aucune séance passée pour l\'instant.</div>');
+  if (loose.length) h += `<div class="group" role="heading" aria-level="2">Autres notes de la matière</div>` + loose.map((n) => `<button class="ev" data-open="${esc(n.id)}" style="--h:${m.hue}"><span class="ev-time">${new Date(n.created).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}<small>${hhmm(n.created)}</small></span><span class="ev-main"><b>${esc(n.title)}</b><small>${n.duration ? dur(n.duration) : ''}</small></span></button>`).join('');
   h += `<div class="crs-more"><button class="linkbtn" id="cRename">Renommer</button><button class="linkbtn" id="cHide" style="color:var(--muted)">Masquer cette matière</button></div>`;
   $('courseBody').innerHTML = h;
   renderMath($('courseBody'));
@@ -5327,7 +5730,7 @@ async function renderCourse() {
   if ($('cUpBtn')) $('cUpBtn').onclick = () => { $('cUpMore').classList.remove('hidden'); $('cUpBtn').remove(); };
   $('cSynth').onclick = () => courseSynth(m.key);
   $('cAsk').onclick = () => { currentNote = null; openAsk('course', 'course', m.key); };
-  $('cRev').onclick = () => startReview(notes.filter((n) => (n.cards || []).length).map((n) => n.id));
+  $('cRev').onclick = () => startReview(notes.filter((n) => (n.cardDue || []).length).map((n) => n.id));
   $('cPdf').onclick = () => printCourse(m.key);
   if ($('cSynCopy')) $('cSynCopy').onclick = async () => { try { await navigator.clipboard.writeText(`# ${m.name} — synthèse\n\n${synth.md}`); toast('Synthèse copiée'); } catch (e) { toast('Copie impossible'); } };
   $('cRename').onclick = () => {
@@ -5342,8 +5745,9 @@ async function renderCourse() {
   };
 }
 async function renameCourseNotes(key, from, to) {
-  for (const n of await loadNotes()) {
-    if (!n.course || n.course.key !== key) continue;
+  for (const h of await loadNotes()) {
+    if (!h.course || h.course.key !== key) continue;
+    const n = await db.get(h.id); if (!n || !n.course) continue;
     n.tags = [...new Set((n.tags || []).map((t) => t === crsTag(from) ? crsTag(to) : t))]; n.course.name = to; await db.put(n);
   }
 }
@@ -5395,7 +5799,7 @@ async function courseSynth(key) {
 }
 async function printCourse(key) {
   const m = getMat(key); if (!m) return;
-  const notes = (await loadNotes()).filter((n) => n.course && n.course.key === key).sort((a, b) => a.created - b.created);
+  const notes = (await fullNotes((n) => n.course && n.course.key === key)).sort((a, b) => a.created - b.created);
   openSheet(`<h3>PDF de la matière</h3><p class="sub">Un seul fichier pour NotebookLM : la synthèse (si faite), puis chaque séance (${notes.length}).</p>
     <div class="stack"><button class="btn primary block" id="pcLight">Résumés et cours rédigés</button><button class="btn block" id="pcFull">Tout, avec les transcriptions</button></div>`, (b) => {
     const go = async (full) => {
@@ -5481,7 +5885,7 @@ function renderChapters(n) {
   const box = $('chapBox'); if (!box || !n) return;
   if (chaptering === n.id) { box.innerHTML = `<div class="card chap-make"><span class="sec-ic">${ICONS.chapters}</span><div><b>Chapitres</b><small>Création des chapitres…</small></div></div>`; return; }
   if (n.chapters && n.chapters.length) {
-    box.innerHTML = `<details class="card chaps" open><summary><span class="sec-ic">${ICONS.chapters}</span><span class="g">Chapitres · ${n.chapters.length}</span></summary><ol>${n.chapters.map((c, i) => `<li><button type="button" data-ct="${c.t}" data-ci="${i}"><time>${hms(c.t)}</time>${esc(c.title)}</button></li>`).join('')}</ol><div class="chap-foot"><button class="linkbtn" id="chapRedo" style="color:var(--muted);font-weight:500">Refaire les chapitres</button></div></details>`;
+    box.innerHTML = `<details class="card chaps" open><summary><span class="sec-ic">${ICONS.chapters}</span><span class="g">Chapitres · ${n.chapters.length}</span></summary><ol>${n.chapters.map((c, i) => `<li><button type="button" data-ct="${+c.t || 0}" data-ci="${i}"><time>${hms(c.t)}</time>${esc(c.title)}</button></li>`).join('')}</ol><div class="chap-foot"><button class="linkbtn" id="chapRedo" style="color:var(--muted);font-weight:500">Refaire les chapitres</button></div></details>`;
     box.querySelectorAll('[data-ct]').forEach((b) => b.onclick = () => jumpTo(n.id, +b.dataset.ct));
     $('chapRedo').onclick = () => chaptersFor(n.id);
   } else if (n.segments && (n.duration || 0) >= 180) {
@@ -5493,7 +5897,7 @@ function renderChapters(n) {
 function inlineItems(n) {
   const out = [];
   (n.chapters || []).forEach((c, i) => out.push({ t: c.t, html: `<div class="chap-h" data-chap="${i}"><span>${hms(c.t)}</span>${esc(c.title)}</div>` }));
-  (n.photos || []).filter((x) => x.t != null).forEach((x) => out.push({ t: x.t + 0.01, html: `<button class="seg-photo" type="button" data-ph="${x.id}"><img alt="" data-img="${x.id}"><span>${ICONS.camera}Photo du tableau · ${hms(x.t)}</span></button>` }));
+  (n.photos || []).filter((x) => x.t != null).forEach((x) => out.push({ t: x.t + 0.01, html: `<button class="seg-photo" type="button" data-ph="${esc(x.id)}" aria-label="Photo du tableau à ${hms(x.t)}"><img alt="" data-img="${esc(x.id)}"><span>${ICONS.camera}Photo du tableau · ${hms(x.t)}</span></button>` }));
   return out.sort((a, b) => a.t - b.t);
 }
 const curChapter = (n, t) => { let c = null; for (const x of (n && n.chapters) || []) { if (x.t <= t + 0.5) c = x; else break; } return c; };
@@ -5599,7 +6003,7 @@ function renderExtras(n) {
   const read = ph.filter((x) => x.text).length;
   $('phInfo').textContent = !ph.length ? 'Elles se placent toutes seules au bon moment de l\'enregistrement.'
     : `${ph.length} photo${ph.length > 1 ? 's' : ''}` + (boarding ? ' · lecture par l\'IA…' : settings.gkey ? (read ? ` · ${read} lue${read > 1 ? 's' : ''} par l'IA` : '') : ' · ajoute une clé Gemini pour que l\'IA les lise');
-  $('phStrip').innerHTML = ph.map((x) => `<button type="button" data-ph="${x.id}"><img alt="" data-img="${x.id}">${x.t != null ? `<span>${hms(x.t)}</span>` : ''}${x.text ? '<i title="Lue par l\'IA"></i>' : ''}</button>`).join('');
+  $('phStrip').innerHTML = ph.map((x, i) => `<button type="button" data-ph="${esc(x.id)}" aria-label="Photo du tableau ${x.t != null ? 'à ' + hms(x.t) : i + 1}${x.text ? ', lue par l\'IA' : ''}"><img alt="" data-img="${esc(x.id)}">${x.t != null ? `<span>${hms(x.t)}</span>` : ''}${x.text ? '<i title="Lue par l\'IA"></i>' : ''}</button>`).join('');
   fillImgs($('phStrip'));
   $('phStrip').querySelectorAll('[data-ph]').forEach((b) => b.onclick = () => openLightbox(b.dataset.ph));
   // mes notes
@@ -5614,10 +6018,16 @@ const lb = { list: [], i: 0, x0: null };
 function openLightbox(id) {
   const n = currentNote; if (!n) return;
   lb.list = n.photos || []; lb.i = Math.max(0, lb.list.findIndex((x) => x.id === id));
+  lb.opener = document.activeElement;
   $('lightbox').classList.remove('hidden'); document.body.style.overflow = 'hidden';
   drawLightbox();
+  $('lbClose').focus({ preventScroll: true });
 }
-function closeLightbox() { $('lightbox').classList.add('hidden'); document.body.style.overflow = ''; }
+function closeLightbox() {
+  $('lightbox').classList.add('hidden'); document.body.style.overflow = '';
+  if (lb.opener && lb.opener.isConnected) { try { lb.opener.focus({ preventScroll: true }); } catch (e) {} }
+  lb.opener = null;
+}
 async function drawLightbox() {
   lb.list = (currentNote && currentNote.photos) || lb.list;
   const x = lb.list[lb.i]; if (!x) { closeLightbox(); return; }
@@ -5840,10 +6250,17 @@ function runAction(act) {
   else if (act === 'question') { currentNote = null; openAsk('all', 'home'); }
   else if (act === 'taches') show('tasks');
 }
+// Navigation au clavier (touche Tab) : le bouton qui a le focus garde Entrée / Espace / flèches.
+// Sans Tab (doigt + télécommande Bluetooth), les raccourcis ci-dessous restent actifs comme avant.
+let kbNav = false;
+document.addEventListener('keydown', (e) => { if (e.key === 'Tab') kbNav = true; }, true);
+document.addEventListener('pointerdown', () => { kbNav = false; }, true);
 document.addEventListener('keydown', (e) => {
-  if (e.target && e.target.closest && e.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+  if (e.defaultPrevented) return;
   const k = e.key;
   if (k === 'Escape') { if (!$('lightbox').classList.contains('hidden')) closeLightbox(); else if (!$('sheet').classList.contains('hidden')) closeSheet(); return; }
+  if (e.target && e.target.closest && e.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+  if (kbNav && e.target && e.target.closest && e.target.closest('button, a[href], summary, [role="button"], [role="tab"], [role="radio"], [role="checkbox"]')) return;
   if (current === 'rec' && rec.mr) {   // télécommande Bluetooth (Flipper en mode clavier/présentation, clicker…)
     if (k === ' ' || k === 'k' || k === 'K' || k === 'MediaPlayPause') { e.preventDefault(); recPause(); }
     else if (['Enter', 'ArrowRight', 'ArrowDown', 'PageDown', 'm', 'M', 'MediaTrackNext'].includes(k)) { e.preventDefault(); recMark(); }
@@ -5886,13 +6303,13 @@ async function gcAudio() {   // audio dont plus aucune note ne se sert (note sup
   try {
     const ids = await audioDB.keys(); if (!ids.length) return;
     const used = new Set();
-    for (const n of await db.all()) for (const p of audioParts(n)) used.add(p.id);
+    for (const n of (await ensureHeads()).values()) for (const p of audioParts(n)) used.add(p.id);
     for (const id of ids) if (!used.has(id)) await audioDB.del(id);
   } catch (e) {}
   try {
     const keys = await dbRun('pending', 'readonly', (st) => st.getAllKeys(IDBKeyRange.bound('img:', 'img:\uffff')));
     const used = new Set([...(rec.photos || []).map((x) => x.id)]);
-    for (const n of await db.all()) for (const ph of n.photos || []) used.add(ph.id);
+    for (const n of (await ensureHeads()).values()) for (const id of n.photoIds || []) used.add(id);
     for (const k of keys || []) if (!used.has(String(k).slice(4))) await dbRun('pending', 'readwrite', (st) => st.delete(k));
   } catch (e) {}
 }
@@ -5994,9 +6411,9 @@ function plUI() {
 }
 function plSync(force) {
   const t = plTime(), tot = plTotal();
-  if (!pl.seeking) { $('plSeek').value = tot ? Math.round(1000 * Math.min(1, t / tot)) : 0; $('plCur').textContent = hms(t); }
+  if (!pl.seeking) { $('plSeek').value = tot ? Math.round(1000 * Math.min(1, t / tot)) : 0; $('plCur').textContent = hms(t); $('plSeek').setAttribute('aria-valuetext', `${hms(t)} sur ${tot ? hms(tot) : '?'}`); }
   $('plDur').textContent = tot ? hms(tot) : '--:--';
-  { const ch = currentNote && pl.noteId === currentNote.id ? curChapter(currentNote, pl.seeking ? tot * $('plSeek').value / 1000 : t) : null; const txt = ch ? ch.title : ''; if ($('plChap').textContent !== txt) { $('plChap').textContent = txt; $('chapBox').querySelectorAll('[data-ci]').forEach((b) => b.classList.toggle('on', ch && +b.dataset.ci === currentNote.chapters.indexOf(ch))); } }
+  { const ch = currentNote && pl.noteId === currentNote.id ? curChapter(currentNote, pl.seeking ? tot * $('plSeek').value / 1000 : t) : null; const txt = ch ? ch.title : ''; if ($('plChap').textContent !== txt) { $('plChap').textContent = txt; $('chapBox').querySelectorAll('[data-ci]').forEach((b) => { const on = !!ch && +b.dataset.ci === currentNote.chapters.indexOf(ch); b.classList.toggle('on', on); if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current'); }); } }
   if (pl.idx < 0 || !currentNote || pl.noteId !== currentNote.id) return;
   if (!pl.segEls || !pl.segEls.length || !pl.segEls[0].isConnected) pl.segEls = [...$('noteTr').querySelectorAll('.seg[data-t]')];
   const els = pl.segEls;
@@ -6028,7 +6445,7 @@ function plMedia() {
 function renderMarks(n) {
   const box = $('trMarks'), m = (n && n.marks) || [];
   box.classList.toggle('hidden', !m.length);
-  box.innerHTML = m.length ? `<span>Moments marqués</span>` + m.map((x) => `<button class="ts" type="button" data-t="${x}">★ ${hms(x)}</button>`).join('') : '';
+  box.innerHTML = m.length ? `<span>Moments marqués</span>` + m.map((x) => `<button class="ts" type="button" data-t="${+x || 0}">★ ${hms(x)}</button>`).join('') : '';
   box.querySelectorAll('button').forEach((b) => b.onclick = () => jumpTo(n.id, +b.dataset.t));
 }
 
@@ -6234,26 +6651,95 @@ function saveBlob(blob, name) {
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000);
 }
 async function backupData() {
-  const notes = (await db.all()).map((n) => { const c = { ...n }; delete c.audio; delete c.partial; delete c.sumPartial; delete c.audioKept; return c; });
+  // Le fichier est assemblé note par note : avec des centaines d'enregistrements de 3 h, construire un seul
+  // grand texte demandait plusieurs fois la taille des données en mémoire.
   const st = { ...settings };
   if (!$('bkKeys').checked) for (const k of SECRET_KEYS) delete st[k];
-  const data = { app: 'notes-plaud', format: 1, version: APP_VERSION, exportedAt: new Date().toISOString(), notes, settings: st, plaudImported: importedIds() };
-  saveBlob(new Blob([JSON.stringify(data)], { type: 'application/json' }), `notes-plaud-sauvegarde-${toISODate(Date.now())}.json`);
+  const head = JSON.stringify({ app: 'notes-plaud', format: 1, version: APP_VERSION, exportedAt: new Date().toISOString(), settings: st, plaudImported: importedIds() });
+  const parts = [head.slice(0, -1) + ',"notes":['], buf = [];
+  let count = 0, first = true;
+  await db.each((n) => {
+    const c = { ...n }; delete c.audio; delete c.partial; delete c.sumPartial; delete c.audioKept;
+    buf.push((first ? '' : ',') + JSON.stringify(c)); first = false;
+    if (n.id !== INBOX) count++;
+    if (buf.length >= 20) { parts.push(new Blob(buf)); buf.length = 0; }   // le navigateur peut garder ces morceaux hors de la mémoire du script
+  });
+  parts.push(new Blob(buf), ']}');
+  saveBlob(new Blob(parts, { type: 'application/json' }), `notes-plaud-sauvegarde-${toISODate(Date.now())}.json`);
   lsSet('np-last-backup', String(Date.now()));
-  toast(`Sauvegarde de ${notes.filter((n) => n.id !== INBOX).length} notes enregistrée (Téléchargements)`);
+  toast(`Sauvegarde de ${count} notes enregistrée (Téléchargements)`);
   renderData(); renderBkRemind();
 }
+/* ---- Restauration : le fichier peut avoir été modifié ou fabriqué par quelqu'un d'autre ----
+   On ne garde que des données de la bonne forme : identifiants simples, nombres, textes. Sans ça, un faux fichier
+   de sauvegarde pouvait glisser du code dans l'app (et lire les clés d'API). */
+const SAFE_ID = /^[\w:.-]{1,80}$/;
+const safeId = (v) => typeof v === 'string' && SAFE_ID.test(v);
+const toNum = (v, d = 0) => { const x = Number(v); return Number.isFinite(x) ? x : d; };
+const toStr = (v) => (v == null ? '' : typeof v === 'string' ? v : typeof v === 'number' || typeof v === 'boolean' ? String(v) : '');
+const arr = (v) => (Array.isArray(v) ? v : []);
+const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : null);
+const NOTE_FIELDS = {
+  segments: (v) => arr(v).map(obj).filter(Boolean).map((x) => ({ start: toNum(x.start), end: toNum(x.end, toNum(x.start)), text: toStr(x.text), ...(x.sep ? { sep: true } : {}) })),
+  chapters: (v) => arr(v).map(obj).filter(Boolean).map((x) => ({ t: toNum(x.t), title: toStr(x.title).slice(0, 200) })),
+  marks: (v) => arr(v).map((x) => toNum(x, NaN)).filter(Number.isFinite),
+  tags: (v) => arr(v).map((x) => cleanTag(toStr(x))).filter(Boolean),
+  photos: (v) => arr(v).map(obj).filter((x) => x && safeId(x.id)).map((x) => ({ id: x.id, t: x.t == null ? null : toNum(x.t), at: toNum(x.at), w: toNum(x.w), h: toNum(x.h),
+    ...(x.text ? { text: toStr(x.text), textBy: toStr(x.textBy) } : {}), ...(x.textErr ? { textErr: toStr(x.textErr) } : {}) })),
+  cards: (v) => arr(v).map(obj).filter((x) => x && safeId(x.id)).map((x) => ({ id: x.id, q: toStr(x.q), a: toStr(x.a), box: toNum(x.box), due: toNum(x.due),
+    ...(x.seen ? { seen: toNum(x.seen) } : {}), ...(x.last ? { last: toNum(x.last) } : {}), ...(x.lapses ? { lapses: toNum(x.lapses) } : {}) })),
+  chat: (v) => arr(v).map(obj).filter(Boolean).map((x) => ({ q: toStr(x.q), a: toStr(x.a), at: toNum(x.at), by: toStr(x.by), ...(x.err ? { err: true } : {}),
+    ...(Array.isArray(x.notes) ? { notes: x.notes.filter(safeId) } : {}) })),
+  course: (v) => { const c = obj(v); if (!c) return undefined;
+    return { key: toStr(c.key), code: toStr(c.code), name: toStr(c.name), uid: c.uid == null ? null : toStr(c.uid), start: toNum(c.start), end: toNum(c.end),
+      kind: KIND_LBL[c.kind] && c.kind !== 'due' ? c.kind : 'cours', prof: toStr(c.prof), location: toStr(c.location), full: toStr(c.full) }; },
+  mergedFrom: (v) => arr(v).map(obj).filter((x) => x && safeId(x.id)).map((x) => ({ id: x.id, title: toStr(x.title), fileName: toStr(x.fileName), created: toNum(x.created),
+    duration: toNum(x.duration), off: toNum(x.off), parts: arr(x.parts).map(obj).filter((p) => p && safeId(p.id)).map((p) => ({ id: p.id, off: toNum(p.off) })) })),
+  whisperUsed: (v) => arr(v).map(toStr).filter(Boolean),
+};
+NOTE_FIELDS.clean = NOTE_FIELDS.segments;
+const NOTE_NUMS = ['created', 'addedAt', 'size', 'duration', 'cleanAt', 'lectureAt', 'cardsAt', 'mineAt'];
+const NOTE_STATUS = ['ok', 'resume', 'resume-err', 'err', 'transcription', 'tasks'];
+function sanitizeNote(n) {
+  n = obj(n);
+  if (!n || !safeId(n.id)) return null;
+  const o = { id: n.id };
+  for (const [k, v] of Object.entries(n)) {
+    if (k === 'id' || k === 'audio' || k === 'partial' || k === 'sumPartial' || k === 'queued') continue;
+    if (NOTE_FIELDS[k]) { const x = NOTE_FIELDS[k](v); if (x !== undefined) o[k] = x; }
+    else if (NOTE_NUMS.includes(k)) o[k] = toNum(v);
+    else if (k === 'segments' || v == null) continue;
+    else if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') o[k] = v;
+    else if (k === 'cleanPartial' || k === 'lecturePartial') { try { o[k] = JSON.parse(JSON.stringify(v)); } catch (e) {} }
+  }
+  if (!NOTE_STATUS.includes(o.status)) o.status = o.summary ? 'ok' : 'err';
+  if (n.segments == null) o.segments = null;
+  o.title = toStr(o.title) || 'Note restaurée'; o.summary = toStr(o.summary); o.fileName = toStr(o.fileName);
+  o.created = toNum(o.created, Date.now());
+  return o;
+}
+// Réglages d'une sauvegarde : seulement les réglages connus, avec des valeurs possibles
+const SETTING_CHECK = {
+  lang: (v) => v === 'auto' || !!LANGS[v], whisper: (v) => WHISPERS.includes(v), kind: (v) => !!KINDS[v], autoRemind: (v) => ['eve', 'morning', 'none'].includes(v),
+  theme: (v) => THEMES.some((t) => t.id === v), fs: (v) => ['s', 'm', 'l', 'xl'].includes(v), provider: (v) => v === 'auto' || CHAIN.includes(v),
+  bg: (v) => typeof v === 'boolean', keepAudio: (v) => typeof v === 'boolean', pauto: (v) => typeof v === 'boolean',
+  pregion: (v) => v === 'eu' || v === 'us', psince: (v) => Number.isFinite(v), courseRemind: (v) => [0, 5, 10, 15, 30].includes(v),
+  prelay: (v) => typeof v === 'string' && /^https:\/\/[^\s/?#]+/i.test(v), icsUrl: (v) => typeof v === 'string' && /^https?:\/\//i.test(v),
+};
+const settingOk = (k, v) => (Object.prototype.hasOwnProperty.call(SETTING_CHECK, k) ? SETTING_CHECK[k](v)
+  : (Object.prototype.hasOwnProperty.call(DEFAULTS, k) || k === 'ptoken') && typeof v === 'string' && v.length < 4000);
 async function restoreData(file) {
   let data = null;
   try { data = JSON.parse(await file.text()); } catch (e) {}
   if (!data || data.app !== 'notes-plaud' || !Array.isArray(data.notes)) { toast('Ce fichier n\'est pas une sauvegarde de Notes Plaud'); return; }
-  const have = new Map((await db.all()).map((n) => [n.id, n]));
-  let added = 0, same = 0;
-  for (const n of data.notes) {
-    if (!n || !n.id) continue;
-    const cur = have.get(n.id);
-    if (!cur) { await db.put(n); added++; continue; }
-    if (n.id === INBOX) {   // tâches ajoutées à la main : on fusionne les lignes manquantes
+  const have = new Set(await db.keys());
+  let added = 0, same = 0, bad = 0;
+  for (const raw of data.notes) {
+    const n = sanitizeNote(raw);
+    if (!n) { if (raw) bad++; continue; }
+    if (!have.has(n.id)) { await db.put(n); have.add(n.id); added++; continue; }
+    const cur = n.id === INBOX ? await db.get(INBOX) : null;
+    if (cur) {   // tâches ajoutées à la main : on fusionne les lignes manquantes
       const lines = new Set((cur.summary || '').split('\n'));
       const extra = (n.summary || '').split('\n').filter((l) => TASK_RE.test(l) && !lines.has(l));
       if (extra.length) { cur.summary = cur.summary.replace(/\s+$/, '') + '\n' + extra.join('\n'); await db.put(cur); }
@@ -6262,19 +6748,30 @@ async function restoreData(file) {
     same++;
   }
   // réglages : on ne complète que ce qui manque (sans écraser les tiens)
-  if (data.settings) {
+  const incoming = obj(data.settings);
+  if (incoming) {
+    const fill = Object.entries(incoming).filter(([k, v]) => settingOk(k, v) && (settings[k] === undefined || settings[k] === '' || settings[k] === DEFAULTS[k]) && v !== '' && v !== DEFAULTS[k]);
+    // clés, jeton et adresse du relais : seulement si l'utilisateur confirme (un faux fichier pourrait envoyer le jeton Plaud ailleurs)
+    const SENSITIVE = [...SECRET_KEYS, 'prelay', 'pregion', 'psince', 'pauto'];
+    const secrets = fill.filter(([k]) => SECRET_KEYS.includes(k) || k === 'prelay');
+    let keepSecrets = !secrets.length;
+    if (secrets.length) {
+      const relay = (secrets.find(([k]) => k === 'prelay') || [])[1];
+      const host = (() => { try { return new URL(relay).hostname; } catch (e) { return relay; } })();
+      keepSecrets = confirm(`Cette sauvegarde contient des clés d'API ou un jeton${relay ? ` et l'adresse d'un relais (${host})` : ''}.\n\nLes reprendre sur ce téléphone ? Réponds « Annuler » si ce fichier ne vient pas de toi.`);
+    }
     let changed = false;
-    for (const [k, v] of Object.entries(data.settings)) if ((settings[k] === undefined || settings[k] === '' || settings[k] === DEFAULTS[k]) && v !== undefined && v !== '' && v !== DEFAULTS[k]) { settings[k] = v; changed = true; }
+    for (const [k, v] of fill) { if (!keepSecrets && SENSITIVE.includes(k)) continue; settings[k] = v; changed = true; }
     if (changed) { saveSettings(settings); applyTheme(settings.theme); applyFs(settings.fs); }
   }
-  if (Array.isArray(data.plaudImported)) markImported(data.plaudImported);
+  if (Array.isArray(data.plaudImported)) markImported(data.plaudImported.map(toStr).filter(Boolean));
   scheduleReminders(); updateBadge();
-  toast(`${added} note${added > 1 ? 's' : ''} restaurée${added > 1 ? 's' : ''}${same ? ` · ${same} déjà présente${same > 1 ? 's' : ''}` : ''}`);
+  toast(`${added} note${added > 1 ? 's' : ''} restaurée${added > 1 ? 's' : ''}${same ? ` · ${same} déjà présente${same > 1 ? 's' : ''}` : ''}${bad ? ` · ${bad} ignorée${bad > 1 ? 's' : ''} (illisible${bad > 1 ? 's' : ''})` : ''}`);
   renderData();
   if (current === 'home') renderHome();
 }
 async function renderData() {
-  const notes = (await db.all()).filter((n) => n.id !== INBOX);
+  const notes = await loadNotes();
   let line = `${notes.length} note${notes.length > 1 ? 's' : ''}`, state = '';
   try {
     if (navigator.storage && navigator.storage.estimate) { const e = await navigator.storage.estimate(); line += ` · ${mb(e.usage || 0)} utilisés`; }
@@ -6308,7 +6805,7 @@ function renderBkRemind() {
 function applyFs(fs) {
   fs = fs || 'm';
   if (fs === 'm') delete document.documentElement.dataset.fs; else document.documentElement.dataset.fs = fs;
-  document.querySelectorAll('#fsRow button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.fs === fs)));
+  document.querySelectorAll('#fsRow button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.fs === fs)));
 }
 /* Bouton « remonter » */
 function updToTop() { $('toTop').classList.toggle('show', (current === 'note' || current === 'home') && window.scrollY > 900); }
@@ -6334,11 +6831,11 @@ function applyTheme(t, save) {
   if (!col) col = matchMedia('(prefers-color-scheme: dark)').matches ? '#141311' : '#f7f4ee';
   const meta = $('tc'); if (meta) meta.setAttribute('content', col);
   if (save) { settings.theme = t; saveSettings(settings); }
-  document.querySelectorAll('#themeGrid .sw').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.t === t)));
+  document.querySelectorAll('#themeGrid .sw').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.t === t)));
 }
 function renderThemes() {
   const cur = settings.theme || 'auto';
-  $('themeGrid').innerHTML = THEMES.map((h) => `<button class="sw" type="button" data-t="${h.id}" aria-selected="${cur === h.id}"><span class="chip" style="background:${h.bg}"><span class="dot" style="background:${h.dot}"></span></span><small>${h.name}</small></button>`).join('');
+  $('themeGrid').innerHTML = THEMES.map((h) => `<button class="sw" type="button" role="radio" data-t="${h.id}" aria-checked="${cur === h.id}"><span class="chip" style="background:${h.bg}"><span class="dot" style="background:${h.dot}"></span></span><small>${h.name}</small></button>`).join('');
   $('themeGrid').querySelectorAll('.sw').forEach((b) => b.onclick = () => applyTheme(b.dataset.t, true));
 }
 // le mode « Système » suit les changements clair/sombre de l'appareil
@@ -6372,7 +6869,7 @@ $('settingsBtn').onclick = showSettings;
 $('onboardBtn').onclick = showSettings;
 $('backBtn').onclick = () => { if (current === 'review') { rv.active = false; updateBadge(); } navBack(); };
 $('jobHome').onclick = () => show('home');
-$('search').oninput = renderList;
+$('search').oninput = scheduleSearch;
 $('homeMode').querySelectorAll('button').forEach((b) => {
   b.innerHTML = (b.dataset.mode === 'cal' ? ICONS.cal + 'Calendrier' : ICONS.list + 'Liste');
   b.onclick = () => { ui.mode = b.dataset.mode; lsSet('np-mode', ui.mode); ui.day = null; ui.month = monthStart(Date.now()); renderBrowse(); renderList(); };
@@ -6445,7 +6942,12 @@ function provBoxes() {
   // toutes les IA restent visibles : celles qui ont une clé servent de secours
 }
 $('sProv').onchange = provBoxes;
-const toggleKey = (inp, btn) => () => { const i = $(inp); i.type = i.type === 'password' ? 'text' : 'password'; $(btn).textContent = i.type === 'password' ? 'Voir' : 'Cacher'; };
+const toggleKey = (inp, btn) => () => {
+  const i = $(inp), shown = i.type === 'password'; i.type = shown ? 'text' : 'password';
+  // le libellé change avec l'état (« Voir… » / « Cacher… ») : pas d'aria-pressed, qui ferait dire « Cacher, activé »
+  $(btn).textContent = shown ? 'Cacher' : 'Voir';
+  $(btn).setAttribute('aria-label', $(btn).getAttribute('aria-label').replace(/^(Voir|Cacher)/, shown ? 'Cacher' : 'Voir'));
+};
 $('sGKeyShow').onclick = toggleKey('sGKey', 'sGKeyShow');
 $('sCKeyShow').onclick = toggleKey('sCKey', 'sCKeyShow');
 $('sMKeyShow').onclick = toggleKey('sMKey', 'sMKeyShow');
@@ -6460,6 +6962,8 @@ $('pCmd').onclick = () => copyText(PLAUD_CMD, 'Commande copiée — colle-la dan
 $('pBm').onclick = () => copyText(PLAUD_BM, 'Code du favori copié');
 $('plaudBtn').onclick = plaudSheet;
 $('sSave').onclick = () => {
+  // relais en http : le jeton Plaud circulerait en clair
+  if ($('sPRelay').value.trim() && !relayOk($('sPRelay').value)) { toast('L\'adresse du relais doit commencer par https://'); $('sPRelay').focus(); return; }
   settings = { key: $('sKey').value.trim(), lang: $('sLang').value, whisper: $('sWhisper').value,
     llms: $('sLlm').value.trim() || DEFAULTS.llms, ctx: $('sCtx').value,
     provider: $('sProv').value, gkey: $('sGKey').value.trim(), gmodels: $('sGModel').value.trim() || DEFAULTS.gmodels,
@@ -6703,10 +7207,11 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('mess
 // Reprend automatiquement un traitement interrompu (app fermée ou mise en pause par Android)
 async function resumeInterrupted() {
   if (busy || enhancing || writing) return;
-  let notes = [];
-  try { notes = (await db.all()).sort((a, b) => b.created - a.created); } catch (e) { return; }
-  const n = [...notes].reverse().find((x) => (x.status === 'transcription' && x.audio) || (x.status === 'resume' && x.segments));   // la plus ancienne d'abord
-  if (n) {
+  let heads = [];
+  try { heads = [...(await ensureHeads()).values()].sort((a, b) => a.created - b.created); } catch (e) { return; }
+  const h = heads.find((x) => (x.status === 'transcription' && x.hasAudio) || (x.status === 'resume' && x.hasSegs));   // la plus ancienne d'abord
+  const n = h && await db.get(h.id);
+  if (n && !busy && !enhancing && !writing) {
     toast((n.queued ? 'Traitement : ' : 'Reprise du traitement : ') + baseName(n.title || n.fileName));
     if (n.queued) { delete n.queued; await db.put(n); }
     run(n, { background: current !== 'job' });
@@ -6727,7 +7232,10 @@ window.addEventListener('beforeunload', (e) => { if (busy || enhancing || writin
   await loadAgenda();
   current = '';
   const shared = pending && pending.file;
-  if (shared) await startFile(shared);
+  // Un site malveillant peut aussi « envoyer » un fichier à l'app (formulaire vers /share) : pour un calendrier,
+  // qui remplacerait l'emploi du temps, on demande d'abord.
+  const sharedOk = shared && (!isIcsFile(shared) || confirm(`Importer « ${shared.name || 'calendrier.ics'} » comme emploi du temps ?`));
+  if (sharedOk) await startFile(shared);
   else show('home');
   renderNotif();
   if (!shared && params.has('note')) { const id = params.get('note'); history.replaceState(history.state, '', location.pathname); if (id === ':tasks') show('tasks'); else if (id === ':courses') show('courses'); else openNote(id); }
@@ -6737,6 +7245,10 @@ window.addEventListener('beforeunload', (e) => { if (busy || enhancing || writin
   resumeInterrupted();
   updateBadge(); scheduleReminders(); fireReminders(); setupPeriodicCheck();
   setTimeout(gcAudio, 6000);
+  // après la mise à jour : les mots des notes (pour la recherche) sont préparés en arrière-plan, une seule fois
+  setTimeout(async () => {
+    try { const k = (await dbRun('pending', 'readonly', (st) => st.count(IDBKeyRange.bound('words:', 'words:\uffff')))) || 0; if (headMap && k < headMap.size) ensureWords(); } catch (e) {}
+  }, 4000);
   scheduleCourseReminders();
   if (settings.icsUrl && Date.now() - (AG.at || 0) > 12 * 3600000) setTimeout(() => syncAgenda(false), 2500);
   setInterval(tickCourses, 30000);

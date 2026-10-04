@@ -44,7 +44,12 @@ class Mocks {
     this.summary = () => SUMMARY;
     /** @type {null | ((route: import('@playwright/test').Route, kind: string) => Promise<boolean>)} pour simuler des pannes */
     this.fail = null;
-    this.plaud = { list: [], audio: {} };
+    this.plaud = { list: [], audio: {}, version: 3 };
+    /** violations de la politique de sécurité (CSP) et erreurs JavaScript non rattrapées, vérifiées à la fin de chaque test */
+    this.cspErrors = [];
+    this.pageErrors = [];
+    page.on('console', (m) => { if (m.type() === 'error' && /Content Security Policy/i.test(m.text())) this.cspErrors.push(m.text()); });
+    page.on('pageerror', (e) => this.pageErrors.push(e.message));
   }
 
   async install() {
@@ -59,8 +64,10 @@ class Mocks {
       if (url.endsWith('/audio/transcriptions')) {
         const body = (route.request().postDataBuffer() || Buffer.alloc(0)).toString('latin1');
         const field = (name) => { const m = new RegExp(`name="${name}"\\r\\n\\r\\n([^\\r]*)`).exec(body); return m ? m[1] : null; };
-        const fm = /name="file"; filename="([^"]*)"/.exec(body);
-        this.calls.transcribe.push({ model: field('model'), language: field('language'), prompt: field('prompt'), filename: fm ? fm[1] : null, size: body.length });
+        const fm = /name="file"; filename="([^"]*)"(?:\r\nContent-Type: ([^\r]*))?\r\n\r\n/.exec(body);
+        const head = fm ? body.slice(fm.index + fm[0].length, fm.index + fm[0].length + 44) : '';
+        this.calls.transcribe.push({ model: field('model'), language: field('language'), prompt: field('prompt'), filename: fm ? fm[1] : null, type: fm ? fm[2] : null,
+          size: body.length, riff: head.slice(0, 4) === 'RIFF' ? Buffer.from(head, 'latin1').readUInt32LE(40) : null });
         if (this.fail && await this.fail(route, 'transcribe')) return;
         return route.fulfill({ json: this.transcript(this.calls.transcribe.length - 1) });
       }
@@ -88,6 +95,7 @@ class Mocks {
       this.calls.plaud.push({ path: url.pathname, query: url.search, auth: route.request().headers().authorization });
       if (this.fail && await this.fail(route, 'plaud')) return;
       const cors = { 'Access-Control-Allow-Origin': '*' };
+      if (url.pathname === '/ping') return route.fulfill({ headers: cors, json: { ok: true, relay: 'notes-plaud', version: this.plaud.version } });
       if (url.pathname === '/api/file/simple/web') return route.fulfill({ headers: cors, json: { status: 0, data_file_list: this.plaud.list } });
       let m = /^\/api\/file\/temp-url\/(.+)$/.exec(url.pathname);
       if (m) return route.fulfill({ headers: cors, json: { status: 0, temp_url: `https://bucket.s3.amazonaws.com/${m[1]}.mp3?sig=1` } });
@@ -99,6 +107,19 @@ class Mocks {
       return route.fulfill({ status: 404, headers: cors, json: { error: 'Introuvable' } });
     });
   }
+}
+
+/** Sert la vraie bibliothèque KaTeX (dossier node_modules) à la place du CDN ; tamper : fichier modifié. */
+async function serveKatex(page, { tamper = false } = {}) {
+  const dir = require('node:path').join(__dirname, '..', 'node_modules', 'katex', 'dist');
+  await page.unroute(/cdn\.jsdelivr\.net/);
+  await page.route(/cdn\.jsdelivr\.net\/npm\/katex@[^/]+\/dist\/(.+)$/, (route) => {
+    const file = /dist\/([^?]+)/.exec(route.request().url())[1];
+    let body = require('node:fs').readFileSync(require('node:path').join(dir, file));
+    if (tamper && file === 'katex.min.js') body = Buffer.concat([body, Buffer.from('\n;window.__pirate = 1;')]);
+    const type = file.endsWith('.js') ? 'text/javascript' : file.endsWith('.css') ? 'text/css' : 'font/woff2';
+    return route.fulfill({ body, headers: { 'Content-Type': type, 'Access-Control-Allow-Origin': '*' } });
+  });
 }
 
 /** Un MP3 valide (MPEG-1 Layer III, 128 kb/s, 44,1 kHz) fait de trames silencieuses, précédé d'une étiquette ID3. */
@@ -154,7 +175,9 @@ const test = base.test.extend({
     const m = new Mocks(page);
     await m.install();
     await use(m);
+    base.expect(m.cspErrors, 'violation de la politique de sécurité (CSP)').toEqual([]);
+    base.expect(m.pageErrors, 'erreur JavaScript non rattrapée').toEqual([]);
   },
 });
 
-module.exports = { test, expect: base.expect, Mocks, mp3, wav, useSettings, seedNotes, note, SUMMARY, TRANSCRIPT };
+module.exports = { test, expect: base.expect, Mocks, mp3, wav, useSettings, seedNotes, note, serveKatex, SUMMARY, TRANSCRIPT };

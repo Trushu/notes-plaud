@@ -5,9 +5,12 @@
   "scripts": {
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "node --test \"unit/**/*.test.js\"",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test --project=android",
+    "test:perf": "playwright test --project=perf"
   },
   "devDependencies": {
-    "@playwright/test": "1.56.1"
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.56.1",
+    "katex": "0.16.47"
   }
 }

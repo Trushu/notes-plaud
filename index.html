@@ -8,7 +8,7 @@
 <meta id="tc" name="theme-color" content="#f7f4ee">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
-<script>try{var _t=(JSON.parse(localStorage.getItem('np-settings')||'{}').theme);if(_t&&_t!=='auto')document.documentElement.dataset.theme=_t;var _f=(JSON.parse(localStorage.getItem('np-settings')||'{}').fs);if(_f&&_f!=='m')document.documentElement.dataset.fs=_f;}catch(e){}</script>
+<script>try{var _t=(JSON.parse(localStorage.getItem('np-settings')||'{}').theme);if(_t&&_t!=='auto')document.documentElement.dataset.theme=_t;var _f=(JSON.parse(localStorage.getItem('np-settings')||'{}').fs);if(_f&&_f!=='m')document.documentElement.dataset.fs=_f;var _r=(JSON.parse(localStorage.getItem('np-settings')||'{}').rf);if(_r&&_r!=='std')document.documentElement.dataset.rf=_r;}catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1043,6 +1043,43 @@
   /* Accessibilité : contour visible pour la navigation au clavier (clavier Bluetooth, télécommande, lecteur d'écran) */
   :focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 2px; }
   .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  /* Thème « Contraste élevé » : noir sur blanc, contours marqués (lisible en plein soleil, basse vision) */
+  html[data-theme="contraste"] {
+    --bg: #ffffff; --surface: #ffffff; --surface-2: #f0f0f0; --surface-3: #d6d6d6;
+    --ink: #000000; --ink-2: #111111; --muted: #333333; --line: #000000;
+    --accent: #a8001a; --accent-ink: #8a0015; --accent-soft: #ffe8eb;
+    --grad: linear-gradient(135deg, #000 0%, #000 100%); --on-grad: #fff;
+    --blue: #00308f; --blue-soft: #e6eeff; --violet: #4b1fa8; --violet-soft: #f0eaff; --green: #005c33; --green-soft: #e3f5ea;
+    --err: #a3000f; --err-soft: #ffe9ea; --teal: #00545a; --teal-soft: #e0f4f4; --amber: #6b3f00; --amber-soft: #fff1d9;
+    --shadow: none; --shadow-lg: none; --ctl: #000000;
+  }
+  html[data-theme="contraste"] .card, html[data-theme="contraste"] .btn, html[data-theme="contraste"] .item, html[data-theme="contraste"] .sec { border: 1.5px solid #000; }
+  html[data-theme="contraste"] .tag, html[data-theme="contraste"] .tm.tagm { background: #fff; color: #000; box-shadow: inset 0 0 0 1.5px #000; }
+  /* Police de lecture (résumés, cours, transcriptions, fiches) */
+  html[data-rf="serif"] .md, html[data-rf="serif"] .tr-list .seg span, html[data-rf="serif"] .qz-q { font-family: var(--serif); }
+  html[data-rf="aeree"] .md, html[data-rf="aeree"] .tr-list .seg span { line-height: 1.85; letter-spacing: .01em; word-spacing: .06em; }
+  html[data-rf="aeree"] .md p, html[data-rf="aeree"] .md li { margin-bottom: .55em; }
+  /* La taille du texte s'applique aussi aux fiches, au quiz, au glossaire et aux questions */
+  .rv-q, .rv-a { font-size: calc(17px * var(--rd)); }
+  .gl-it .md, .q-row b { font-size: calc(15px * var(--rd)); }
+  /* Tablette et ordinateur : plus large, liste et résumé sur deux colonnes */
+  @media (min-width: 900px) {
+    .wrap { max-width: 1040px; padding: 0 32px 120px; }
+    .actions .bar3, .ask-bar > div, .player, .tts-bar { max-width: 1040px; }
+    #notesList { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+    #notesList > :not(.item) { grid-column: 1 / -1; }
+    #taskList { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+    #taskList > :not(.titem) { grid-column: 1 / -1; }
+    #noteSum { display: block; columns: 2; column-gap: 14px; }
+    #noteSum > .sec { break-inside: avoid; margin-bottom: 12px; }
+    #noteSum > .sec.k-resume { column-span: all; }
+    #rvSession, #v-quiz > *, .note-head, #v-ask .ask-list { max-width: 760px; margin-left: auto; margin-right: auto; }
+    .sheet { max-width: 680px; }
+    .crs-acts { grid-template-columns: repeat(3, 1fr); }
+    .tiles4 { grid-template-columns: repeat(4, 1fr); }
+  }
+  @media (min-width: 1300px) { .wrap { max-width: 1240px; } #notesList { grid-template-columns: 1fr 1fr 1fr; } }
+  .cap-hidden { display: none !important; }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
     .item:hover, .hero:hover { transform: none; }
@@ -1395,6 +1432,8 @@
           <button type="button" role="radio" data-fs="l" style="font-size:20px" aria-label="Grand">A</button>
           <button type="button" role="radio" data-fs="xl" style="font-size:23px" aria-label="Très grand">A</button>
         </div>
+        <label class="f" for="sRf" style="margin-top:18px">Police de lecture</label>
+        <select id="sRf"><option value="std">Standard</option><option value="serif">Style livre (avec empattements)</option><option value="aeree">Aérée (lignes et mots plus espacés)</option></select>
       </div>
     </div>
     <div class="set-group">
@@ -1685,7 +1724,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '45 · 4 oct. 2026';
+const APP_VERSION = '46 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -3537,9 +3576,7 @@ async function renderHome() {
   renderList();
   renderBkRemind();
   renderHomeCourse();
-  renderHomeQueue();
-  renderHomeExam();
-  renderHomeRev();
+  Promise.all([renderHomeQueue(), renderHomeExam(), renderHomeRev()]).then(capHomeCards, () => {});
   renderResume();
 }
 
@@ -6025,6 +6062,17 @@ async function queueState() {
   const heads = [...(await ensureHeads()).values()].filter((h) => h.id !== INBOX).sort((a, b) => a.created - b.created);
   return { run: heads.filter((h) => h.id === runningId), wait: heads.filter((h) => h.id !== runningId && QWAIT(h)), fail: heads.filter((h) => h.id !== runningId && QFAIL(h)) };
 }
+// Accueil lisible : au plus deux cartes d'information à la fois, par ordre d'importance
+const HOME_CARDS = ['homeQueue', 'homeExam', 'homeRev', 'bkRemind'];
+function capHomeCards() {
+  let shown = 0;
+  for (const id of HOME_CARDS) {
+    const el = $(id); if (!el) continue; el.classList.remove('cap-hidden');
+    const has = id === 'bkRemind' ? !el.classList.contains('hidden') : !!el.firstElementChild;
+    if (!has) continue;
+    if (++shown > 2) el.classList.add('cap-hidden');
+  }
+}
 async function renderHomeQueue() {
   const box = $('homeQueue'); if (!box) return;
   const q = await queueState().catch(() => null);
@@ -7880,7 +7928,7 @@ function sanitizeNote(n) {
 // Réglages d'une sauvegarde : seulement les réglages connus, avec des valeurs possibles
 const SETTING_CHECK = {
   lang: (v) => v === 'auto' || !!LANGS[v], whisper: (v) => WHISPERS.includes(v), kind: (v) => !!KINDS[v], autoRemind: (v) => ['eve', 'morning', 'none'].includes(v), revRemind: (v) => v === '' || /^([01]\d|2[0-3]):[0-5]\d$/.test(v),
-  theme: (v) => THEMES.some((t) => t.id === v), fs: (v) => ['s', 'm', 'l', 'xl'].includes(v), provider: (v) => v === 'auto' || CHAIN.includes(v),
+  theme: (v) => THEMES.some((t) => t.id === v), fs: (v) => ['s', 'm', 'l', 'xl'].includes(v), rf: (v) => ['std', 'serif', 'aeree'].includes(v), provider: (v) => v === 'auto' || CHAIN.includes(v),
   bg: (v) => typeof v === 'boolean', keepAudio: (v) => typeof v === 'boolean', pauto: (v) => typeof v === 'boolean',
   pregion: (v) => v === 'eu' || v === 'us', psince: (v) => Number.isFinite(v), courseRemind: (v) => [0, 5, 10, 15, 30].includes(v),
   prelay: (v) => typeof v === 'string' && /^https:\/\/[^\s/?#]+/i.test(v), icsUrl: (v) => typeof v === 'string' && /^https?:\/\//i.test(v),
@@ -7929,7 +7977,7 @@ async function restoreData(file) {
     }
     let changed = false;
     for (const [k, v] of fill) { if (!keepSecrets && SENSITIVE.includes(k)) continue; settings[k] = v; changed = true; }
-    if (changed) { saveSettings(settings); applyTheme(settings.theme); applyFs(settings.fs); }
+    if (changed) { saveSettings(settings); applyTheme(settings.theme); applyFs(settings.fs); applyRf(settings.rf); }
   }
   if (Array.isArray(data.plaudImported)) markImported(data.plaudImported.map(toStr).filter(Boolean));
   await restorePrefs(data.prefs).catch(() => {});
@@ -7971,6 +8019,11 @@ function renderBkRemind() {
   if (due) $('bkRemindTxt').textContent = last ? `Dernière sauvegarde il y a ${Math.round((Date.now() - last) / 86400000)} jours.` : `${n} notes, jamais sauvegardées. Un fichier suffit pour tout récupérer.`;
 }
 /* Taille du texte */
+function applyRf(rf) {
+  rf = rf || 'std';
+  if (rf === 'std') delete document.documentElement.dataset.rf; else document.documentElement.dataset.rf = rf;
+  const s = $('sRf'); if (s) s.value = rf;
+}
 function applyFs(fs) {
   fs = fs || 'm';
   if (fs === 'm') delete document.documentElement.dataset.fs; else document.documentElement.dataset.fs = fs;
@@ -7990,8 +8043,9 @@ const THEMES = [
   { id: 'foret', name: 'Forêt', bg: '#eef3ec', dot: '#2f8f52' },
   { id: 'nuit', name: 'Nuit', bg: '#16202c', dot: '#5b9dff' },
   { id: 'prune', name: 'Prune', bg: '#201a25', dot: '#d571b4' },
+  { id: 'contraste', name: 'Contraste élevé', bg: 'linear-gradient(135deg,#fff 0 50%,#000 50% 100%)', dot: '#a8001a' },
 ];
-const THEME_META = { light: '#f7f4ee', dark: '#141311', parchemin: '#f3ead6', ocean: '#eef4f6', foret: '#eef3ec', nuit: '#0f1620', prune: '#17121a' };
+const THEME_META = { light: '#f7f4ee', dark: '#141311', parchemin: '#f3ead6', ocean: '#eef4f6', foret: '#eef3ec', nuit: '#0f1620', prune: '#17121a', contraste: '#ffffff' };
 function applyTheme(t, save) {
   t = t || 'auto';
   if (t === 'auto') delete document.documentElement.dataset.theme;
@@ -8156,6 +8210,7 @@ $('sSave').onclick = () => {
   const prev = loadSettings();
   settings.theme = prev.theme || 'auto';
   settings.fs = prev.fs || 'm';
+  settings.rf = prev.rf || 'std';
   const nt = $('sPToken').value.trim(), nr = $('sPRelay').value.trim();
   Object.assign(settings, { prelay: nr, ptoken: nt, pauto: $('sPAuto').checked,
     pregion: nt === prev.ptoken ? prev.pregion : undefined,
@@ -8366,6 +8421,8 @@ $('sHaptic').onchange = () => { lsSet('np-haptic', $('sHaptic').checked ? '1' : 
 $('diagBtn').onclick = async () => copyText(await diagReport(), 'Rapport copié : colle-le dans ton message d\'aide');
 $('wipeBtn').onclick = wipeAll;
 $('bkEvery').value = lsGet('np-bk-every', '30');
+applyRf(settings.rf);
+$('sRf').onchange = () => { settings = { ...loadSettings(), rf: $('sRf').value }; saveSettings(settings); applyRf(settings.rf); };
 $('bkEvery').onchange = () => { lsSet('np-bk-every', $('bkEvery').value); renderBkRemind(); };
 $('rsInput').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) restoreData(f); };
 $('persistBtn').onclick = () => askPersist(false);

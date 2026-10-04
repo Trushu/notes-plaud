@@ -10,7 +10,7 @@ const { test, expect, mp3, useSettings, seedNotes, note, serveKatex, SUMMARY } =
 // micro simulé par Chromium (écran d'enregistrement)
 test.use({ permissions: ['microphone'], launchOptions: { args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'] } });
 
-const THEMES = ['light', 'dark', 'parchemin', 'ocean', 'foret', 'nuit', 'prune'];
+const THEMES = ['light', 'dark', 'parchemin', 'ocean', 'foret', 'nuit', 'prune', 'contraste'];
 const REPORT = !!process.env.A11Y_REPORT;
 
 async function audit(page, where, out) {
@@ -74,7 +74,7 @@ async function tour(page, theme, out) {
 test.describe('Audit axe-core (WCAG 2.2 AA)', () => {
   test.setTimeout(240000);
   for (const scheme of ['light', 'dark']) {
-    test(`tous les écrans, 8 thèmes (téléphone en mode ${scheme === 'dark' ? 'sombre' : 'clair'})`, async ({ page, mocks }) => {
+    test(`tous les écrans, 9 thèmes (téléphone en mode ${scheme === 'dark' ? 'sombre' : 'clair'})`, async ({ page, mocks }) => {
       await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' });   // couleurs finales, sans les fondus d'apparition
       await serveKatex(page);
       await useSettings(page, { key: 'gsk_test' });
@@ -238,7 +238,7 @@ test('Audit axe-core : sauvegarde (mot de passe, fichier prêt)', async ({ page,
   if (REPORT) report('sauvegarde', out); else expect(out, out.join('\n')).toEqual([]);
 });
 
-test('contours des champs et des cases à cocher : contraste ≥ 3:1 dans les 8 thèmes (axe ne le vérifie pas)', async ({ page, mocks }) => {
+test('contours des champs et des cases à cocher : contraste ≥ 3:1 dans les 9 thèmes (axe ne le vérifie pas)', async ({ page, mocks }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });   // pas de transition de couleur en changeant de thème
   await useSettings(page, { key: 'gsk_test' });
   await prepare(page);

@@ -134,9 +134,18 @@ L'export Moodle « récents et à venir » couvre environ deux mois : l'app **ga
 
 ## Apparence (thèmes)
 
-Réglages → **Apparence** : choisis parmi 8 thèmes — **Système** (suit le mode clair/sombre du téléphone), **Clair**, **Sombre**, **Parchemin**, **Océan**, **Forêt**, **Nuit** et **Prune**. Le changement est immédiat et retenu. « Système » bascule tout seul entre clair et sombre selon l'heure/les réglages Android. Juste en dessous, **Taille du texte des notes** agrandit ou réduit le texte des résumés, cours et transcriptions (pratique pour réviser).
+Réglages → **Apparence** : choisis parmi 9 thèmes. Le changement est immédiat et retenu.
+- **Système** suit le mode clair ou sombre du téléphone, et bascule tout seul selon l'heure ou les réglages Android.
+- **Clair**, **Sombre**, **Parchemin**, **Océan**, **Forêt**, **Nuit** et **Prune**.
+- **Contraste élevé** : noir sur blanc pur et contours marqués, pour le plein soleil ou une vue fatiguée.
 
-Les 8 thèmes respectent les contrastes recommandés pour l'accessibilité (WCAG niveau AA) : textes lisibles en plein soleil, contour des champs et des cases à cocher bien visible. Si tu as activé **Supprimer les animations** dans les réglages d'accessibilité d'Android, l'app n'anime plus rien.
+Juste en dessous :
+- **Taille du texte des notes** agrandit ou réduit le texte des résumés, cours, transcriptions, fiches et quiz (pratique pour réviser).
+- **Police de lecture** : **Standard**, **Style livre** (avec empattements) ou **Aérée** (lignes et mots plus espacés, plus confortable pour de longues lectures ou en cas de dyslexie).
+
+**Sur tablette ou ordinateur**, l'app utilise toute la largeur : la liste des notes et les rubriques du résumé passent sur deux colonnes.
+
+Les 9 thèmes respectent les contrastes recommandés pour l'accessibilité (WCAG niveau AA) : textes lisibles en plein soleil, contour des champs et des cases à cocher bien visible. Si tu as activé **Supprimer les animations** dans les réglages d'accessibilité d'Android, l'app n'anime plus rien.
 
 ## Accessibilité (TalkBack, clavier)
 
@@ -222,6 +231,7 @@ Sous le résumé d'une note, **Carte mentale → Voir** dessine le plan du cours
 
 ### Rechercher, épingler, sauvegarder
 
+- **Accueil lisible :** au plus deux cartes d'information s'affichent à la fois, par ordre d'importance : file d'attente, examen, fiches à réviser, rappel de sauvegarde.
 - **Recherche :** la barre de l'accueil cherche dans les titres, résumés, cours rédigés, transcriptions, **fiches de révision et questions posées**, sans tenir compte des accents.
 - **Recherche avancée** (bouton **?** dans la barre) : les filtres se combinent librement.
   - `"tas binaire"` : l'expression exacte ;

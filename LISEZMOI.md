@@ -276,3 +276,7 @@ Rappel : en France, enregistrer une conversation privée à l'insu des personnes
 | Les photos ne sont pas lues par l'IA | Il faut une clé Gemini (étape 4). Dans la visionneuse, touche **Lire avec l'IA** pour réessayer. |
 | Pas de voix pour la lecture à voix haute | Réglages Android → Accessibilité → Synthèse vocale : choisis le moteur Google et installe la voix française. |
 | Mettre l'app à jour | Remplace les fichiers sur GitHub. Le téléphone reçoit la nouvelle version à la prochaine ouverture. |
+
+## Pour les développeurs : tests automatiques
+
+Le dossier `tests/` contient des tests automatiques (fonctions de l'app et parcours complets dans un téléphone Android émulé, avec Groq, Gemini et Plaud simulés). Il n'est **pas nécessaire** au fonctionnement de l'app : pour l'installation, seuls les fichiers de l'étape 2 comptent. Mode d'emploi : `tests/README.md`. Sur GitHub, ils se lancent tout seuls à chaque pull request (onglet **Actions**).

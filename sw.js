@@ -10,7 +10,7 @@
 // - installation : seuls les fichiers indispensables doivent être présents (avant, une icône de raccourci manquante
 //   sur le site empêchait toute l'installation, donc le partage depuis Plaud).
 
-const CACHE = 'notes-plaud-v37';
+const CACHE = 'notes-plaud-v40';
 const KATEX_CACHE = 'katex-v2';   // KaTeX en version figée (0.16.47), vérifiée par empreinte dans la page
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 const OPTIONAL = ['./sc-rec.png', './sc-cours.png', './sc-ask.png', './sc-tasks.png'];   // icônes des raccourcis

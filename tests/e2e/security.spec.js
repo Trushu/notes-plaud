@@ -34,13 +34,15 @@ test.describe('Contenus piégés : rien n\'est exécuté, tout s\'affiche en tex
     await useSettings(page, { key: 'gsk_test' });
     await page.goto('./');
     const now = Date.now(), st = (t) => new Date(t).toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+    // cours en cours AUJOURD'HUI quelle que soit l'heure (« dans 1 h » tombait le lendemain après 23 h)
+    const t0 = Math.max(await page.evaluate(() => dayStart(Date.now())) + 60000, now - 1800000);
     const ics = ['BEGIN:VCALENDAR', 'BEGIN:VEVENT', `UID:${XSS(20).replace(/"/g, '')}`, `SUMMARY:${XSS(21)}`, `LOCATION:${XSS(22)}`, `DESCRIPTION:${XSS(23)}\\nProf ${XSS(24)}`,
-      `CATEGORIES:${XSS(25).replace(/,/g, '')}`, `DTSTART:${st(now + 3600000)}`, `DTEND:${st(now + 7200000)}`, 'END:VEVENT',
+      `CATEGORIES:${XSS(25).replace(/,/g, '')}`, `DTSTART:${st(t0)}`, `DTEND:${st(now + 3600000)}`, 'END:VEVENT',
       'BEGIN:VEVENT', 'UID:d', `SUMMARY:${XSS(26)} est dû`, `DTSTART:${st(now + 86400000)}`, `DTEND:${st(now + 86400000)}`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
     await page.locator('#tabbar [data-v=courses]').click();
     await page.locator('#icsInput').setInputFiles({ name: 'cours.ics', mimeType: 'text/calendar', buffer: Buffer.from(ics) });
     await expect(page.locator('#crsBody .crs-now')).toContainText('<img src=x');
-    await page.locator('#crsBody .ev').first().click();
+    await page.locator('#crsBody .ev', { hasText: 'xss=21' }).first().click();
     await expect(page.locator('#sheet')).toContainText('<img src=x');
     await page.locator('#evMat').click();
     await expect(page.locator('#courseBody h1')).toContainText('<img');

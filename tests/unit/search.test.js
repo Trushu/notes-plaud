@@ -58,3 +58,34 @@ test.describe('Index léger (chantier 4)', () => {
     await assert.rejects(app.db.put(app.headOf(full)), /note incomplète/);
   });
 });
+
+test.describe('Recherche avancée (feuille de route O1)', () => {
+  test('opérateurs : expressions, exclusions, tag, matière, dates, type, contenu', () => {
+    const p = app.parseQuery('matière:Algo "tas binaire" -examen après:2026-10-01 avant:15/11/2026 tag:graphes type:réunion a:fiches graphe orienté');
+    assert.deepEqual(p.phrases, ['tas binaire']);
+    assert.deepEqual(p.excl, ['examen']);
+    assert.deepEqual(p.mat, ['algo']);
+    assert.deepEqual(p.tag, ['graphes']);
+    assert.equal(p.type, 'reunion');
+    assert.deepEqual(p.has, ['fiches']);
+    assert.equal(p.after, new Date(2026, 9, 1).getTime());
+    assert.equal(p.before, new Date(2026, 10, 15).getTime());
+    assert.equal(p.text, 'graphe oriente');
+  });
+  test('texte simple inchangé ; date invalide gardée comme texte ; « - » seul', () => {
+    assert.equal(app.parseQuery('Récursivité').text, 'recursivite');
+    assert.equal(app.parseQuery('avant:demain').text, 'avant:demain');
+    assert.deepEqual(app.parseQuery('-"mot exclu"').excl, ['mot exclu']);
+    assert.equal(app.queryHasOps(app.parseQuery('graphe')), false);
+    assert.equal(app.queryHasOps(app.parseQuery('tag:x')), true);
+  });
+  test('texte à surligner', () => {
+    assert.equal(app.highlightQ('tag:algo "Tas binaire" -x'), 'Tas binaire');
+    assert.equal(app.highlightQ('matière:algo Récursivité'), 'Récursivité');
+  });
+  test('fiches et questions posées font partie du texte cherchable', () => {
+    const t = app.noteText({ title: 'T', cards: [{ q: 'Pivot de Gauss ?', a: 'Méthode' }], chat: [{ q: 'Qui est Euler ?', a: 'Un mathématicien' }] });
+    assert.match(t, /Pivot de Gauss/);
+    assert.match(t, /mathématicien/);
+  });
+});

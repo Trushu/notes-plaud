@@ -213,7 +213,15 @@ Sur une note, touche l'icône **bulle ?** en haut (ou **Demander** sous le résu
 
 ### Rechercher, épingler, sauvegarder
 
-- **Recherche :** la barre de l'accueil cherche dans les titres, résumés, cours rédigés **et** transcriptions, sans tenir compte des accents. Chaque résultat montre l'extrait trouvé ; le toucher ouvre la note **au bon onglet, passage surligné**. Elle reste rapide même avec des centaines de notes de plusieurs heures. Les longues listes (notes, tâches) s'affichent par tranches : la suite arrive en faisant défiler, ou avec **Afficher plus**.
+- **Recherche :** la barre de l'accueil cherche dans les titres, résumés, cours rédigés, transcriptions, **fiches de révision et questions posées**, sans tenir compte des accents.
+- **Recherche avancée** (bouton **?** dans la barre) : les filtres se combinent librement.
+  - `"tas binaire"` : l'expression exacte ;
+  - `-examen` : sans ce mot ;
+  - `tag:algo`, `matière:physique`, `type:cours` (ou réunion, note) ;
+  - `après:2026-10-01`, `avant:15/11/2026` ;
+  - `a:fiches`, `a:audio`, `a:tâches`, `a:photos`, `a:quiz`.
+
+  Par exemple : `matière:algo "tas binaire" après:2026-10-01`. En ouvrant un résultat, seul le texte cherché est surligné. Chaque résultat montre l'extrait trouvé ; le toucher ouvre la note **au bon onglet, passage surligné**. Elle reste rapide même avec des centaines de notes de plusieurs heures. Les longues listes (notes, tâches) s'affichent par tranches : la suite arrive en faisant défiler, ou avec **Afficher plus**.
 - **Épingler :** l'icône punaise en haut d'une note la garde en tête de l'accueil.
 - **Supprimer** une ou plusieurs notes affiche **Annuler** pendant quelques secondes.
 - **Sauvegarde :** Réglages → **Mes données → Sauvegarder** télécharge un fichier avec toutes tes notes (résumés, cours, transcriptions, tâches, fiches, questions). **Restaurer** le réimporte (sur ce téléphone ou un autre) sans rien écraser. Les clés d'API ne sont incluses que si tu coches la case ; à la restauration, l'app **demande avant de reprendre** des clés, un jeton ou l'adresse d'un relais (ne réponds « OK » que pour tes propres fichiers). Le contenu d'un fichier de sauvegarde est vérifié : une note mal formée est ignorée. L'audio n'est pas inclus (trop lourd). Un rappel apparaît sur l'accueil quand ta dernière sauvegarde date.

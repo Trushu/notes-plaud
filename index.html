@@ -8714,7 +8714,7 @@ function pinSheet(mode) {   // 'new' | 'change' | 'off'
     <div class="stack" style="margin-top:14px"><button class="btn primary block" id="pinOk" type="button">${mode === 'off' ? 'Désactiver' : 'Enregistrer'}</button><button class="btn ghost block" id="pinNo" type="button">Annuler</button></div>`, (b) => {
     const val = (id) => { const el = b.querySelector('#' + id); return el ? el.value.trim() : ''; };
     const bad = (t) => { const r = b.querySelector('#pinRes'); r.className = 'f-help key-res ko'; r.textContent = t; };
-    setTimeout(() => { const i = b.querySelector('input'); if (i) i.focus(); }, 60);
+    sheetFocus(b.querySelector('input'));
     b.querySelector('#pinNo').onclick = closeSheet;
     b.querySelector('#pinOk').onclick = async () => {
       if (needCur && !(await pinMatches(val('pinCur')))) return bad('Code actuel incorrect.');

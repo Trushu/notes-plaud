@@ -48,7 +48,7 @@ Les contraintes ne changent pas : pas d'étape de build, interface en français,
 - [x] **U3. Messages d'erreur avec action.** Chaque erreur fréquente (clé refusée, limite, fichier trop gros, format inconnu, stockage plein) affiche un bouton qui mène au bon endroit : Réglages, Réessayer plus tard… *Bénéfice : savoir quoi faire.* · Effort S · **P2** — [PR #11](https://github.com/Trushu/notes-plaud/pull/11)
 - [ ] **U4. Mode tablette et ordinateur.** Sur grand écran, la liste des notes reste à gauche et la note s'ouvre à droite, et les fiches sont plus larges. *Bénéfice : réviser confortablement sur tablette ou PC.* · Effort M · **P2**
 - [ ] **U5. États vides utiles.** Accueil, tâches, cours et recherche sans résultat proposent l'action suivante : « Importer ton emploi du temps », « Essaie sans guillemets »… *Bénéfice : ne jamais rester bloqué devant un écran vide.* · Effort S · P3
-- [ ] **U6. Retour haptique.** Une légère vibration accompagne « Marquer », le début et la fin d'un enregistrement et une tâche cochée. *Bénéfice : une confirmation sans regarder l'écran, en plein cours.* · Effort S · P3
+- [x] **U6. Retour haptique.** Une légère vibration accompagne « Marquer », le début et la fin d'un enregistrement et une tâche cochée. *Bénéfice : une confirmation sans regarder l'écran, en plein cours.* · Effort S · P3 — [PR #16](https://github.com/Trushu/notes-plaud/pull/16)
 
 ## Organisation
 
@@ -63,9 +63,9 @@ Les contraintes ne changent pas : pas d'étape de build, interface en français,
 
 - [x] **F1. Sauvegarde en un toucher vers Drive.** Le fichier de sauvegarde est partagé vers Google Drive, Gmail ou Fichiers, via le menu Partager d'Android, au lieu d'un simple téléchargement. Les rappels se règlent (toutes les semaines, tous les mois). *Bénéfice : une copie hors du téléphone, vraiment faite.* · Effort S · **P1** — [PR #13](https://github.com/Trushu/notes-plaud/pull/13)
 - [x] **F2. Sauvegarde chiffrée par mot de passe.** Le chiffrement se fait dans le téléphone (AES-GCM, WebCrypto), et le mot de passe est demandé à la restauration. Il est conseillé dès que la sauvegarde contient les clés d'API. *Bénéfice : une sauvegarde sur Drive sans exposer ses notes ni ses clés.* · Effort M · **P1** — [PR #13](https://github.com/Trushu/notes-plaud/pull/13)
-- [ ] **F3. File d'attente visible.** La liste des fichiers en attente s'affiche avec leur état. On peut retirer un fichier, et un fichier en échec peut être relancé. *Bénéfice : garder la main quand on importe plusieurs cours d'un coup.* · Effort M · **P2**
+- [x] **F3. File d'attente visible.** La liste des fichiers en attente s'affiche avec leur état. On peut retirer un fichier, et un fichier en échec peut être relancé. *Bénéfice : garder la main quand on importe plusieurs cours d'un coup.* · Effort M · **P2** — [PR #16](https://github.com/Trushu/notes-plaud/pull/16)
 - [ ] **F4. Questions hors ligne.** Une question posée sans réseau part toute seule au retour de la connexion. *Bénéfice : poser ses questions dans le métro.* · Effort S · P3
-- [ ] **F5. Rapport de diagnostic.** Un texte à copier (version, navigateur, stockage, dernières erreurs), sans aucune clé ni contenu de note. *Bénéfice : obtenir de l'aide facilement.* · Effort S · P3
+- [x] **F5. Rapport de diagnostic.** Un texte à copier (version, navigateur, stockage, dernières erreurs), sans aucune clé ni contenu de note. *Bénéfice : obtenir de l'aide facilement.* · Effort S · P3 — [PR #16](https://github.com/Trushu/notes-plaud/pull/16)
 
 ## Design
 
@@ -78,8 +78,8 @@ Les contraintes ne changent pas : pas d'étape de build, interface en français,
 - [ ] **A1. La taille du texte s'applique aussi aux fiches, au quiz et au glossaire.** · Effort S · **P2**
 - [ ] **A2. Vérifier les nouveaux écrans avec axe-core.** Les nouveaux écrans sont ajoutés à l'audit d'accessibilité dans les 8 thèmes. · Effort S · **P1** (fait à chaque PR)
 - [ ] **S1. Verrouillage par code.** Un code à 4 à 8 chiffres est demandé à l'ouverture, après une durée réglable. C'est un écran de confidentialité, pas un chiffrement, et c'est expliqué. *Bénéfice : un téléphone prêté n'ouvre pas les notes.* · Effort M · P3
-- [ ] **S2. « Tout effacer ».** Un bouton supprime les notes, l'audio, les réglages et le cache, avec une double confirmation. *Bénéfice : rendre ou revendre son téléphone en toute tranquillité.* · Effort S · **P2**
-- [ ] **S3. Clés masquées dans les exports et les diagnostics.** · Effort S · P3
+- [x] **S2. « Tout effacer ».** Un bouton supprime les notes, l'audio, les réglages et le cache, avec une double confirmation. *Bénéfice : rendre ou revendre son téléphone en toute tranquillité.* · Effort S · **P2** — [PR #16](https://github.com/Trushu/notes-plaud/pull/16)
+- [x] **S3. Clés masquées dans les exports et les diagnostics.** · Effort S · P3 — [PR #16](https://github.com/Trushu/notes-plaud/pull/16)
 - [ ] **P1. Mesures de performance des nouvelles fonctions.** Statistiques, glossaire et recherche avancée doivent rester rapides avec 500 notes. · Effort S · **P2**
 
 ## Documentation

@@ -107,3 +107,11 @@ test.describe('Formules (KaTeX)', () => {
     assert.equal(o.displayMode, false);
   });
 });
+
+test.describe('Rapport de diagnostic (F5, S3)', () => {
+  const { app } = require('../helpers/load-app').loadApp({ now: Date.now() });
+  test('aucune clé ni jeton ne passe', () => {
+    const s = app.scrubKeys('Clé gsk_abcdefgh123456 refusée ; AIzaSyD-xyz_1234567 ; jeton eyJhbGciOi.abc.def ; https://x/cal?key=perso123&a=1');
+    assert.equal(s, 'Clé [masqué] refusée ; [masqué] ; jeton [masqué] ; https://x/cal?key=[masqué]&a=1');
+  });
+});

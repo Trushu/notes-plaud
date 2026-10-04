@@ -851,6 +851,12 @@
   .sem-grid button.ok { background: var(--green); } .sem-grid button.miss { background: var(--err); } .sem-grid button.up { background: transparent; box-shadow: inset 0 0 0 2px var(--ctl); }
   .sem-leg { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12.5px; color: var(--muted); }
   .sem-leg i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .home-q { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 14px 16px; margin-bottom: 14px; font: inherit; color: inherit; cursor: pointer; }
+  .home-q .sec-ic { background: var(--blue-soft); color: var(--blue); flex: none; } .home-q .grow { flex: 1; min-width: 0; } .home-q b { display: block; } .home-q small { color: var(--muted); font-size: 13px; }
+  .home-q .pct2 { font-weight: 600; color: var(--accent-ink); }
+  .q-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .q-row .grow { flex: 1; min-width: 0; } .q-row b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .q-row small { color: var(--muted); font-size: 12.5px; }
+  .q-row .btn { min-height: 38px; padding: 0 12px; flex: none; }
   .home-rev { display: flex; align-items: center; gap: 12px; padding: 14px 14px 14px 16px; margin-bottom: 14px; }
   .home-rev .sec-ic { background: var(--violet-soft); color: var(--violet); flex: none; }
   .home-rev .grow { flex: 1; min-width: 0; }
@@ -1104,6 +1110,7 @@
         <div class="row" style="margin-top:10px"><button class="btn primary" id="bkRemindGo" style="min-height:38px">Sauvegarder</button><button class="btn ghost" id="bkRemindX" style="min-height:38px">Plus tard</button></div></div>
     </div>
     <div id="homeCrs"></div>
+    <div id="homeQueue"></div>
     <div id="homeExam"></div>
     <div id="homeRev"></div>
     <button class="card run-banner rec-banner hidden" id="recBanner">
@@ -1617,6 +1624,11 @@
       <div><b>Version <span id="appVersion"></span></b><small id="updState">L'app se met à jour toute seule quand tu la rouvres.</small></div>
       <button class="btn" id="updBtn" type="button">Vérifier</button>
     </div>
+    <div class="card pad stack" style="margin-top:10px">
+      <label class="chkline" style="margin:0"><input type="checkbox" class="tck" id="sHaptic"><span><b>Vibrations</b><small style="display:block;color:var(--muted);font-weight:400;margin-top:2px">Une petite vibration pour confirmer un moment marqué, la fin d'un enregistrement, une tâche cochée.</small></span></label>
+      <div class="notif-row"><div><b>Rapport de diagnostic</b><small>Version, téléphone, stockage, dernières erreurs. Aucune clé ni contenu de note.</small></div><button class="btn" id="diagBtn" type="button">Copier</button></div>
+      <div class="notif-row"><div><b>Tout effacer</b><small>Supprime notes, audio, réglages et clés de ce téléphone (avant de le rendre ou de le revendre).</small></div><button class="btn danger" id="wipeBtn" type="button">Effacer</button></div>
+    </div>
     <p class="privacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><span>Tes clés et tes notes restent dans ce téléphone. L'audio est envoyé à Groq pour la transcription, puis gardé uniquement dans ce téléphone pour la réécoute (réglable ci-dessus). Seule la transcription écrite est envoyée pour le résumé.</span></p>
   </section>
 </div>
@@ -1673,7 +1685,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '44 · 4 oct. 2026';
+const APP_VERSION = '45 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -3525,6 +3537,7 @@ async function renderHome() {
   renderList();
   renderBkRemind();
   renderHomeCourse();
+  renderHomeQueue();
   renderHomeExam();
   renderHomeRev();
   renderResume();
@@ -4846,7 +4859,7 @@ $('taskList').addEventListener('change', async (e) => {
   const t = taskCache.find((x) => x.id === c.dataset.id); if (!t) return;
   c.closest('.titem').classList.toggle('done', c.checked);
   await updateTask(t.noteId, t.idx, (x) => ({ ...x, done: c.checked }));
-  if (c.checked) toast('Tâche terminée');
+  if (c.checked) { toast('Tâche terminée'); haptic(); }
   setTimeout(() => { if (current === 'tasks') renderTasks(); }, c.checked && !tui.showDone ? 450 : 0);
 });
 $('taskList').addEventListener('click', (e) => {
@@ -5990,6 +6003,89 @@ function semesterHtml(m, notes, now = Date.now()) {
     <div class="sem-leg"><span><i style="background:var(--green)"></i>${c.ok} enregistrée${c.ok > 1 ? 's' : ''}</span><span><i style="background:var(--err)"></i>${c.miss} manquée${c.miss > 1 ? 's' : ''}</span><span><i style="box-shadow:inset 0 0 0 2px var(--ctl)"></i>${c.up} à venir</span></div>
     ${c.miss ? '<p class="f-help">Une séance manquée ? Touche son carré pour lui associer une note (un enregistrement d\'un camarade, par exemple).</p>' : ''}</div>`;
 }
+
+/* =================== File d'attente, diagnostic, tout effacer, vibrations =================== */
+// File d'attente visible : en cours, en attente (dans l'ordre), en échec
+const QWAIT = (h) => (h.status === 'transcription' && h.hasAudio) || (h.status === 'resume' && h.hasSegs);
+const QFAIL = (h) => (h.status === 'err' && h.hasAudio) || (h.status === 'resume-err' && h.hasSegs);
+async function queueState() {
+  const heads = [...(await ensureHeads()).values()].filter((h) => h.id !== INBOX).sort((a, b) => a.created - b.created);
+  return { run: heads.filter((h) => h.id === runningId), wait: heads.filter((h) => h.id !== runningId && QWAIT(h)), fail: heads.filter((h) => h.id !== runningId && QFAIL(h)) };
+}
+async function renderHomeQueue() {
+  const box = $('homeQueue'); if (!box) return;
+  const q = await queueState().catch(() => null);
+  if (!q || (!q.wait.length && !q.fail.length)) { box.innerHTML = ''; return; }
+  box.innerHTML = `<button class="card home-q" id="hqGo" type="button"><span class="sec-ic">${ICONS.list}</span><span class="grow"><b>File d'attente</b><small>${[q.wait.length ? `${q.wait.length} en attente` : '', q.fail.length ? `${q.fail.length} en échec` : ''].filter(Boolean).join(' · ')}</small></span><span class="pct2">Voir</span></button>`;
+  $('hqGo').onclick = queueSheet;
+}
+async function queueSheet() {
+  const q = await queueState();
+  const row = (h, kind) => `<div class="q-row"><div class="grow"><b>${esc(h.title || h.fileName || 'Sans titre')}</b><small>${kind === 'run' ? 'En cours…' : kind === 'wait' ? (h.status === 'resume' ? 'En attente du résumé' : 'En attente de transcription') : esc(String(h.error || 'Échec').slice(0, 160))}</small></div>
+    ${kind === 'wait' ? `<button class="btn" type="button" data-qrm="${esc(h.id)}">Retirer</button>` : kind === 'fail' ? `<button class="btn" type="button" data-qre="${esc(h.id)}">Réessayer</button>` : `<button class="btn" type="button" data-qopen="1">Voir</button>`}</div>`;
+  openSheet(`<h3>File d'attente</h3><p class="sub">Les fichiers sont traités un par un, dans l'ordre. Rien n'est perdu si l'app se ferme : tout reprend à la réouverture.</p>
+    ${q.run.length ? `<div class="f">En cours</div>${q.run.map((h) => row(h, 'run')).join('')}` : ''}
+    ${q.wait.length ? `<div class="f">En attente (${q.wait.length})</div>${q.wait.map((h) => row(h, 'wait')).join('')}` : ''}
+    ${q.fail.length ? `<div class="f">En échec (${q.fail.length})</div>${q.fail.map((h) => row(h, 'fail')).join('')}${q.fail.length > 1 ? '<button class="btn block" id="qAll" type="button" style="margin-top:10px">Tout réessayer</button>' : ''}` : ''}
+    ${!q.run.length && !q.wait.length && !q.fail.length ? '<p class="sub">Rien en attente.</p>' : ''}`, (b) => {
+    b.querySelectorAll('[data-qrm]').forEach((x) => x.onclick = async () => { await queueRemove(x.dataset.qrm); queueSheet(); renderHome(); });
+    b.querySelectorAll('[data-qre]').forEach((x) => x.onclick = async () => { await queueRetry([x.dataset.qre]); queueSheet(); });
+    const all = b.querySelector('#qAll'); if (all) all.onclick = async () => { await queueRetry(q.fail.map((h) => h.id)); queueSheet(); };
+    b.querySelectorAll('[data-qopen]').forEach((x) => x.onclick = () => { closeSheet(); show('job'); });
+  });
+}
+async function queueRemove(id) {
+  const n = await db.get(id); if (!n || id === runningId) return;
+  n.status = n.segments ? 'resume-err' : 'err'; n.error = 'Retiré de la file d\'attente. Touche « Réessayer » pour le relancer.'; delete n.queued;
+  await db.put(n); toast('Retiré de la file d\'attente');
+}
+async function queueRetry(ids) {
+  for (const id of ids) {
+    const n = await db.get(id); if (!n || id === runningId) continue;
+    n.status = n.segments ? 'resume' : 'transcription'; n.queued = true; delete n.error; await db.put(n);
+  }
+  toast(ids.length > 1 ? `${ids.length} fichiers remis dans la file` : 'Remis dans la file d\'attente');
+  if (current === 'home') renderHome();
+  resumeInterrupted();
+}
+// Rapport de diagnostic : de quoi obtenir de l'aide, sans aucune clé ni contenu de note
+const scrubKeys = (s) => String(s).replace(/\b(gsk_|AIza|csk-|sk-|eyJ)[\w.\-]{6,}/g, '[masqué]').replace(/([?&](?:key|token|k)=)[^&\s]+/gi, '$1[masqué]');
+async function diagReport() {
+  const heads = [...(await ensureHeads()).values()];
+  let sto = '?', persisted = '?';
+  try { const e = await navigator.storage.estimate(); sto = `${mb(e.usage || 0)} / ${mb(e.quota || 0)}`; persisted = String(await navigator.storage.persisted()); } catch (e) {}
+  const errs = heads.filter((h) => h.error).sort((a, b) => b.created - a.created).slice(0, 5).map((h) => `- [${h.status}] ${scrubKeys(String(h.error).slice(0, 200))}`);
+  const cool = provCool();
+  const lines = [
+    `Notes Plaud — rapport de diagnostic (${new Date().toLocaleString('fr-FR')})`,
+    `Version : ${APP_VERSION}`,
+    `Navigateur : ${navigator.userAgent}`,
+    `App installée : ${matchMedia('(display-mode: standalone)').matches ? 'oui' : 'non'} · En ligne : ${navigator.onLine ? 'oui' : 'non'} · Service worker : ${navigator.serviceWorker && navigator.serviceWorker.controller ? 'actif' : 'absent'}`,
+    `Stockage : ${sto} · protégé : ${persisted}`,
+    `Notes : ${heads.length} · en attente : ${heads.filter(QWAIT).length} · en échec : ${heads.filter(QFAIL).length}`,
+    `Clés présentes : Groq ${settings.key ? 'oui' : 'non'}, Gemini ${settings.gkey ? 'oui' : 'non'}, Cerebras ${settings.ckey ? 'oui' : 'non'}, Mistral ${settings.mkey ? 'oui' : 'non'} · IA choisie : ${settings.provider || 'auto'}`,
+    `IA au repos : ${CHAIN.filter((p) => (cool[p] || 0) > Date.now()).join(', ') || 'aucune'}`,
+    `Relais Plaud : ${settings.prelay ? 'configuré' : 'non'} · Calendrier : ${(AG.events || []).length} événements`,
+    errs.length ? 'Dernières erreurs :\n' + errs.join('\n') : 'Dernières erreurs : aucune',
+  ];
+  return scrubKeys(lines.join('\n'));
+}
+// Tout effacer : notes, audio, réglages, clés, cache de l'app (pour rendre ou revendre son téléphone)
+async function wipeAll() {
+  if (!confirm('Tout effacer ? Notes, audio, fiches, réglages et clés d\'API seront supprimés de ce téléphone. Fais d\'abord une sauvegarde si tu veux les garder.')) return false;
+  const w = prompt('Pour confirmer, écris EFFACER :');
+  if (!w || w.trim().toUpperCase() !== 'EFFACER') { toast('Rien n\'a été effacé'); return false; }
+  try { cancelAll(); } catch (e) {}
+  try { const d = await openDB(); d.close(); } catch (e) {}
+  await new Promise((res) => { try { const r = indexedDB.deleteDatabase('notes-plaud'); r.onsuccess = r.onerror = r.onblocked = () => res(); } catch (e) { res(); } });
+  try { localStorage.clear(); sessionStorage.clear(); } catch (e) {}
+  try { for (const k of await caches.keys()) await caches.delete(k); } catch (e) {}
+  try { for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); } catch (e) {}
+  location.replace(location.pathname);
+  return true;
+}
+// Petite vibration de confirmation (désactivable)
+const haptic = (ms = 15) => { try { if (lsGet('np-haptic', '1') === '1' && navigator.vibrate) navigator.vibrate(ms); } catch (e) {} };
 
 /* =================== Planning de révision avant les examens =================== */
 /* Date d'examen : celle du calendrier (événement « Examen », « partiel »…) ou saisie à la main sur la page de la matière.
@@ -7514,10 +7610,11 @@ function recMark() {
   const x = Math.floor(recElapsed() / 1000);
   if (rec.marks.length && x - rec.marks[rec.marks.length - 1] < 3) return;
   rec.marks.push(x); renderRec(); toast('Moment marqué : ' + hms(x));
-  try { if (navigator.vibrate) navigator.vibrate(30); } catch (e) {}
+  haptic(30);
 }
 async function stopRec(save) {
   const mr = rec.mr; if (!mr || rec.stopping) return;
+  haptic(save === false ? 15 : 40);
   rec.stopping = true;
   if (!rec.paused) { rec.acc += Date.now() - rec.since; rec.paused = true; }
   const secs = Math.round(rec.acc / 1000);
@@ -8251,6 +8348,10 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 $('toTop').onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 $('bkBtn').onclick = backupData;
 $('rsBtn').onclick = () => $('rsInput').click();
+$('sHaptic').checked = lsGet('np-haptic', '1') === '1';
+$('sHaptic').onchange = () => { lsSet('np-haptic', $('sHaptic').checked ? '1' : '0'); haptic(); };
+$('diagBtn').onclick = async () => copyText(await diagReport(), 'Rapport copié : colle-le dans ton message d\'aide');
+$('wipeBtn').onclick = wipeAll;
 $('bkEvery').value = lsGet('np-bk-every', '30');
 $('bkEvery').onchange = () => { lsSet('np-bk-every', $('bkEvery').value); renderBkRemind(); };
 $('rsInput').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) restoreData(f); };

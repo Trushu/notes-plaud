@@ -120,6 +120,10 @@ test.describe('Audit axe-core : autres écrans et fenêtres', () => {
     await auditThemes(page, 'erreur de traitement', out);
     await page.locator('#jobHome').click();
     mocks.fail = null;
+    await expect(page.locator('#homeQueue')).toContainText('en échec');
+    await page.locator('#hqGo').click();
+    await auditThemes(page, 'file d\'attente', out);
+    await page.keyboard.press('Escape');
 
     await prepare(page);
     await page.evaluate(async () => {

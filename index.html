@@ -1408,7 +1408,8 @@
             <option value="mistral">Mistral</option>
             <option value="groq">Groq</option>
           </select>
-          <div class="f-help">Si l'IA choisie est saturée ou ne répond pas, l'app passe toute seule à la suivante qui a une clé, dans cet ordre : Gemini → Cerebras → Mistral → Groq.</div>
+          <div class="f-help">Si l'IA choisie est saturée ou ne répond pas, l'app passe toute seule à la suivante qui a une clé, dans cet ordre : Gemini → Cerebras → Mistral → Groq. Une IA qui vient d'atteindre sa limite gratuite est mise au repos un moment : les traitements suivants commencent directement par la suivante.</div>
+          <div class="f-help" id="provCool" role="status"></div>
         </div>
         <div id="gBox" class="stack">
           <div>
@@ -1634,7 +1635,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '38 · 4 oct. 2026';
+const APP_VERSION = '39 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -1671,7 +1672,13 @@ const gemList = () => settings.gmodels.split(',').map((x) => x.trim()).filter(Bo
 const CHAIN = ['gemini', 'cerebras', 'mistral', 'groq'];
 const PNAME = { gemini: 'Gemini', cerebras: 'Cerebras', mistral: 'Mistral', groq: 'Groq' };
 const hasKey = (p) => !!(p === 'gemini' ? settings.gkey : p === 'cerebras' ? settings.ckey : p === 'mistral' ? settings.mkey : settings.key);
-const primary = () => settings.provider && settings.provider !== 'auto' ? settings.provider : (CHAIN.find(hasKey) || 'groq');
+// IA « au repos » : limite gratuite atteinte récemment → en mode automatique, on commence directement par la suivante
+// (mémorisé entre deux traitements, au lieu de refaire attendre l'utilisateur à chaque fois)
+const provCool = () => { try { return JSON.parse(localStorage.getItem('np-cool') || '{}') || {}; } catch (e) { return {}; } };
+const cooling = (p, now = Date.now()) => (provCool()[p] || 0) > now;
+function coolDown(p, ms) { const c = provCool(); c[p] = Date.now() + ms; try { localStorage.setItem('np-cool', JSON.stringify(c)); } catch (e) {} }
+const coolFor = (msg) => /quota du jour|per ?day|daily/i.test(msg) ? 6 * 3600000 : /limite|quota|surcharg|429|indisponible|ne répond pas|injoignable/i.test(msg) ? 15 * 60000 : 0;
+const primary = () => settings.provider && settings.provider !== 'auto' ? settings.provider : (CHAIN.find((p) => hasKey(p) && !cooling(p)) || CHAIN.find(hasKey) || 'groq');
 const provider = () => provOverride || primary();
 // fournisseurs à essayer ensuite (ceux qui ont une clé et n'ont pas encore échoué pendant ce traitement)
 let provFailed = new Set();
@@ -2778,8 +2785,10 @@ let provOverride = null;
 const canFallback = () => !!nextProvider();
 function fallBack(e) {   // passe au fournisseur suivant ; renvoie son nom ou null
   if (!(e instanceof ProviderDown)) return null;
-  provFailed.add(provider());
-  const nx = nextProvider();
+  const cur = provider();   // avant la mise au repos (qui change l'IA choisie en mode automatique)
+  provFailed.add(cur);
+  const ms = coolFor(e.message); if (ms) coolDown(cur, ms);
+  const nx = [primary(), ...CHAIN].find((p) => p !== cur && hasKey(p) && !provFailed.has(p)) || null;
   if (nx) provOverride = nx;
   return nx;
 }
@@ -2799,7 +2808,9 @@ const STRUCT = {
 ## Définitions et formules
 (« **Terme** : définition » ; formules en LaTeX ; « Aucune » sinon)
 ## Exemples traités
-(exemples, exercices ou cas étudiés en cours, une ligne chacun ; « Aucun » sinon)
+(exemples, exercices ou cas étudiés en cours, une ligne chacun, avec leurs valeurs chiffrées telles quelles ; « Aucun » sinon)
+## Questions posées en classe
+(questions posées par des étudiants pendant le cours et réponse de l'enseignant, chacune sur une ligne : « - Question ? → Réponse » ; repère-les aux changements de voix ou de ton dans la transcription — « Monsieur, est-ce que… », « Oui, bonne question… » ; « Aucune » sinon)
 ## À retravailler à la maison
 (liste « - [ ] … » : exercices et lectures donnés, passages traités trop vite ou restés flous, notions difficiles à revoir)
 ## Devoirs et échéances
@@ -2848,7 +2859,8 @@ Règles :
 - Réponds uniquement en Markdown. Première ligne : « # » suivi d'un titre court et précis (8 mots maximum).
 - Garde les titres de rubriques exactement comme indiqué, dans cet ordre.
 - N'invente rien qui ne soit pas dans le texte.
-- Écris les formules mathématiques ou scientifiques en LaTeX : $…$ dans une phrase, $$…$$ pour une formule isolée.
+- Écris les formules mathématiques ou scientifiques en LaTeX : $…$ dans une phrase, $$…$$ pour une formule isolée. Garde les notations de l'enseignant (mêmes lettres, mêmes indices).
+- Reprends exactement les chiffres, dates, valeurs numériques et noms propres entendus ; si un mot est incertain, choisis le terme de la matière le plus plausible plutôt qu'un mot courant.
 
 Tâches — TRÈS IMPORTANT, les lignes « - [ ] » alimentent directement la liste de tâches de l'utilisateur :
 - ne mets en « - [ ] » que des tâches concrètes, utiles et réalisables, qui commencent par un verbe à l'infinitif (« Refaire l'exercice 3 du TD 2 », « Relire le chapitre 4 sur les récurrences », « Envoyer le devis à Marie ») ;
@@ -5090,7 +5102,8 @@ ${ctxLine()}
 - Environ ${want} fiches, selon la richesse du contenu.
 - Chaque fiche porte sur UNE notion importante : définition, théorème ou règle, formule, raisonnement, date ou chiffre clé, exemple type, piège signalé par l'enseignant, point annoncé pour l'examen.
 - Question précise et autonome (compréhensible sans le cours). Réponse courte et exacte : 1 à 4 phrases, ou une formule.
-- Formules en LaTeX : $…$. Pas de questions triviales, pas de doublons. N'invente rien qui ne soit pas dans le cours.
+- Varie les types : définition, « pourquoi », « comment calcule-t-on », application chiffrée, comparaison de deux notions, piège.
+- Formules en LaTeX : $…$. Pas de questions triviales, pas de doublons (une même notion n'est demandée qu'une fois, même reformulée). N'invente rien qui ne soit pas dans le cours.
 Réponds UNIQUEMENT avec un tableau JSON, sans aucun texte autour : [{"q": "…", "a": "…"}]
 
 Cours :
@@ -5950,15 +5963,51 @@ function linkCourse(n, e) {
   n.tags = [...new Set([...(n.tags || []), crsTag(n.course.name)])];
 }
 const courseTitle = (n) => `${n.course.name} · ${KIND_LBL[n.course.kind] || 'Cours'} du ${new Date(n.course.start).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}`;
+// Vocabulaire d'une matière : termes saisis par l'étudiant, puis termes définis dans les résumés de ses séances (« **Terme** : … »).
+// Il est donné à la reconnaissance vocale (Whisper, qui écrit alors ces mots correctement) et à l'IA.
+function defTerms(summary) {
+  const out = []; let inDefs = false;
+  for (const line of String(summary || '').split('\n')) {
+    if (/^#{1,3}\s/.test(line)) { inDefs = /d[ée]finition|vocabulaire|glossaire/i.test(line); continue; }
+    if (!inDefs) continue;
+    const m = /^\s*(?:[-*•]\s+)?\*\*([^*\n]{2,60})\*\*\s*(?::|—|–|-)/.exec(line);
+    if (m) out.push(m[1].replace(/\s*:\s*$/, '').trim());
+  }
+  return out;
+}
+const splitTerms = (s) => String(s || '').split(/[,;\n]/).map((x) => x.trim()).filter((x) => x && x.length <= 60);
+function matVocab(key, max = 40) {
+  const own = splitTerms((crsPrefs()[key] || {}).vocab), auto = [];
+  if (headMap) for (const h of headMap.values()) if (h.course && h.course.key === key) auto.push(...defTerms(h.summary));
+  const seen = new Set(), res = [];
+  for (const t of [...own, ...auto]) { const k = norm(t); if (!seen.has(k)) { seen.add(k); res.push(t); } }
+  return res.slice(0, max);
+}
 function setCourseCtx(n, m) {
   const c = n && n.course;
+  const voc = c || m ? matVocab((c || m).key) : [], vocTxt = voc.length ? ` Vocabulaire de la matière (orthographe à respecter) : ${voc.join(', ')}.` : '';
   if (c) {
-    ctxCourse = `${KIND_LBL[c.kind] || 'Cours'} universitaire de « ${c.full || c.name} »${c.code ? ` (${c.code})` : ''}, le ${new Date(c.start).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}${c.prof ? `, enseignant : ${c.prof}` : ''}. Utilise le vocabulaire de cette matière pour corriger les mots mal reconnus.`;
-    whisperPrompt = `Cours de ${c.full || c.name}${c.prof ? ', ' + c.prof : ''}.`;
+    ctxCourse = `${KIND_LBL[c.kind] || 'Cours'} universitaire de « ${c.full || c.name} »${c.code ? ` (${c.code})` : ''}, le ${new Date(c.start).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}${c.prof ? `, enseignant : ${c.prof}` : ''}. Utilise le vocabulaire de cette matière pour corriger les mots mal reconnus.${vocTxt}`;
+    // Whisper ne lit que les ~220 derniers « mots » de son invite : le vocabulaire passe en premier, le nom du cours à la fin
+    whisperPrompt = `${voc.length ? voc.join(', ') + '. ' : ''}Cours de ${c.full || c.name}${c.prof ? ', ' + c.prof : ''}.`.slice(-600);
   } else if (m) {
-    ctxCourse = `enregistrements de la matière universitaire « ${m.full || m.name} »${m.code ? ` (${m.code})` : ''}${m.profs.length ? `, enseignant(s) : ${m.profs.join(', ')}` : ''}.`;
+    ctxCourse = `enregistrements de la matière universitaire « ${m.full || m.name} »${m.code ? ` (${m.code})` : ''}${m.profs.length ? `, enseignant(s) : ${m.profs.join(', ')}` : ''}.${vocTxt}`;
     whisperPrompt = '';
   } else { ctxCourse = ''; whisperPrompt = ''; }
+}
+function vocabSheet(key) {
+  const m = getMat(key); if (!m) return;
+  const own = (crsPrefs()[key] || {}).vocab || '', auto = matVocab(key, 200).filter((t) => !splitTerms(own).some((o) => norm(o) === norm(t)));
+  openSheet(`<h3>Vocabulaire — ${esc(m.name)}</h3><p class="sub">Noms propres, termes techniques, sigles… La transcription les écrira correctement, et l'IA s'en sert pour corriger les mots mal reconnus.</p>
+    <label class="f" for="vocIn">Tes termes (séparés par des virgules)</label>
+    <textarea id="vocIn" maxlength="3000" placeholder="ex. Dijkstra, tas binaire, NP-complet">${esc(own)}</textarea>
+    ${auto.length ? `<div class="f" style="margin-top:12px">Appris dans tes résumés (${auto.length})</div><div class="tags">${auto.slice(0, 60).map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : '<p class="f-help">Les termes définis dans les résumés de tes séances (« Définitions et formules ») s\'ajouteront ici tout seuls.</p>'}
+    <button class="btn primary block" id="vocOk" type="button" style="margin-top:14px">Enregistrer</button>`, (body) => {
+    body.querySelector('#vocOk').onclick = () => {
+      const all = crsPrefs(); all[key] = { ...(all[key] || {}), vocab: splitTerms(body.querySelector('#vocIn').value).join(', ') };
+      lsSet('np-crs', JSON.stringify(all)); MATS = null; closeSheet(); toast('Vocabulaire enregistré');
+    };
+  });
 }
 const noteOfEvent = (e, notes) => notes.find((n) => n.course && n.course.uid === e.uid) || null;
 
@@ -6259,6 +6308,7 @@ async function renderCourse() {
       <button class="btn" id="cPdf" ${notes.length ? '' : 'disabled'}>${ICONS.download}PDF pour NotebookLM</button>
       <button class="btn" id="cAnki" ${cards.length ? '' : 'disabled'}>${ICONS.share}Fiches vers Anki</button>
       <button class="btn" id="cQuiz" ${notes.some((n) => n.summary) ? '' : 'disabled'}>${ICONS.quiz}Quiz d'examen</button>
+      <button class="btn" id="cVocab" type="button">${ICONS.book}Vocabulaire</button>
     </div>`;
   if (synthing === m.key) h += `<div class="card synth-run"><b>Synthèse en cours…</b><div class="lin" style="margin:10px 0 6px"><i style="width:60%"></i></div><div class="enh-st" id="synStatus"></div></div>`;
   else if (synth && synth.md) h += `<details class="card synth" id="synthBox"><summary><span class="sec-ic hue" style="--h:${m.hue}">${ICONS.spark}</span><b>Synthèse de la matière</b><small>${synth.n} séance${synth.n > 1 ? 's' : ''} · ${fmtDate(synth.at)}</small></summary><div class="md">${md(synth.md, { i: 0, noEdit: true })}</div><div class="row"><button class="btn" id="cSynCopy">${ICONS.share}Copier</button></div></details>`;
@@ -6275,6 +6325,7 @@ async function renderCourse() {
   $('cAsk').onclick = () => { currentNote = null; openAsk('course', 'course', m.key); };
   $('cRev').onclick = () => startReview(notes.filter((n) => (n.cardDue || []).length).map((n) => n.id));
   $('cPdf').onclick = () => printCourse(m.key);
+  $('cVocab').onclick = () => vocabSheet(m.key);
   $('cPlan').onclick = () => (examOf(m) ? planSheet(m.key) : examDateSheet(m.key));
   $('cQuiz').onclick = async () => quizMenu({ mat: { key: m.key, name: m.name }, notes: (await fullNotes((h) => !!h.summary && notes.some((n) => n.id === h.id))).sort((a, b) => a.created - b.created) });
   $('cAnki').onclick = async () => exportAnki(await fullNotes((h) => (h.cardDue || []).length && notes.some((n) => n.id === h.id)), m.name);
@@ -7392,7 +7443,13 @@ function renderThemes() {
 // le mode « Système » suit les changements clair/sombre de l'appareil
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if ((settings.theme || 'auto') === 'auto') applyTheme('auto'); });
 
+function renderProvCool(now = Date.now()) {
+  const c = provCool(), list = CHAIN.filter((p) => hasKey(p) && (c[p] || 0) > now);
+  $('provCool').innerHTML = list.length ? list.map((p) => `<b>${PNAME[p]}</b> au repos jusqu'à ${new Date(c[p]).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`).join(' · ') + ' (limite gratuite atteinte). <button class="linkbtn" id="provWake" type="button">Réessayer quand même</button>' : '';
+  const w = $('provWake'); if (w) w.onclick = () => { try { localStorage.removeItem('np-cool'); } catch (e) {} renderProvCool(); };
+}
 function showSettings() {
+  renderProvCool();
   $('sKind').value = settings.kind || 'auto';
   $('sRemind').value = settings.autoRemind || 'eve';
   $('sRevRem').value = settings.revRemind || '';

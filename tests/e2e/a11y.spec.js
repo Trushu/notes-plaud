@@ -63,6 +63,7 @@ async function tour(page, theme, out) {
   await page.keyboard.press('Escape'); await page.waitForTimeout(300);
   await page.locator('#tabbar [data-v=courses]').click(); await audit(page, `${theme} cours`, out);
   await page.locator('#crsBody .mat').first().click(); await audit(page, `${theme} matière`, out);
+  await page.locator('#cVocab').click(); await page.waitForTimeout(300); await audit(page, `${theme} vocabulaire`, out); await page.keyboard.press('Escape'); await page.waitForTimeout(300);
   await page.locator('#backBtn').click();
   await page.locator('#tabbar [data-v=home]').click();
   await page.locator('#settingsBtn').click(); await audit(page, `${theme} réglages`, out);

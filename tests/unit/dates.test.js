@@ -41,3 +41,12 @@ test.describe('dateFromName', () => {
     assert.equal(app.dateFromName('piste 123456789.mp3'), null);
   });
 });
+
+test.describe('Bugs corrigés', () => {
+  test('« 12.03.2025_0905 » est le 12 mars 2025 à 9 h 05, pas le 5 septembre', () => {
+    assert.equal(app.dateFromName('12.03.2025_0905.mp3'), local(2025, 2, 12, 9, 5));
+    assert.equal(app.dateFromName('Cours 12-03-2025_1430.m4a'), local(2025, 2, 12, 14, 30));
+    // le format année-mois-jour reste prioritaire quand il commence en premier
+    assert.equal(app.dateFromName('2025-03-12_0905.mp3'), local(2025, 2, 12, 9, 5));
+  });
+});

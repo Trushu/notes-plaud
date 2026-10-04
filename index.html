@@ -3854,20 +3854,33 @@ $('notesList').addEventListener('click', (e) => {
 });
 
 /* ---- Feuille du bas ---- */
-let sheetOpener = null, sheetHideT = null;
+let sheetOpener = null, sheetHideT = null, sheetGen = 0;   // sheetGen change à chaque ouverture et fermeture
+// Focus différé dans une fenêtre : seulement si elle est encore ouverte, et sans voler le focus d'un champ déjà touché
+function sheetFocus(el, ms = 60) {
+  const g = sheetGen;
+  setTimeout(() => {
+    if (g !== sheetGen || !el || !el.isConnected) return;
+    const a = document.activeElement;
+    if (a && a !== el && $('sheet').contains(a) && a.matches('input, textarea, select')) return;
+    el.focus();
+  }, ms);
+}
 function openSheet(html, mount) {
   clearTimeout(sheetHideT);   // une fenêtre rouverte juste après une fermeture ne doit pas être masquée par la fin de l'animation
   if ($('sheet').classList.contains('hidden') || !$('sheet').classList.contains('open')) sheetOpener = sheetOpener || document.activeElement;
   $('sheetBody').innerHTML = html;
+  const g = ++sheetGen;
   const h = $('sheetBody').querySelector('h3');
   if (h) { h.id = 'sheetTitle'; $('sheet').setAttribute('aria-labelledby', 'sheetTitle'); } else $('sheet').removeAttribute('aria-labelledby');
   $('sheet').classList.remove('hidden'); $('sheetBg').classList.remove('hidden');
   requestAnimationFrame(() => requestAnimationFrame(() => { $('sheet').classList.add('open'); $('sheetBg').classList.add('open'); }));
   if (mount) mount($('sheetBody'));
   // le lecteur d'écran et le clavier entrent dans la boîte de dialogue
-  setTimeout(() => { if (!$('sheet').contains(document.activeElement)) { $('sheet').focus({ preventScroll: true }); } }, 30);
+  // (sauf si la fenêtre a été refermée entre-temps, par Échap par exemple : le focus est alors rendu au bouton d'origine)
+  setTimeout(() => { if (g === sheetGen && !$('sheet').contains(document.activeElement)) { $('sheet').focus({ preventScroll: true }); } }, 30);
 }
 function closeSheet() {
+  sheetGen++;
   $('sheet').classList.remove('open'); $('sheetBg').classList.remove('open');
   sheetHideT = setTimeout(() => { $('sheet').classList.add('hidden'); $('sheetBg').classList.add('hidden'); }, 260);
   const back = sheetOpener; sheetOpener = null;
@@ -5495,7 +5508,7 @@ function cardEditSheet(noteId, cardId, onDone) {
       <label class="f" for="ceA" style="margin-top:12px">Réponse</label><textarea id="ceA" maxlength="4000">${esc(c ? c.a : '')}</textarea>
       <div class="stack" style="margin-top:14px"><button class="btn primary block" id="ceOk" type="button">Enregistrer</button>${c ? '<button class="btn danger block" id="ceDel" type="button">Supprimer la fiche</button>' : ''}</div>`, (body) => {
       const q = body.querySelector('#ceQ'), a = body.querySelector('#ceA');
-      setTimeout(() => q.focus(), 60);
+      sheetFocus(q);
       body.querySelector('#ceOk').onclick = async () => {
         const qq = q.value.trim(), aa = a.value.trim();
         if (!qq || !aa) { toast('Écris la question et la réponse'); (qq ? a : q).focus(); return; }
@@ -7670,7 +7683,7 @@ function askPassword(title, sub, confirmTwice) {
       <div class="f-help key-res" id="pwRes" role="status"></div>
       <div class="stack" style="margin-top:14px"><button class="btn primary block" id="pwOk" type="button">Valider</button><button class="btn ghost block" id="pwNo" type="button">Annuler</button></div>`, (b) => {
       const p1 = b.querySelector('#pw1'), p2 = b.querySelector('#pw2'), msg = b.querySelector('#pwRes');
-      setTimeout(() => p1.focus(), 60);
+      sheetFocus(p1);
       const ok = () => {
         if (confirmTwice && p1.value.length < 8) { msg.className = 'f-help key-res ko'; msg.textContent = 'Au moins 8 caractères.'; return; }
         if (confirmTwice && p1.value !== p2.value) { msg.className = 'f-help key-res ko'; msg.textContent = 'Les deux mots de passe sont différents.'; return; }

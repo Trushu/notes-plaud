@@ -18,7 +18,7 @@ L'app doit être en ligne, en HTTPS, pour qu'Android accepte de l'installer et d
 
 1. Crée un compte sur **https://github.com**, s'il te manque.
 2. Clique sur **+**, puis **New repository**. Nom : `notes-plaud`. Coche **Public**, puis **Create repository**.
-3. Clique sur **uploading an existing file**. Glisse les **5 fichiers** du dossier (`index.html`, `sw.js`, `manifest.webmanifest`, `icon-192.png`, `icon-512.png`), puis **Commit changes**.
+3. Clique sur **uploading an existing file**. Glisse les **9 fichiers** de l'app : les 5 indispensables (`index.html`, `sw.js`, `manifest.webmanifest`, `icon-192.png`, `icon-512.png`) et les 4 icônes des raccourcis (`sc-rec.png`, `sc-cours.png`, `sc-ask.png`, `sc-tasks.png`), puis **Commit changes**. Inutile d'y mettre `relais-plaud-cloudflare.js` (il va chez Cloudflare, étape 6) ni le dossier `tests/`.
 4. Va dans **Settings**, puis **Pages**. Dans « Branch », choisis **main** et **/ (root)**, puis **Save**.
 5. Attends 1 à 2 minutes. Ton app est alors en ligne à l'adresse
    `https://TON-PSEUDO.github.io/notes-plaud/`
@@ -129,7 +129,7 @@ Réglages → **Apparence** : choisis parmi 8 thèmes — **Système** (suit le 
 
 - **Depuis Plaud :** automatiquement si l'import depuis le cloud est configuré (étape 6). Sinon, ouvre l'enregistrement, puis **Exporter → Audio → MP3 → Partager → Notes Plaud**.
 - **Depuis un fichier :** dans l'app, touche **Choisir un fichier audio**. Si un traitement est déjà en cours, le fichier est gardé et transcrit juste après.
-- **Avec le micro du téléphone :** touche **Enregistrer avec le téléphone** (la première fois, autorise le micro). Pendant l'enregistrement : **Pause/Reprendre**, et **Marquer** pour signaler un passage important (il sera repéré par une ★ dans la transcription). Touche le **carré rouge** pour terminer : transcription et résumé se lancent tout seuls. Tu peux revenir à l'accueil pendant l'enregistrement (une bannière rouge permet d'y revenir). L'écran reste allumé par défaut (bouton « Écran allumé » pour changer) ; l'audio est sauvegardé toutes les 5 secondes, donc si l'app se ferme, l'enregistrement est **récupéré** à la réouverture.
+- **Avec le micro du téléphone :** touche **Enregistrer avec le téléphone** (la première fois, autorise le micro). Pendant l'enregistrement : **Pause/Reprendre**, et **Marquer** pour signaler un passage important (il sera repéré par une ★ dans la transcription). Touche le **carré rouge** pour terminer : transcription et résumé se lancent tout seuls. Tu peux revenir à l'accueil pendant l'enregistrement (une bannière rouge permet d'y revenir). L'écran reste allumé par défaut (bouton « Écran allumé » pour changer) ; l'audio est sauvegardé toutes les 5 secondes, donc si l'app se ferme, l'enregistrement est **récupéré** à la réouverture. Un cours de 3 h ne pose pas de problème : l'enregistrement est découpé automatiquement pour la transcription.
 - **Pendant le traitement :** l'écran reste allumé tout seul. Tu peux aussi **réduire l'app** : le traitement continue en arrière-plan (Réglages → Notifications → « Continuer les traitements en arrière-plan », activé par défaut). L'app se maintient active grâce à un **son silencieux** — Android peut donc l'afficher comme si un média jouait, c'est normal. Selon l'économie de batterie du téléphone, Android peut quand même finir par la suspendre ; dans ce cas tout **reprend à la réouverture** (pour un long enregistrement, les parties déjà résumées sont gardées). **Sans réseau** (métro, amphi), le traitement se met en pause et reprend tout seul dès le retour de la connexion. Active les **notifications** pour être prévenu quand une note est prête ou si un traitement se met en pause (quota, erreur).
 - **Sur une note :** **Copier**, **Partager** (vers Keep, Gmail, WhatsApp, Drive…) ou **.md** (téléchargement).
 - **Améliorer la transcription :** dans l'onglet Transcription, touche **Améliorer avec l'IA**. L'IA corrige les mots mal reconnus d'après le contexte, enlève les hésitations et reformule en phrases claires, sans rien résumer. Tu peux passer de la version **Améliorée** à la version **Brute** à tout moment. Avec Gemini, ça prend quelques secondes ; avec Groq, compte quelques minutes pour 1 h d'audio.
@@ -173,7 +173,7 @@ Sur une note, touche l'icône **bulle ?** en haut (ou **Demander** sous le résu
 
 ### Rechercher, épingler, sauvegarder
 
-- **Recherche :** la barre de l'accueil cherche dans les titres, résumés, cours rédigés **et** transcriptions, sans tenir compte des accents. Chaque résultat montre l'extrait trouvé ; le toucher ouvre la note **au bon onglet, passage surligné**.
+- **Recherche :** la barre de l'accueil cherche dans les titres, résumés, cours rédigés **et** transcriptions, sans tenir compte des accents. Chaque résultat montre l'extrait trouvé ; le toucher ouvre la note **au bon onglet, passage surligné**. Elle reste rapide même avec des centaines de notes de plusieurs heures. Les longues listes (notes, tâches) s'affichent par tranches : la suite arrive en faisant défiler, ou avec **Afficher plus**.
 - **Épingler :** l'icône punaise en haut d'une note la garde en tête de l'accueil.
 - **Supprimer** une ou plusieurs notes affiche **Annuler** pendant quelques secondes.
 - **Sauvegarde :** Réglages → **Mes données → Sauvegarder** télécharge un fichier avec toutes tes notes (résumés, cours, transcriptions, tâches, fiches, questions). **Restaurer** le réimporte (sur ce téléphone ou un autre) sans rien écraser. Les clés d'API ne sont incluses que si tu coches la case ; à la restauration, l'app **demande avant de reprendre** des clés, un jeton ou l'adresse d'un relais (ne réponds « OK » que pour tes propres fichiers). Le contenu d'un fichier de sauvegarde est vérifié : une note mal formée est ignorée. L'audio n'est pas inclus (trop lourd). Un rappel apparaît sur l'accueil quand ta dernière sauvegarde date.
@@ -236,7 +236,7 @@ Si le résumé se fait avec Groq, les longs enregistrements prennent quelques mi
 
 ## Limites des offres gratuites (septembre 2026)
 
-- **Transcription :** 2 h d'audio par heure, 8 h par jour, 25 Mo par envoi. L'app découpe automatiquement les fichiers plus gros.
+- **Transcription :** 2 h d'audio par heure, 8 h par jour, 25 Mo par envoi. L'app découpe automatiquement les fichiers plus gros (MP3, WAV, M4A et enregistrements faits avec le téléphone).
 - **Résumé avec Groq :** environ 8 000 tokens par minute et par modèle. L'app utilise deux modèles en alternance pour aller deux fois plus vite.
 - **Résumé avec Gemini Flash :** largement suffisant pour plusieurs résumés par jour, même d'enregistrements de plusieurs heures. Si le quota du jour est atteint, l'app essaie le modèle suivant de la liste.
 
@@ -283,7 +283,8 @@ Rappel : en France, enregistrer une conversation privée à l'insu des personnes
 | Une note n'est pas rangée dans la bonne matière | Touche la pastille de la matière sur la note → choisis la bonne séance ou matière (ou « Aucune matière »). |
 | Les photos ne sont pas lues par l'IA | Il faut une clé Gemini (étape 4). Dans la visionneuse, touche **Lire avec l'IA** pour réessayer. |
 | Pas de voix pour la lecture à voix haute | Réglages Android → Accessibilité → Synthèse vocale : choisis le moteur Google et installe la voix française. |
-| Mettre l'app à jour | Remplace les fichiers sur GitHub. Le téléphone reçoit la nouvelle version à la prochaine ouverture (si tu enregistres ou si un traitement tourne, elle attend la fin). |
+| Mettre l'app à jour | Remplace les fichiers sur GitHub. Le téléphone reçoit la nouvelle version à la prochaine ouverture (si tu enregistres ou si un traitement tourne, elle attend la fin). Avec un réseau très lent, l'app s'ouvre d'abord avec la version en cache et se met à jour pour la fois suivante. |
+| « Préparation de la liste après la mise à jour… » | Une seule fois après la version 34 : l'app crée un index de tes notes pour aller plus vite. Quelques secondes avec beaucoup de notes ; ne ferme pas l'app pendant ce temps. |
 | « Plus assez de place dans le téléphone » | Supprime l'audio des anciennes notes (Réglages → Mes données), puis partage ou choisis de nouveau le fichier. |
 | « Impossible de lire tes notes » | Ferme complètement l'app (multitâche) puis rouvre-la. En navigation privée, ouvre plutôt l'app installée. |
 

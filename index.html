@@ -6,6 +6,8 @@
 <title>Notes Plaud</title>
 <meta name="description" content="Transcription et résumé de tes enregistrements Plaud">
 <meta id="tc" name="theme-color" content="#f7f4ee">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <script>try{var _t=(JSON.parse(localStorage.getItem('np-settings')||'{}').theme);if(_t&&_t!=='auto')document.documentElement.dataset.theme=_t;var _f=(JSON.parse(localStorage.getItem('np-settings')||'{}').fs);if(_f&&_f!=='m')document.documentElement.dataset.fs=_f;}catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -1542,7 +1544,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '32 · 4 oct. 2026';
+const APP_VERSION = '33 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -1691,12 +1693,16 @@ function restoreMath(html, maths) {
 }
 const mathify = (text) => { const maths = []; return restoreMath(esc(protectMath(text, maths)), maths); };
 let katexLoad = null;
+// Version exacte + empreintes : le navigateur refuse le fichier s'il a été modifié (le script aurait accès aux clés)
+const KATEX_BASE = 'https://cdn.jsdelivr.net/npm/katex@0.16.47/dist/';
+const KATEX_SRI = { js: 'sha384-CwjPRVHTvLiMBFjEoij+QZViMV5rhTOIp7CJzl24JEqpRDA1sJFHVXXLURktbYYp', css: 'sha384-nH0MfJ44wi1dd7w6jinlyBgljjS8EJAh2JBoRad8a3VDw2K69vfaaqm4WnR+gXtA' };
+const KATEX_OPTS = { throwOnError: false, strict: 'ignore', output: 'htmlAndMathml', trust: false, maxSize: 20, maxExpand: 300 };
 function loadKatex() {
   if (window.katex) return Promise.resolve();
   if (!katexLoad) katexLoad = new Promise((res, rej) => {
-    const base = 'https://cdn.jsdelivr.net/npm/katex@0.16/dist/';
-    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = base + 'katex.min.css'; document.head.appendChild(l);
-    const sc = document.createElement('script'); sc.src = base + 'katex.min.js';
+    const base = KATEX_BASE;
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = base + 'katex.min.css'; l.integrity = KATEX_SRI.css; l.crossOrigin = 'anonymous'; document.head.appendChild(l);
+    const sc = document.createElement('script'); sc.src = base + 'katex.min.js'; sc.integrity = KATEX_SRI.js; sc.crossOrigin = 'anonymous';
     sc.onload = () => res(); sc.onerror = () => { katexLoad = null; rej(new Error('KaTeX indisponible')); };
     document.head.appendChild(sc);
   });
@@ -1707,7 +1713,7 @@ async function renderMath(root) {
   if (!els.length) return;
   try { await loadKatex(); } catch (e) { return; } // hors ligne : les formules restent lisibles en texte brut
   for (const el of els) {
-    try { window.katex.render(el.dataset.tex, el, { displayMode: el.dataset.display === '1', throwOnError: false, strict: 'ignore', output: 'htmlAndMathml' }); el.classList.add('done'); }
+    try { window.katex.render(el.dataset.tex, el, { ...KATEX_OPTS, displayMode: el.dataset.display === '1' }); el.classList.add('done'); }
     catch (e) {}
   }
 }
@@ -2645,8 +2651,8 @@ function parseTask(raw) {
   return { text: t.replace(/\s+/g, ' ').trim(), due, remind, prio, doneAt, tags };
 }
 function buildTask(o) {
-  let s = o.text.trim();
-  for (const t of o.tags || []) s += ' #' + t.replace(/\s+/g, '-');
+  let s = String(o.text || '').replace(/\s+/g, ' ').trim();
+  for (const t of o.tags || []) s += ' #' + String(t).trim().replace(/\s+/g, '-');
   if (o.prio === 2) s += ' ⏫'; else if (o.prio === 1) s += ' 🔼'; else if (o.prio === -1) s += ' 🔽';
   if (o.remind) s += ' ⏰ ' + o.remind.replace('T', ' ');
   if (o.due) s += ' 📅 ' + o.due;
@@ -2860,9 +2866,10 @@ function showDiag(title, text) {
   $('shareDiagTitle').textContent = title; $('shareDiagTxt').textContent = text;
   $('shareDiag').classList.remove('hidden');
 }
+const isIcsFile = (f) => !!f && (/\.ics$/i.test(f.name || '') || /calendar/i.test(f.type || ''));
 // Renvoie false si le fichier n'a pas pu être gardé
 async function startFile(file, extra) {
-  if (file && (/\.ics$/i.test(file.name || '') || /calendar/i.test(file.type || ''))) { importIcsFile(file); return true; }
+  if (isIcsFile(file)) { importIcsFile(file); return true; }
   if (!file || !file.size) { toast('Aucun fichier audio reçu'); return false; }
   const now = Date.now();
   const note = {
@@ -3289,7 +3296,7 @@ function renderList() {
     const crsM = n.course ? getMat(n.course.key) : null, hue = crsM ? crsM.hue : null;
     const tags = (n.tags || []).filter((t) => !n.course || t !== crsTag(n.course.name)).slice(0, 3).map((t) => tagHtml(t)).join('');
     html += `
-      <button class="item${ui.picked.has(n.id) ? ' picked' : ''}${n.course ? ' has-crs' : ''}" data-id="${n.id}"${hue != null ? ` style="--h:${hue}"` : ''}>
+      <button class="item${ui.picked.has(n.id) ? ' picked' : ''}${n.course ? ' has-crs' : ''}" data-id="${esc(n.id)}"${hue != null ? ` style="--h:${hue}"` : ''}>
         <span class="ck"></span>
         <span class="item-top"><span class="t">${n.pinned ? `<span class="pin">${ICONS.pin}</span>` : ''}${esc(n.title)}</span><span class="time">${shortTime(n.created)}</span></span>
         ${excerpt(n) ? `<span class="ex">${esc(excerpt(n))}</span>` : ''}
@@ -3465,7 +3472,7 @@ function renderTranscript() {
     if (s.sep) return `<div class="seg-sep">${ICONS.file}<span>${esc(s.text)}</span></div>`;
     const pre = before(s.start);
     const t = q ? markHits(s.text, q) : mathify(s.text);
-    return pre + `<div class="seg${para ? ' para' : ''}${marked.has(s) ? ' mark' : ''}" data-t="${s.start}"><time>${hms(s.start)}</time><span>${t}</span></div>`;
+    return pre + `<div class="seg${para ? ' para' : ''}${marked.has(s) ? ' mark' : ''}" data-t="${+s.start || 0}"><time>${hms(s.start)}</time><span>${t}</span></div>`;
   }).join('') + (segs.length ? inl.slice(ii).map((x) => x.html).join('') : '') || `<p class="muted" style="padding:10px 0">${n.segments ? 'Aucun passage ne correspond.' : 'Pas de transcription.'}</p>`;
   renderMath($('noteTr'));
   fillImgs($('noteTr'));
@@ -3844,8 +3851,11 @@ function plaudRegion() {
 }
 const importedIds = () => { try { return JSON.parse(localStorage.getItem('np-plaud-imported') || '[]'); } catch (e) { return []; } };
 const markImported = (ids) => lsSet('np-plaud-imported', JSON.stringify([...new Set([...importedIds(), ...ids])].slice(-3000)));
+const relayOk = (u) => /^https:\/\/[^\s/?#]+/i.test(String(u || '').trim());
+const RELAY_VERSION = 3;   // version du code « relais-plaud-cloudflare.js » livré avec cette app
 async function plaudApi(path) {
   if (!plaudOn()) throw new ApiError('Import Plaud non configuré : ajoute l\'adresse du relais et ton jeton dans les réglages.');
+  if (!relayOk(relayBase())) throw new ApiError('Adresse du relais invalide : elle doit commencer par https:// (sinon ton jeton Plaud circulerait en clair).');
   for (let i = 0; i < 3; i++) {
     let r;
     try {
@@ -4005,8 +4015,11 @@ async function plaudTest() {
   try {
     const list = await plaudList();
     const exp = jwtClaims(plaudToken()).exp;
-    $('pTestState').innerHTML = `<span style="color:var(--green)">Connecté</span> : ${list.length} enregistrement${list.length > 1 ? 's' : ''} dans ton cloud Plaud (région ${plaudRegion().toUpperCase()}).`
-      + (exp ? ` Jeton valable jusqu'au ${new Date(exp * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}.` : '');
+    let ver = 0;
+    try { const r = await tfetch(relayBase() + '/ping', {}, 10000); ver = +(JSON.parse(r.text) || {}).version || 0; } catch (e) {}
+    $('pTestState').innerHTML = `<span style="color:var(--green)">Connecté</span> : ${list.length} enregistrement${list.length > 1 ? 's' : ''} dans ton cloud Plaud (région ${esc(plaudRegion().toUpperCase())}).`
+      + (exp ? ` Jeton valable jusqu'au ${new Date(exp * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}.` : '')
+      + (ver && ver < RELAY_VERSION ? ' <b>Ton relais est une ancienne version : remplace son code par le nouveau relais-plaud-cloudflare.js (sécurité renforcée, voir le guide).</b>' : '');
     keep.pregion = settings.pregion;
   } catch (e) { $('pTestState').innerHTML = `<span style="color:var(--err)">${esc(e.message)}</span>`; }
   finally { settings = keep; }
@@ -4058,7 +4071,7 @@ async function mergeSheet(ids, pre) {
     <label class="chkline"><input type="checkbox" class="tck" id="mDel"><span>Supprimer les notes d'origine après la fusion</span></label>
     <button class="btn primary block" id="mGo"></button>`, (body) => {
     const draw = () => {
-      body.querySelector('#mList').innerHTML = all.map((n) => `<label class="mrow"><input type="checkbox" class="tck" data-id="${n.id}" ${picked.has(n.id) ? 'checked' : ''}>
+      body.querySelector('#mList').innerHTML = all.map((n) => `<label class="mrow"><input type="checkbox" class="tck" data-id="${esc(n.id)}" ${picked.has(n.id) ? 'checked' : ''}>
         <div><b>${esc(n.title)}</b><small>${fmtDate(n.created)}${n.duration ? ' · ' + dur(n.duration) : ''}</small></div></label>`).join('');
       body.querySelectorAll('#mList .tck').forEach((c) => c.onchange = () => { if (c.checked) picked.add(c.dataset.id); else picked.delete(c.dataset.id); upd(); });
       upd();
@@ -4127,9 +4140,9 @@ function dueGroup(t) {
 }
 function taskItem(t) {
   const src = t.noteTitle ? `<span class="tm src">${ICONS.resume}${esc(t.noteTitle)}</span>` : '';
-  return `<div class="titem${t.prio === 2 && !t.done ? ' p2' : ''}${t.done ? ' done' : ''}" data-id="${t.id}">
-    <input type="checkbox" class="tck" data-id="${t.id}" ${t.done ? 'checked' : ''} aria-label="Terminée">
-    <div class="tbody" data-open="${t.id}"><div class="tt">${inlineMd(t.text)}</div>${taskMeta({ ...t, showTags: t.allTags }, t.done, src)}</div>
+  return `<div class="titem${t.prio === 2 && !t.done ? ' p2' : ''}${t.done ? ' done' : ''}" data-id="${esc(t.id)}">
+    <input type="checkbox" class="tck" data-id="${esc(t.id)}" ${t.done ? 'checked' : ''} aria-label="Terminée">
+    <div class="tbody" data-open="${esc(t.id)}"><div class="tt">${inlineMd(t.text)}</div>${taskMeta({ ...t, showTags: t.allTags }, t.done, src)}</div>
   </div>`;
 }
 async function updateBadge() {
@@ -5161,7 +5174,7 @@ function nowCard(e, notes) {
     <b class="crs-now-t" data-mat="${esc(e.key)}">${esc(m ? m.name : e.base)}</b>
     <div class="crs-now-d">${KIND_LBL[e.kind] || 'Cours'} · ${dayShort(e.start)}, ${hhmm(e.start)}–${hhmm(e.end)}${e.location ? ' · ' + esc(e.location) : ''}</div>
     ${e.prof ? `<div class="crs-now-d">${esc(e.prof)}</div>` : ''}
-    <div class="row" style="margin-top:12px">${note ? `<button class="btn primary" data-open="${note.id}">${ICONS.file}Ouvrir la note</button>` : canRec ? `<button class="btn primary" data-rec="1">${ICONS.mic}Enregistrer</button>` : ''}<button class="btn" data-mat="${esc(e.key)}">${ICONS.book}La matière</button></div></div>`;
+    <div class="row" style="margin-top:12px">${note ? `<button class="btn primary" data-open="${esc(note.id)}">${ICONS.file}Ouvrir la note</button>` : canRec ? `<button class="btn primary" data-rec="1">${ICONS.mic}Enregistrer</button>` : ''}<button class="btn" data-mat="${esc(e.key)}">${ICONS.book}La matière</button></div></div>`;
 }
 const weekStartOf = (t, k = 0) => { const d = new Date(t); const back = (d.getDay() + 6) % 7; return new Date(d.getFullYear(), d.getMonth(), d.getDate() - back + 7 * k).getTime(); };
 async function renderCourses() {
@@ -5219,7 +5232,7 @@ async function renderHomeCourse() {
   const m = getMat(e.key), note = noteOfEvent(e, notes), now = Date.now();
   const canRec = !note && now >= e.start - 15 * 60000 && now < e.end;
   box.innerHTML = `<div class="card home-crs" role="button" tabindex="0" style="--h:${m ? m.hue : 20}"><div><small>${live ? '<span class="live-dot"></span>En cours' : 'Prochain cours · <span data-rel="' + e.start + '">' + relIn(e.start) + '</span>'}</small><b>${esc(m ? m.name : e.base)}</b><span class="d">${KIND_LBL[e.kind] || 'Cours'} · ${hhmm(e.start)}–${hhmm(e.end)}${e.location ? ' · ' + esc(e.location) : ''}</span></div>
-    ${note ? `<button class="btn" data-open="${note.id}">Ouvrir</button>` : canRec ? `<button class="btn primary" data-rec="1">${ICONS.mic}Enregistrer</button>` : ''}</div>`;
+    ${note ? `<button class="btn" data-open="${esc(note.id)}">Ouvrir</button>` : canRec ? `<button class="btn primary" data-rec="1">${ICONS.mic}Enregistrer</button>` : ''}</div>`;
   const card = box.firstElementChild;
   card.onclick = (ev) => { if (ev.target.closest('button')) return; show('courses'); };
   wireCourseLinks(box);
@@ -5234,7 +5247,7 @@ async function evSheet(uid) {
     <div class="stack">
       ${note ? `<button class="btn primary block" id="evOpen">${ICONS.file}Ouvrir « ${esc(note.title.slice(0, 40))} »</button>` : ''}
       ${canRec ? `<button class="btn primary block" id="evRec">${ICONS.mic}Enregistrer avec le téléphone</button>` : ''}
-      ${cands.length ? `<div class="f" style="margin:6px 0 0">Associer une note de ce jour</div>` + cands.map((n) => `<button class="btn block" data-link="${n.id}" style="justify-content:flex-start">${ICONS.file}${esc(n.title.slice(0, 44))} · ${hhmm(n.created)}</button>`).join('') : ''}
+      ${cands.length ? `<div class="f" style="margin:6px 0 0">Associer une note de ce jour</div>` + cands.map((n) => `<button class="btn block" data-link="${esc(n.id)}" style="justify-content:flex-start">${ICONS.file}${esc(n.title.slice(0, 44))} · ${hhmm(n.created)}</button>`).join('') : ''}
       ${!note && e.kind !== 'due' && e.end < now && !cands.length ? '<p class="f-help" style="margin:0">Aucun enregistrement ce jour-là. S\'il arrive plus tard depuis Plaud, il sera rangé ici tout seul.</p>' : ''}
       <button class="btn block" id="evMat">${ICONS.book}Voir la matière</button>
       ${note ? '<button class="btn ghost block" id="evUnlink">Détacher la note de ce cours</button>' : ''}
@@ -5319,7 +5332,7 @@ async function renderCourse() {
   if (up.length) h += `<div class="group">À venir</div>` + up.slice(0, 3).map((e) => evRow(e, notes, { date: true })).join('') + (up.length > 3 ? `<div class="hidden" id="cUpMore">${up.slice(3).map((e) => evRow(e, notes, { date: true })).join('')}</div><button class="linkbtn" id="cUpBtn" style="margin:2px 4px 6px">Voir les ${up.length - 3} autres séances à venir</button>` : '');
   if (dues.length) h += `<div class="group">Échéances</div>` + dues.map((e) => evRow(e, notes, { date: true })).join('');
   h += `<div class="group">Séances passées</div>` + (past.length ? past.map((e) => evRow(e, notes, { date: true })).join('') : '<div class="ev-empty">Aucune séance passée pour l\'instant.</div>');
-  if (loose.length) h += `<div class="group">Autres notes de la matière</div>` + loose.map((n) => `<button class="ev" data-open="${n.id}" style="--h:${m.hue}"><span class="ev-time">${new Date(n.created).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}<small>${hhmm(n.created)}</small></span><span class="ev-main"><b>${esc(n.title)}</b><small>${n.duration ? dur(n.duration) : ''}</small></span></button>`).join('');
+  if (loose.length) h += `<div class="group">Autres notes de la matière</div>` + loose.map((n) => `<button class="ev" data-open="${esc(n.id)}" style="--h:${m.hue}"><span class="ev-time">${new Date(n.created).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}<small>${hhmm(n.created)}</small></span><span class="ev-main"><b>${esc(n.title)}</b><small>${n.duration ? dur(n.duration) : ''}</small></span></button>`).join('');
   h += `<div class="crs-more"><button class="linkbtn" id="cRename">Renommer</button><button class="linkbtn" id="cHide" style="color:var(--muted)">Masquer cette matière</button></div>`;
   $('courseBody').innerHTML = h;
   renderMath($('courseBody'));
@@ -5481,7 +5494,7 @@ function renderChapters(n) {
   const box = $('chapBox'); if (!box || !n) return;
   if (chaptering === n.id) { box.innerHTML = `<div class="card chap-make"><span class="sec-ic">${ICONS.chapters}</span><div><b>Chapitres</b><small>Création des chapitres…</small></div></div>`; return; }
   if (n.chapters && n.chapters.length) {
-    box.innerHTML = `<details class="card chaps" open><summary><span class="sec-ic">${ICONS.chapters}</span><span class="g">Chapitres · ${n.chapters.length}</span></summary><ol>${n.chapters.map((c, i) => `<li><button type="button" data-ct="${c.t}" data-ci="${i}"><time>${hms(c.t)}</time>${esc(c.title)}</button></li>`).join('')}</ol><div class="chap-foot"><button class="linkbtn" id="chapRedo" style="color:var(--muted);font-weight:500">Refaire les chapitres</button></div></details>`;
+    box.innerHTML = `<details class="card chaps" open><summary><span class="sec-ic">${ICONS.chapters}</span><span class="g">Chapitres · ${n.chapters.length}</span></summary><ol>${n.chapters.map((c, i) => `<li><button type="button" data-ct="${+c.t || 0}" data-ci="${i}"><time>${hms(c.t)}</time>${esc(c.title)}</button></li>`).join('')}</ol><div class="chap-foot"><button class="linkbtn" id="chapRedo" style="color:var(--muted);font-weight:500">Refaire les chapitres</button></div></details>`;
     box.querySelectorAll('[data-ct]').forEach((b) => b.onclick = () => jumpTo(n.id, +b.dataset.ct));
     $('chapRedo').onclick = () => chaptersFor(n.id);
   } else if (n.segments && (n.duration || 0) >= 180) {
@@ -5493,7 +5506,7 @@ function renderChapters(n) {
 function inlineItems(n) {
   const out = [];
   (n.chapters || []).forEach((c, i) => out.push({ t: c.t, html: `<div class="chap-h" data-chap="${i}"><span>${hms(c.t)}</span>${esc(c.title)}</div>` }));
-  (n.photos || []).filter((x) => x.t != null).forEach((x) => out.push({ t: x.t + 0.01, html: `<button class="seg-photo" type="button" data-ph="${x.id}"><img alt="" data-img="${x.id}"><span>${ICONS.camera}Photo du tableau · ${hms(x.t)}</span></button>` }));
+  (n.photos || []).filter((x) => x.t != null).forEach((x) => out.push({ t: x.t + 0.01, html: `<button class="seg-photo" type="button" data-ph="${esc(x.id)}"><img alt="" data-img="${esc(x.id)}"><span>${ICONS.camera}Photo du tableau · ${hms(x.t)}</span></button>` }));
   return out.sort((a, b) => a.t - b.t);
 }
 const curChapter = (n, t) => { let c = null; for (const x of (n && n.chapters) || []) { if (x.t <= t + 0.5) c = x; else break; } return c; };
@@ -5599,7 +5612,7 @@ function renderExtras(n) {
   const read = ph.filter((x) => x.text).length;
   $('phInfo').textContent = !ph.length ? 'Elles se placent toutes seules au bon moment de l\'enregistrement.'
     : `${ph.length} photo${ph.length > 1 ? 's' : ''}` + (boarding ? ' · lecture par l\'IA…' : settings.gkey ? (read ? ` · ${read} lue${read > 1 ? 's' : ''} par l'IA` : '') : ' · ajoute une clé Gemini pour que l\'IA les lise');
-  $('phStrip').innerHTML = ph.map((x) => `<button type="button" data-ph="${x.id}"><img alt="" data-img="${x.id}">${x.t != null ? `<span>${hms(x.t)}</span>` : ''}${x.text ? '<i title="Lue par l\'IA"></i>' : ''}</button>`).join('');
+  $('phStrip').innerHTML = ph.map((x) => `<button type="button" data-ph="${esc(x.id)}"><img alt="" data-img="${esc(x.id)}">${x.t != null ? `<span>${hms(x.t)}</span>` : ''}${x.text ? '<i title="Lue par l\'IA"></i>' : ''}</button>`).join('');
   fillImgs($('phStrip'));
   $('phStrip').querySelectorAll('[data-ph]').forEach((b) => b.onclick = () => openLightbox(b.dataset.ph));
   // mes notes
@@ -6028,7 +6041,7 @@ function plMedia() {
 function renderMarks(n) {
   const box = $('trMarks'), m = (n && n.marks) || [];
   box.classList.toggle('hidden', !m.length);
-  box.innerHTML = m.length ? `<span>Moments marqués</span>` + m.map((x) => `<button class="ts" type="button" data-t="${x}">★ ${hms(x)}</button>`).join('') : '';
+  box.innerHTML = m.length ? `<span>Moments marqués</span>` + m.map((x) => `<button class="ts" type="button" data-t="${+x || 0}">★ ${hms(x)}</button>`).join('') : '';
   box.querySelectorAll('button').forEach((b) => b.onclick = () => jumpTo(n.id, +b.dataset.t));
 }
 
@@ -6243,14 +6256,73 @@ async function backupData() {
   toast(`Sauvegarde de ${notes.filter((n) => n.id !== INBOX).length} notes enregistrée (Téléchargements)`);
   renderData(); renderBkRemind();
 }
+/* ---- Restauration : le fichier peut avoir été modifié ou fabriqué par quelqu'un d'autre ----
+   On ne garde que des données de la bonne forme : identifiants simples, nombres, textes. Sans ça, un faux fichier
+   de sauvegarde pouvait glisser du code dans l'app (et lire les clés d'API). */
+const SAFE_ID = /^[\w:.-]{1,80}$/;
+const safeId = (v) => typeof v === 'string' && SAFE_ID.test(v);
+const toNum = (v, d = 0) => { const x = Number(v); return Number.isFinite(x) ? x : d; };
+const toStr = (v) => (v == null ? '' : typeof v === 'string' ? v : typeof v === 'number' || typeof v === 'boolean' ? String(v) : '');
+const arr = (v) => (Array.isArray(v) ? v : []);
+const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : null);
+const NOTE_FIELDS = {
+  segments: (v) => arr(v).map(obj).filter(Boolean).map((x) => ({ start: toNum(x.start), end: toNum(x.end, toNum(x.start)), text: toStr(x.text), ...(x.sep ? { sep: true } : {}) })),
+  chapters: (v) => arr(v).map(obj).filter(Boolean).map((x) => ({ t: toNum(x.t), title: toStr(x.title).slice(0, 200) })),
+  marks: (v) => arr(v).map((x) => toNum(x, NaN)).filter(Number.isFinite),
+  tags: (v) => arr(v).map((x) => cleanTag(toStr(x))).filter(Boolean),
+  photos: (v) => arr(v).map(obj).filter((x) => x && safeId(x.id)).map((x) => ({ id: x.id, t: x.t == null ? null : toNum(x.t), at: toNum(x.at), w: toNum(x.w), h: toNum(x.h),
+    ...(x.text ? { text: toStr(x.text), textBy: toStr(x.textBy) } : {}), ...(x.textErr ? { textErr: toStr(x.textErr) } : {}) })),
+  cards: (v) => arr(v).map(obj).filter((x) => x && safeId(x.id)).map((x) => ({ id: x.id, q: toStr(x.q), a: toStr(x.a), box: toNum(x.box), due: toNum(x.due),
+    ...(x.seen ? { seen: toNum(x.seen) } : {}), ...(x.last ? { last: toNum(x.last) } : {}), ...(x.lapses ? { lapses: toNum(x.lapses) } : {}) })),
+  chat: (v) => arr(v).map(obj).filter(Boolean).map((x) => ({ q: toStr(x.q), a: toStr(x.a), at: toNum(x.at), by: toStr(x.by), ...(x.err ? { err: true } : {}),
+    ...(Array.isArray(x.notes) ? { notes: x.notes.filter(safeId) } : {}) })),
+  course: (v) => { const c = obj(v); if (!c) return undefined;
+    return { key: toStr(c.key), code: toStr(c.code), name: toStr(c.name), uid: c.uid == null ? null : toStr(c.uid), start: toNum(c.start), end: toNum(c.end),
+      kind: KIND_LBL[c.kind] && c.kind !== 'due' ? c.kind : 'cours', prof: toStr(c.prof), location: toStr(c.location), full: toStr(c.full) }; },
+  mergedFrom: (v) => arr(v).map(obj).filter((x) => x && safeId(x.id)).map((x) => ({ id: x.id, title: toStr(x.title), fileName: toStr(x.fileName), created: toNum(x.created),
+    duration: toNum(x.duration), off: toNum(x.off), parts: arr(x.parts).map(obj).filter((p) => p && safeId(p.id)).map((p) => ({ id: p.id, off: toNum(p.off) })) })),
+  whisperUsed: (v) => arr(v).map(toStr).filter(Boolean),
+};
+NOTE_FIELDS.clean = NOTE_FIELDS.segments;
+const NOTE_NUMS = ['created', 'addedAt', 'size', 'duration', 'cleanAt', 'lectureAt', 'cardsAt', 'mineAt'];
+const NOTE_STATUS = ['ok', 'resume', 'resume-err', 'err', 'transcription', 'tasks'];
+function sanitizeNote(n) {
+  n = obj(n);
+  if (!n || !safeId(n.id)) return null;
+  const o = { id: n.id };
+  for (const [k, v] of Object.entries(n)) {
+    if (k === 'id' || k === 'audio' || k === 'partial' || k === 'sumPartial' || k === 'queued') continue;
+    if (NOTE_FIELDS[k]) { const x = NOTE_FIELDS[k](v); if (x !== undefined) o[k] = x; }
+    else if (NOTE_NUMS.includes(k)) o[k] = toNum(v);
+    else if (k === 'segments' || v == null) continue;
+    else if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') o[k] = v;
+    else if (k === 'cleanPartial' || k === 'lecturePartial') { try { o[k] = JSON.parse(JSON.stringify(v)); } catch (e) {} }
+  }
+  if (!NOTE_STATUS.includes(o.status)) o.status = o.summary ? 'ok' : 'err';
+  if (n.segments == null) o.segments = null;
+  o.title = toStr(o.title) || 'Note restaurée'; o.summary = toStr(o.summary); o.fileName = toStr(o.fileName);
+  o.created = toNum(o.created, Date.now());
+  return o;
+}
+// Réglages d'une sauvegarde : seulement les réglages connus, avec des valeurs possibles
+const SETTING_CHECK = {
+  lang: (v) => v === 'auto' || !!LANGS[v], whisper: (v) => WHISPERS.includes(v), kind: (v) => !!KINDS[v], autoRemind: (v) => ['eve', 'morning', 'none'].includes(v),
+  theme: (v) => THEMES.some((t) => t.id === v), fs: (v) => ['s', 'm', 'l', 'xl'].includes(v), provider: (v) => v === 'auto' || CHAIN.includes(v),
+  bg: (v) => typeof v === 'boolean', keepAudio: (v) => typeof v === 'boolean', pauto: (v) => typeof v === 'boolean',
+  pregion: (v) => v === 'eu' || v === 'us', psince: (v) => Number.isFinite(v), courseRemind: (v) => [0, 5, 10, 15, 30].includes(v),
+  prelay: (v) => typeof v === 'string' && /^https:\/\/[^\s/?#]+/i.test(v), icsUrl: (v) => typeof v === 'string' && /^https?:\/\//i.test(v),
+};
+const settingOk = (k, v) => (Object.prototype.hasOwnProperty.call(SETTING_CHECK, k) ? SETTING_CHECK[k](v)
+  : (Object.prototype.hasOwnProperty.call(DEFAULTS, k) || k === 'ptoken') && typeof v === 'string' && v.length < 4000);
 async function restoreData(file) {
   let data = null;
   try { data = JSON.parse(await file.text()); } catch (e) {}
   if (!data || data.app !== 'notes-plaud' || !Array.isArray(data.notes)) { toast('Ce fichier n\'est pas une sauvegarde de Notes Plaud'); return; }
   const have = new Map((await db.all()).map((n) => [n.id, n]));
-  let added = 0, same = 0;
-  for (const n of data.notes) {
-    if (!n || !n.id) continue;
+  let added = 0, same = 0, bad = 0;
+  for (const raw of data.notes) {
+    const n = sanitizeNote(raw);
+    if (!n) { if (raw) bad++; continue; }
     const cur = have.get(n.id);
     if (!cur) { await db.put(n); added++; continue; }
     if (n.id === INBOX) {   // tâches ajoutées à la main : on fusionne les lignes manquantes
@@ -6262,14 +6334,25 @@ async function restoreData(file) {
     same++;
   }
   // réglages : on ne complète que ce qui manque (sans écraser les tiens)
-  if (data.settings) {
+  const incoming = obj(data.settings);
+  if (incoming) {
+    const fill = Object.entries(incoming).filter(([k, v]) => settingOk(k, v) && (settings[k] === undefined || settings[k] === '' || settings[k] === DEFAULTS[k]) && v !== '' && v !== DEFAULTS[k]);
+    // clés, jeton et adresse du relais : seulement si l'utilisateur confirme (un faux fichier pourrait envoyer le jeton Plaud ailleurs)
+    const SENSITIVE = [...SECRET_KEYS, 'prelay', 'pregion', 'psince', 'pauto'];
+    const secrets = fill.filter(([k]) => SECRET_KEYS.includes(k) || k === 'prelay');
+    let keepSecrets = !secrets.length;
+    if (secrets.length) {
+      const relay = (secrets.find(([k]) => k === 'prelay') || [])[1];
+      const host = (() => { try { return new URL(relay).hostname; } catch (e) { return relay; } })();
+      keepSecrets = confirm(`Cette sauvegarde contient des clés d'API ou un jeton${relay ? ` et l'adresse d'un relais (${host})` : ''}.\n\nLes reprendre sur ce téléphone ? Réponds « Annuler » si ce fichier ne vient pas de toi.`);
+    }
     let changed = false;
-    for (const [k, v] of Object.entries(data.settings)) if ((settings[k] === undefined || settings[k] === '' || settings[k] === DEFAULTS[k]) && v !== undefined && v !== '' && v !== DEFAULTS[k]) { settings[k] = v; changed = true; }
+    for (const [k, v] of fill) { if (!keepSecrets && SENSITIVE.includes(k)) continue; settings[k] = v; changed = true; }
     if (changed) { saveSettings(settings); applyTheme(settings.theme); applyFs(settings.fs); }
   }
-  if (Array.isArray(data.plaudImported)) markImported(data.plaudImported);
+  if (Array.isArray(data.plaudImported)) markImported(data.plaudImported.map(toStr).filter(Boolean));
   scheduleReminders(); updateBadge();
-  toast(`${added} note${added > 1 ? 's' : ''} restaurée${added > 1 ? 's' : ''}${same ? ` · ${same} déjà présente${same > 1 ? 's' : ''}` : ''}`);
+  toast(`${added} note${added > 1 ? 's' : ''} restaurée${added > 1 ? 's' : ''}${same ? ` · ${same} déjà présente${same > 1 ? 's' : ''}` : ''}${bad ? ` · ${bad} ignorée${bad > 1 ? 's' : ''} (illisible${bad > 1 ? 's' : ''})` : ''}`);
   renderData();
   if (current === 'home') renderHome();
 }
@@ -6460,6 +6543,8 @@ $('pCmd').onclick = () => copyText(PLAUD_CMD, 'Commande copiée — colle-la dan
 $('pBm').onclick = () => copyText(PLAUD_BM, 'Code du favori copié');
 $('plaudBtn').onclick = plaudSheet;
 $('sSave').onclick = () => {
+  // relais en http : le jeton Plaud circulerait en clair
+  if ($('sPRelay').value.trim() && !relayOk($('sPRelay').value)) { toast('L\'adresse du relais doit commencer par https://'); $('sPRelay').focus(); return; }
   settings = { key: $('sKey').value.trim(), lang: $('sLang').value, whisper: $('sWhisper').value,
     llms: $('sLlm').value.trim() || DEFAULTS.llms, ctx: $('sCtx').value,
     provider: $('sProv').value, gkey: $('sGKey').value.trim(), gmodels: $('sGModel').value.trim() || DEFAULTS.gmodels,
@@ -6727,7 +6812,10 @@ window.addEventListener('beforeunload', (e) => { if (busy || enhancing || writin
   await loadAgenda();
   current = '';
   const shared = pending && pending.file;
-  if (shared) await startFile(shared);
+  // Un site malveillant peut aussi « envoyer » un fichier à l'app (formulaire vers /share) : pour un calendrier,
+  // qui remplacerait l'emploi du temps, on demande d'abord.
+  const sharedOk = shared && (!isIcsFile(shared) || confirm(`Importer « ${shared.name || 'calendrier.ics'} » comme emploi du temps ?`));
+  if (sharedOk) await startFile(shared);
   else show('home');
   renderNotif();
   if (!shared && params.has('note')) { const id = params.get('note'); history.replaceState(history.state, '', location.pathname); if (id === ':tasks') show('tasks'); else if (id === ':courses') show('courses'); else openNote(id); }

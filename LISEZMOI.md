@@ -58,14 +58,14 @@ Plus besoin d'exporter chaque enregistrement à la main : l'app Plaud envoie dé
 
 Le serveur de Plaud refuse les appels venant d'un autre site. Il faut donc un petit **relais** : un programme d'une centaine de lignes que tu héberges gratuitement chez Cloudflare. Il ne transmet que les requêtes utiles à l'import (et la lecture de ton emploi du temps, voir plus bas), n'accepte que ton site, et ne stocke rien.
 
-> **Tu as déjà un relais ?** Depuis la version 31, il sait aussi lire ton emploi du temps. Mets-le à jour : page du Worker → **Edit code**, remplace tout le code par le nouveau `relais-plaud-cloudflare.js`, puis **Deploy**. Rien d'autre à changer.
+> **Tu as déjà un relais ? Mets-le à jour (version 33, sécurité renforcée).** Page du Worker → **Edit code**, remplace tout le code par le nouveau `relais-plaud-cloudflare.js`, puis **Deploy**. Vérifie que la variable `ALLOWED_ORIGIN` est bien remplie (étape A.4) : le nouveau relais **refuse tout** sans elle. « Tester la connexion » te signale un relais trop ancien.
 
 **A. Créer le relais (10 min, plus simple sur PC)**
 
 1. Crée un compte gratuit sur **https://dash.cloudflare.com/sign-up**.
 2. Menu **Compute (Workers)** → **Workers & Pages** → **Create** → **Start with Hello World** (ou « Create Worker »). Donne-lui un nom, par exemple `plaud-relais`, puis **Deploy**.
 3. Touche **Edit code**, efface tout le code, colle le contenu du fichier **`relais-plaud-cloudflare.js`** fourni avec l'app, puis **Deploy**.
-4. Retourne sur la page du Worker → **Settings** → **Variables and Secrets** → **Add** : type *Text*, nom `ALLOWED_ORIGIN`, valeur l'adresse de ton site **sans / à la fin**, par exemple `https://ton-pseudo.github.io`. Enregistre (**Deploy**).
+4. Retourne sur la page du Worker → **Settings** → **Variables and Secrets** → **Add** : type *Text*, nom `ALLOWED_ORIGIN`, valeur l'adresse de ton site **sans / à la fin**, par exemple `https://ton-pseudo.github.io`. Enregistre (**Deploy**). Cette variable est **obligatoire** : sans elle, le relais refuse toutes les demandes.
 5. Copie l'adresse du relais, affichée sur la page du Worker : `https://plaud-relais.ton-compte.workers.dev`.
 
 L'offre gratuite de Cloudflare permet 100 000 requêtes par jour : un import en utilise 2 ou 3 par enregistrement.
@@ -81,7 +81,7 @@ L'app trouve le jeton toute seule, quel que soit le nom que Plaud lui donne (Pla
 
 **C. Brancher l'app**
 
-Réglages → **Import depuis Plaud** : colle l'adresse du relais et le jeton, touche **Tester la connexion** (tu dois voir « Connecté : N enregistrements… » et la date d'expiration du jeton), puis **Enregistrer**.
+Réglages → **Import depuis Plaud** : colle l'adresse du relais (elle commence par `https://`) et le jeton, touche **Tester la connexion** (tu dois voir « Connecté : N enregistrements… » et la date d'expiration du jeton), puis **Enregistrer**.
 
 **Comment ça marche ensuite**
 
@@ -117,7 +117,7 @@ Notes Plaud lit le calendrier de tes cours (Moodle / WebCampus, ADE, Google Agen
 2. Dans l'app : Réglages → **Emploi du temps** → colle l'adresse → **Synchroniser**. L'adresse reste dans le téléphone (elle n'est même pas dans les sauvegardes, sauf si tu coches « inclure mes clés »).
 3. La synchronisation passe par ton **relais Cloudflare** (étape 6, version à jour) : les serveurs d'université n'autorisent pas une app web à lire le calendrier directement. Elle se refait toute seule à l'ouverture de l'app (si la dernière date de plus de 12 h), et quand tu **tires l'accueil vers le bas**.
 
-Sans relais : sur WebCampus, **Exporter** (au lieu de « Obtenir l'URL ») télécharge un fichier `.ics` ; dans l'app, **Importer un .ics** (ou partage le fichier vers Notes Plaud). Il faudra le refaire quand l'horaire change.
+Sans relais : sur WebCampus, **Exporter** (au lieu de « Obtenir l'URL ») télécharge un fichier `.ics` ; dans l'app, **Importer un .ics** (ou partage le fichier vers Notes Plaud : l'app demande alors confirmation avant de remplacer l'emploi du temps). Il faudra le refaire quand l'horaire change.
 
 L'export Moodle « récents et à venir » couvre environ deux mois : l'app **garde l'historique** des séances passées à chaque synchronisation (même quand tu partages un fichier `.ics` vers l'app), et retire les séances annulées. Les cours qui se répètent (Google Agenda, Outlook, ADE) sont bien lus, y compris plusieurs jours par semaine, les séances déplacées ou annulées une seule fois, et les fuseaux horaires d'Outlook. Les événements « journée entière » ne sont gardés que s'il s'agit d'une échéance ou d'un examen (pas les congés ni les fêtes), et ne sont jamais pris pour un cours en cours. Pour un autre hébergeur que l'UNamur, Google Agenda ou Outlook, ajoute-le dans la variable `ICS_HOSTS` du relais (ex. `ade.univ-exemple.fr`).
 
@@ -176,7 +176,7 @@ Sur une note, touche l'icône **bulle ?** en haut (ou **Demander** sous le résu
 - **Recherche :** la barre de l'accueil cherche dans les titres, résumés, cours rédigés **et** transcriptions, sans tenir compte des accents. Chaque résultat montre l'extrait trouvé ; le toucher ouvre la note **au bon onglet, passage surligné**.
 - **Épingler :** l'icône punaise en haut d'une note la garde en tête de l'accueil.
 - **Supprimer** une ou plusieurs notes affiche **Annuler** pendant quelques secondes.
-- **Sauvegarde :** Réglages → **Mes données → Sauvegarder** télécharge un fichier avec toutes tes notes (résumés, cours, transcriptions, tâches, fiches, questions). **Restaurer** le réimporte (sur ce téléphone ou un autre) sans rien écraser. Les clés d'API ne sont incluses que si tu coches la case. L'audio n'est pas inclus (trop lourd). Un rappel apparaît sur l'accueil quand ta dernière sauvegarde date.
+- **Sauvegarde :** Réglages → **Mes données → Sauvegarder** télécharge un fichier avec toutes tes notes (résumés, cours, transcriptions, tâches, fiches, questions). **Restaurer** le réimporte (sur ce téléphone ou un autre) sans rien écraser. Les clés d'API ne sont incluses que si tu coches la case ; à la restauration, l'app **demande avant de reprendre** des clés, un jeton ou l'adresse d'un relais (ne réponds « OK » que pour tes propres fichiers). Le contenu d'un fichier de sauvegarde est vérifié : une note mal formée est ignorée. L'audio n'est pas inclus (trop lourd). Un rappel apparaît sur l'accueil quand ta dernière sauvegarde date.
 - **Protéger le stockage :** si « Stockage non protégé » s'affiche dans Mes données, touche **Protéger** pour qu'Android n'efface jamais les notes en cas de manque de place (l'app doit être installée).
 - **Bouton Retour d'Android :** il ferme d'abord le panneau ouvert, puis revient à l'écran précédent (par exemple : matière → note → retour à la matière) ; à l'accueil, un deuxième appui quitte l'app.
 - **Tirer l'accueil vers le bas** vérifie les nouveaux enregistrements Plaud et met à jour l'emploi du temps.
@@ -246,6 +246,12 @@ Ces limites peuvent changer. Si un modèle disparaît, remplace-le dans les **R�
 
 Avec l'import depuis le cloud (étape 6), l'audio passe par ton relais Cloudflare, qui ne garde rien. Ton jeton Plaud reste dans le téléphone et n'est envoyé qu'au relais puis à Plaud. L'audio est envoyé uniquement à Groq, pour la transcription. Ensuite, l'app en garde une copie **dans le téléphone seulement**, pour la réécoute (désactivable dans les Réglages, et supprimable à tout moment). Les questions posées aux notes, les chapitres, les synthèses de matière et la création de fiches envoient la transcription (ou les passages utiles) à l'IA de résumé choisie, comme pour un résumé. Les photos du tableau restent dans le téléphone ; si tu as une clé Gemini, chaque photo est envoyée une fois à Gemini pour être lue. L'emploi du temps est lu via ton relais Cloudflare (qui ne garde rien) et reste dans le téléphone. Pour le résumé, seule la transcription écrite est envoyée, à Gemini ou à Groq selon ton réglage. Sur l'offre gratuite de Gemini, Google peut utiliser ces textes pour améliorer ses modèles. Pour les conversations vraiment sensibles, utilise plutôt le script PC 100 % local (`plaud_local.py`).
 
+**Sécurité :**
+- Tes clés et ton jeton sont gardés dans le stockage du navigateur pour l'adresse `https://ton-pseudo.github.io`. Tous les sites GitHub Pages **de ton compte** partagent cette adresse, et donc ce stockage : n'y héberge pas de pages d'autres personnes ni de code que tu ne connais pas. Au besoin, utilise un compte GitHub dédié à Notes Plaud.
+- L'app n'exécute jamais le contenu des transcriptions, des réponses de l'IA, des calendriers ou des sauvegardes : tout est affiché en texte. La bibliothèque des formules (KaTeX) est chargée dans une version précise, et le navigateur la refuse si elle a été modifiée.
+- Le relais doit être en `https://` (sinon le jeton Plaud circulerait en clair) ; il n'accepte que ton site et ne transmet le jeton qu'à Plaud.
+- L'adresse de ton calendrier passe par le relais dans l'adresse de la requête ; Cloudflare ne garde pas ces adresses, sauf si tu actives toi-même les journaux du Worker.
+
 Rappel : en France, enregistrer une conversation privée à l'insu des personnes est interdit. Préviens les participants.
 
 ## En cas de problème
@@ -260,7 +266,9 @@ Rappel : en France, enregistrer une conversation privée à l'insu des personnes
 | Un modèle n'existe plus | Change-le dans Réglages → Modèles de résumé. |
 | Une note est marquée « Résumé à refaire » | Ouvre-la, puis touche **Générer le résumé**. La transcription est déjà enregistrée. |
 | « Relais Plaud injoignable » | Vérifie l'adresse du relais dans les réglages (elle finit par `.workers.dev`), et que le Worker est bien déployé. |
-| « Le relais refuse cette app » | La variable `ALLOWED_ORIGIN` du Worker doit être exactement l'adresse de ton site (`https://ton-pseudo.github.io`, sans / final). |
+| « Le relais refuse cette app » | La variable `ALLOWED_ORIGIN` du Worker doit être exactement l'adresse de ton site (`https://ton-pseudo.github.io`, sans / final). Depuis la version 33 du relais, elle est obligatoire. |
+| « Adresse du relais invalide : elle doit commencer par https:// » | Recopie l'adresse du Worker telle qu'affichée par Cloudflare (`https://…workers.dev`). |
+| « Ton relais est une ancienne version » | Remplace le code du Worker par le nouveau `relais-plaud-cloudflare.js` (étape 6, encadré), puis **Deploy**. |
 | « Jeton Plaud refusé ou expiré » | Recopie le jeton depuis web.plaud.ai (étape 6 B). |
 | « La version MP3 n'est pas encore prête » | Ouvre l'enregistrement dans l'app Plaud, attends quelques minutes, puis réessaie. |
 | « Le relais n'accepte pas l'hébergeur … » | Plaud a changé d'hébergeur de fichiers : ajoute le nom indiqué à la ligne `AUDIO_HOSTS` du relais, puis **Deploy**. |

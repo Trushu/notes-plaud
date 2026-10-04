@@ -34,6 +34,8 @@ Commandes séparées :
 | `dates.test.js` | `dateFromName` |
 | `search.test.js` | recherche sans accents : `findAll`, `markHits` |
 | `audio.test.js` | découpage des longs fichiers MP3 et WAV (`splitAudio`, `mp3Sync`, `mp3Duration`) |
+| `security.test.js` | nettoyage des sauvegardes (`sanitizeNote`, `settingOk`), relais en https, options de KaTeX |
+| `relay.test.js` | relais Cloudflare : contrôle d'origine, chemins autorisés, redirections, en-têtes (chargé comme module ES) |
 
 Les dates sont figées (option `now` du chargeur) et le fuseau est celui de Bruxelles, pour des résultats reproductibles.
 
@@ -49,7 +51,10 @@ dans un téléphone émulé. **Aucun appel ne sort de la machine** : Groq, Gemin
 | `backup.spec.js` | sauvegarde (avec ou sans clés) et restauration sur un navigateur vierge |
 | `plaud.spec.js` | import depuis le cloud Plaud (bouton et automatique), test de connexion, jeton expiré |
 | `courses.spec.js` | import d'un calendrier `.ics`, rangement des notes par matière, tour de tous les écrans |
+| `security.spec.js` | contenus piégés (IA, transcription, calendrier, fausse sauvegarde), relais http refusé, jeton, KaTeX modifié refusé |
 | `bugs.spec.js`, `bugs-rec.spec.js` | un test par bug corrigé : partage reçu, file d'attente, hors connexion, délais réseau, reprise du résumé, stockage plein ou illisible, mise à jour pendant un enregistrement (micro simulé) |
+
+Chaque test de bout en bout vérifie aussi qu'aucune erreur JavaScript et aucune violation de la politique de sécurité (CSP) ne s'est produite.
 
 Chaque bug corrigé a son test, dans une rubrique « Bugs corrigés » : il échouait avec l'ancien code et passe avec la correction.
 

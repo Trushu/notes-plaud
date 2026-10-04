@@ -21,7 +21,7 @@ Tout est gratuit : l'hébergement sur GitHub Pages et l'API Groq. Tu n'as besoin
 
 En cas de souci, la plupart des messages d'erreur ont un bouton qui mène au bon réglage. Sinon, va voir [En cas de problème](#en-cas-de-problème).
 
-## Nouveautés (version 50, octobre 2026)
+## Nouveautés (version 51, octobre 2026)
 
 **Réviser et préparer ses examens**
 - **Fiches du jour sur l'accueil**, toutes matières confondues, et **statistiques de révision** : série de jours, taux de réussite, prévision sur 7 jours, avancement par matière. Voir [Réviser avec des fiches](#réviser-avec-des-fiches).
@@ -47,6 +47,7 @@ En cas de souci, la plupart des messages d'erreur ont un bouton qui mène au bon
 **Fiabilité et données**
 - **Sauvegarde envoyée vers Drive ou Gmail** en un geste, **chiffrée par mot de passe** si tu veux, avec un rappel réglable.
 - **Questions hors ligne** : une question posée sans réseau (métro, amphi) part toute seule au retour de la connexion, même si l'app a été fermée entre-temps. Voir [Poser une question](#poser-une-question-à-ses-notes).
+- **Verrouillage par code** (4 à 8 chiffres) à l'ouverture et après une absence réglable : un téléphone prêté n'ouvre pas tes notes. Voir [Confidentialité](#confidentialité).
 - **File d'attente** visible sur l'accueil (réessayer, retirer), **rapport de diagnostic** sans clés ni contenu, et **tout effacer** avant de rendre un téléphone.
 
 **Confort**
@@ -390,6 +391,13 @@ Ces limites peuvent changer. Si un modèle disparaît, remplace-le dans les **R�
 
 Avec l'import depuis le cloud (étape 6), l'audio passe par ton relais Cloudflare, qui ne garde rien. Ton jeton Plaud reste dans le téléphone et n'est envoyé qu'au relais puis à Plaud. L'audio est envoyé uniquement à Groq, pour la transcription. Ensuite, l'app en garde une copie **dans le téléphone seulement**, pour la réécoute (désactivable dans les Réglages, et supprimable à tout moment). Les questions posées aux notes, les chapitres, les synthèses de matière et la création de fiches envoient la transcription (ou les passages utiles) à l'IA de résumé choisie, comme pour un résumé. Les photos du tableau restent dans le téléphone ; si tu as une clé Gemini, chaque photo est envoyée une fois à Gemini pour être lue. L'emploi du temps est lu via ton relais Cloudflare (qui ne garde rien) et reste dans le téléphone. Pour le résumé, seule la transcription écrite est envoyée, à Gemini ou à Groq selon ton réglage. Sur l'offre gratuite de Gemini, Google peut utiliser ces textes pour améliorer ses modèles. Pour les conversations vraiment sensibles, utilise plutôt le script PC 100 % local (`plaud_local.py`).
 
+**Verrouillage par code** (Réglages → **Verrouillage → Activer**) :
+- Un code de 4 à 8 chiffres est demandé à l'ouverture de l'app, puis au retour après une absence au choix : dès que tu quittes l'app, ou après 1, 5 ou 15 minutes, ou 1 heure. Avec « dès que je quitte l'app », l'aperçu du multitâche n'affiche pas tes notes.
+- Choisir une photo, un fichier ou partager une note quitte l'app un instant : le code n'est alors pas redemandé au retour.
+- Les codes trop simples (0000, 1234…) sont refusés. Après 5 erreurs, une pause de 30 secondes est imposée, puis elle s'allonge.
+- **Code oublié ?** sur l'écran de verrouillage : colle une des clés d'API enregistrées dans l'app pour déverrouiller (la clé Gemini se retrouve à tout moment sur aistudio.google.com/apikey). Le code est alors désactivé.
+- C'est un **écran de confidentialité, pas un chiffrement** : il empêche quelqu'un qui tient ton téléphone d'ouvrir l'app, mais les notes restent dans le stockage de Chrome. Les notifications (« Note prête : … ») restent visibles. Le code n'est jamais gardé en clair ni mis dans les sauvegardes.
+
 **Sécurité :**
 - Tes clés et ton jeton sont gardés dans le stockage du navigateur pour l'adresse `https://ton-pseudo.github.io`. Tous les sites GitHub Pages **de ton compte** partagent cette adresse, et donc ce stockage : n'y héberge pas de pages d'autres personnes ni de code que tu ne connais pas. Au besoin, utilise un compte GitHub dédié à Notes Plaud.
 - L'app n'exécute jamais le contenu des transcriptions, des réponses de l'IA, des calendriers ou des sauvegardes : tout est affiché en texte. La bibliothèque des formules (KaTeX) est chargée dans une version précise, et le navigateur la refuse si elle a été modifiée.
@@ -430,6 +438,7 @@ Rappel : en France, enregistrer une conversation privée à l'insu des personnes
 | Mettre l'app à jour | Remplace les fichiers sur GitHub. Le téléphone reçoit la nouvelle version à la prochaine ouverture (si tu enregistres ou si un traitement tourne, elle attend la fin). Avec un réseau très lent, l'app s'ouvre d'abord avec la version en cache et se met à jour pour la fois suivante. |
 | « Préparation de la liste après la mise à jour… » | Une seule fois après la version 34 : l'app crée un index de tes notes pour aller plus vite. Quelques secondes avec beaucoup de notes ; ne ferme pas l'app pendant ce temps. |
 | « Plus assez de place dans le téléphone » | Supprime l'audio des anciennes notes (Réglages → Mes données), puis partage ou choisis de nouveau le fichier. |
+| Code de verrouillage oublié | Sur l'écran de verrouillage, touche **Code oublié ?** et colle une de tes clés d'API (Gemini : aistudio.google.com/apikey). Sans aucune clé, **Tout effacer** puis restaure une sauvegarde. |
 | « Impossible de lire tes notes » | Ferme complètement l'app (multitâche) puis rouvre-la. En navigation privée, ouvre plutôt l'app installée. |
 
 ## Pour les développeurs : tests automatiques

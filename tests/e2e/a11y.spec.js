@@ -219,6 +219,15 @@ test.describe('Audit axe-core : autres écrans et fenêtres', () => {
     page.once('dialog', (d) => d.accept());
     await page.locator('#recCancel').click();
 
+    // écran de verrouillage (S1), avec l'aide « Code oublié ? » ouverte et un message d'erreur
+    await page.evaluate(async () => { await setPin('2580', 60000); lockNow(); });
+    await expect(page.locator('#lock')).toBeVisible();
+    await page.locator('#lockIn').fill('1111');
+    await expect(page.locator('#lockMsg')).toContainText('incorrect');
+    await page.locator('#lockForgot').click();
+    await auditThemes(page, 'verrouillage', out);
+    await page.evaluate(() => { localStorage.removeItem('np-lock'); unlockNow(); });
+
     if (REPORT) report('autres écrans', out);
     else expect(out, out.slice(0, 40).join('\n')).toEqual([]);
   });

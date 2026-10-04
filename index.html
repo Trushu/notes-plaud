@@ -8,7 +8,7 @@
 <meta id="tc" name="theme-color" content="#f7f4ee">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self' https:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
-<script>try{var _t=(JSON.parse(localStorage.getItem('np-settings')||'{}').theme);if(_t&&_t!=='auto')document.documentElement.dataset.theme=_t;var _f=(JSON.parse(localStorage.getItem('np-settings')||'{}').fs);if(_f&&_f!=='m')document.documentElement.dataset.fs=_f;var _r=(JSON.parse(localStorage.getItem('np-settings')||'{}').rf);if(_r&&_r!=='std')document.documentElement.dataset.rf=_r;}catch(e){}</script>
+<script>try{var _t=(JSON.parse(localStorage.getItem('np-settings')||'{}').theme);if(_t&&_t!=='auto')document.documentElement.dataset.theme=_t;var _f=(JSON.parse(localStorage.getItem('np-settings')||'{}').fs);if(_f&&_f!=='m')document.documentElement.dataset.fs=_f;var _r=(JSON.parse(localStorage.getItem('np-settings')||'{}').rf);if(_r&&_r!=='std')document.documentElement.dataset.rf=_r;var _L=JSON.parse(localStorage.getItem('np-lock')||'null');if(_L&&_L.h&&!(localStorage.getItem('np-lock-ok')==='1'&&Date.now()-(+localStorage.getItem('np-lock-hid')||0)<(+_L.d||0)))document.documentElement.classList.add('locked');}catch(e){}</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -1089,6 +1089,20 @@
   }
   @media (min-width: 1300px) { .wrap { max-width: 1240px; } #notesList { grid-template-columns: 1fr 1fr 1fr; } }
   .cap-hidden { display: none !important; }
+  /* Verrouillage par code (S1) */
+  .lock { position: fixed; inset: 0; z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px 24px calc(24px + env(safe-area-inset-bottom)); background: var(--bg); color: var(--ink); text-align: center; overflow-y: auto; }
+  html.locked .lock { display: flex; }
+  html.locked body > :not(#lock) { visibility: hidden !important; }
+  .lock-ic { width: 72px; height: 72px; border-radius: 18px; }
+  .lock h2 { font-size: 21px; margin: 6px 0 0; }
+  .lock p { color: var(--muted); margin: 0 0 6px; max-width: 320px; }
+  .lock input { width: 100%; max-width: 260px; min-height: 56px; text-align: center; font-size: 26px; letter-spacing: .35em; border-radius: 14px; border: 1.5px solid var(--ctl); background: var(--surface); color: var(--ink); }
+  .lock .btn { width: 100%; max-width: 260px; }
+  .lock .btn.primary { min-height: 50px; }
+  .lock-rescue { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 8px; width: 100%; }
+  .lock-rescue input { font-size: 16px; letter-spacing: 0; min-height: 48px; }
+  .lock.shake input { animation: lockShake .35s; }
+  @keyframes lockShake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
     .item:hover, .hero:hover { transform: none; }
@@ -1097,6 +1111,20 @@
 </style>
 </head>
 <body>
+<div class="lock" id="lock" role="dialog" aria-modal="true" aria-labelledby="lockT" aria-describedby="lockMsg">
+  <img class="lock-ic" src="icon-192.png" alt="">
+  <h2 id="lockT">Notes Plaud est verrouillée</h2>
+  <p id="lockMsg" role="status" aria-live="polite">Entre ton code pour continuer.</p>
+  <input type="password" id="lockIn" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" aria-label="Code de verrouillage">
+  <button class="btn primary" id="lockGo" type="button">Déverrouiller</button>
+  <button class="linkbtn" id="lockForgot" type="button" aria-expanded="false" aria-controls="lockRescue">Code oublié ?</button>
+  <div class="lock-rescue hidden" id="lockRescue">
+    <p>Colle une des clés d'API enregistrées dans l'app : la clé Gemini se retrouve à tout moment sur aistudio.google.com/apikey. Le verrouillage sera désactivé, et tu pourras choisir un nouveau code dans les Réglages.</p>
+    <input type="password" id="lockKey" autocomplete="off" aria-label="Une de tes clés d'API">
+    <button class="btn" id="lockKeyGo" type="button">Déverrouiller avec la clé</button>
+    <button class="linkbtn danger" id="lockWipe" type="button">Aucune clé ? Tout effacer de ce téléphone</button>
+  </div>
+</div>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
@@ -1669,6 +1697,17 @@
       </div>
     </div>
 
+    <div class="set-group">
+      <div class="set-h"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.3" fill="currentColor"/></svg></span><div><b role="heading" aria-level="2">Verrouillage</b><small>Un code à l'ouverture de l'app</small></div></div>
+      <div class="card pad stack">
+        <div class="notif-row"><div><b>Code de verrouillage</b><small id="lockState">Désactivé</small></div><button class="btn" id="lockBtn" type="button">Activer</button></div>
+        <div id="lockOpts" class="hidden"><label class="f" for="lockDelay">Verrouiller</label>
+          <select id="lockDelay"></select>
+          <button class="btn ghost danger block" id="lockOff" type="button" style="margin-top:10px">Désactiver le verrouillage</button></div>
+        <p class="f-help" style="margin:0">C'est un écran de confidentialité : un téléphone prêté ou posé sur la table n'ouvre pas tes notes. Ce n'est pas un chiffrement : les notes restent dans le stockage de Chrome, et les notifications (« Note prête ») restent visibles. Code oublié : une de tes clés d'API déverrouille l'app.</p>
+      </div>
+    </div>
+
     <div class="save-bar"><button class="btn primary block" id="sSave">Enregistrer</button></div>
     <div class="card pad notif-row" style="margin-top:18px">
       <div><b>Version <span id="appVersion"></span></b><small id="updState">L'app se met à jour toute seule quand tu la rouvres.</small></div>
@@ -1735,7 +1774,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '50 · 4 oct. 2026';
+const APP_VERSION = '51 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -8545,6 +8584,145 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 $('toTop').onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 $('bkBtn').onclick = backupData;
 $('rsBtn').onclick = () => $('rsInput').click();
+/* =================== Verrouillage par code (S1) =================== */
+/* Écran de confidentialité : un code de 4 à 8 chiffres demandé à l'ouverture, puis après une absence réglable.
+   Ce n'est pas un chiffrement (les notes restent lisibles dans le stockage du navigateur) et c'est dit dans les Réglages.
+   Le code n'est jamais gardé en clair : seule son empreinte salée (PBKDF2-SHA256) l'est. Code oublié : une des clés d'API
+   enregistrées déverrouille (la clé Gemini se retrouve à tout moment chez Google). */
+const LOCK_ITER = 150000;
+const LOCK_DELAYS = [[0, 'Dès que je quitte l\'app'], [60000, 'Après 1 minute'], [300000, 'Après 5 minutes'], [900000, 'Après 15 minutes'], [3600000, 'Après 1 heure']];
+const PIN_OK = (p) => /^\d{4,8}$/.test(p);
+const pinTooEasy = (p) => /^(\d)\1+$/.test(p) || '01234567890'.includes(p) || '09876543210'.includes(p);
+function lockCfg() {
+  try { const o = JSON.parse(lsGet('np-lock', 'null')); return o && typeof o.h === 'string' && typeof o.s === 'string' ? o : null; } catch (e) { return null; }
+}
+const lsDel = (k) => { try { localStorage.removeItem(k); } catch (e) {} };
+async function pinHash(pin, salt) {
+  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveBits']);
+  return b64e(new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: LOCK_ITER }, k, 256)));
+}
+async function setPin(pin, delay) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  lsSet('np-lock', JSON.stringify({ s: b64e(salt), h: await pinHash(pin, salt), n: pin.length, d: delay }));
+  lsSet('np-lock-ok', '1'); lsDel('np-lock-fail');
+}
+async function pinMatches(pin) { const c = lockCfg(); return !!c && PIN_OK(pin) && (await pinHash(pin, b64d(c.s))) === c.h; }
+// après 5 erreurs, une pause de 30 s, doublée toutes les 5 erreurs de plus (15 min au plus) ; gardée même si l'app est relancée
+const lockWaitFor = (n) => n < 5 ? 0 : Math.min(900, 30 * 2 ** Math.floor((n - 5) / 5)) * 1000;
+function lockFails() { try { const o = JSON.parse(lsGet('np-lock-fail', 'null')); return o && o.n >= 0 ? o : { n: 0, u: 0 }; } catch (e) { return { n: 0, u: 0 }; } }
+const isLocked = () => document.documentElement.classList.contains('locked');
+function lockMsg(t, bad) { $('lockMsg').textContent = t; $('lockMsg').style.color = bad ? 'var(--err)' : ''; }
+function showLockForm() {
+  $('lockIn').value = ''; $('lockKey').value = '';
+  $('lockRescue').classList.add('hidden'); $('lockForgot').setAttribute('aria-expanded', 'false');
+  const f = lockFails(), w = f.u - Date.now();
+  lockMsg(w > 0 ? `Trop d'essais : réessaie dans ${Math.ceil(w / 1000)} s.` : 'Entre ton code pour continuer.', w > 0);
+  setTimeout(() => { if (isLocked()) $('lockIn').focus(); }, 80);
+}
+function lockNow() {
+  if (!lockCfg()) return;
+  document.documentElement.classList.add('locked'); lsSet('np-lock-ok', '0');
+  showLockForm();
+}
+function unlockNow() {
+  document.documentElement.classList.remove('locked'); lsSet('np-lock-ok', '1'); lsDel('np-lock-fail');
+  $('lockIn').value = ''; $('lockKey').value = ''; lockMsg('Entre ton code pour continuer.');
+}
+let unlocking = false;   // une vérification à la fois (sinon deux saisies rapides fausseraient le compte des essais)
+async function tryUnlock() {
+  if (unlocking) return;
+  const f = lockFails(), now = Date.now(), v = $('lockIn').value.trim();
+  if (f.u > now) { $('lockIn').value = ''; return lockMsg(`Trop d'essais : réessaie dans ${Math.ceil((f.u - now) / 1000)} s.`, true); }
+  if (!v) return;
+  unlocking = true;
+  let ok = false;
+  try { ok = await pinMatches(v); } finally { unlocking = false; }
+  if (ok) return unlockNow();
+  const n = f.n + 1, w = lockWaitFor(n);
+  lsSet('np-lock-fail', JSON.stringify({ n, u: now + w }));
+  $('lockIn').value = ''; haptic(60);
+  $('lock').classList.remove('shake'); void $('lock').offsetWidth; $('lock').classList.add('shake');
+  lockMsg(w ? `Code incorrect. Trop d'essais : réessaie dans ${w / 1000} s.` : `Code incorrect.${n >= 3 ? ` Encore ${5 - n} essai${5 - n > 1 ? 's' : ''} avant une pause.` : ''}`, true);
+}
+$('lockGo').onclick = tryUnlock;
+$('lockIn').oninput = () => { const c = lockCfg(), v = $('lockIn').value; if (/\D/.test(v)) $('lockIn').value = v.replace(/\D/g, ''); if (c && $('lockIn').value.length === c.n) tryUnlock(); };
+$('lockIn').onkeydown = (e) => { if (e.key === 'Enter') tryUnlock(); };
+$('lockForgot').onclick = () => {
+  const open = $('lockRescue').classList.toggle('hidden') === false;
+  $('lockForgot').setAttribute('aria-expanded', String(open));
+  if (open) setTimeout(() => $('lockKey').focus(), 60);
+};
+$('lockKeyGo').onclick = () => {
+  const k = $('lockKey').value.trim(), keys = [settings.key, settings.gkey, settings.ckey, settings.mkey].filter((x) => x && x.length >= 10);
+  if (!k || !keys.includes(k)) return lockMsg('Cette clé ne correspond à aucune clé enregistrée dans l\'app.', true);
+  lsDel('np-lock'); unlockNow(); renderLockSet();
+  toast('Verrouillage désactivé. Choisis un nouveau code dans les Réglages si tu veux.');
+};
+$('lockWipe').onclick = () => wipeAll();
+// Les sélecteurs de fichier, l'appareil photo et le menu Partager quittent l'app un instant : pas de verrouillage au retour
+let lockGraceUntil = 0, lockExt = false;
+const lockGrace = () => { lockGraceUntil = Date.now() + 4000; };
+document.addEventListener('click', (e) => {
+  const t = e.target; if (!t || !t.closest) return;
+  const lb = t.closest('label'), ctl = t.matches('input[type=file]') ? t : lb && lb.control;
+  if (ctl && ctl.type === 'file') lockGrace();
+}, true);
+try { if (navigator.share) { const share = navigator.share.bind(navigator); navigator.share = (...a) => { lockGrace(); return share(...a); }; } } catch (e) {}
+document.addEventListener('visibilitychange', () => {
+  const c = lockCfg(); if (!c) return;
+  if (document.visibilityState === 'hidden') {
+    lockExt = Date.now() < lockGraceUntil;
+    if (!isLocked()) lsSet('np-lock-hid', String(Date.now()));
+    if (!lockExt && !(+c.d)) lockNow();   // « dès que je quitte l'app » : l'aperçu du multitâche est déjà masqué
+    return;
+  }
+  if (isLocked()) return showLockForm();
+  const away = Date.now() - (+lsGet('np-lock-hid', '0') || 0);
+  if (lockExt ? away > Math.max(+c.d || 0, 10 * 60000) : away >= (+c.d || 0)) lockNow();
+  lockExt = false;
+});
+// Réglages
+function renderLockSet() {
+  const c = lockCfg(), d = c ? (+c.d || 0) : 60000;
+  $('lockDelay').innerHTML = LOCK_DELAYS.map(([v, l]) => `<option value="${v}"${v === d ? ' selected' : ''}>${l}</option>`).join('');
+  $('lockState').textContent = c ? `Activé · ${(LOCK_DELAYS.find(([v]) => v === d) || LOCK_DELAYS[1])[1].toLowerCase()}` : 'Désactivé';
+  $('lockBtn').textContent = c ? 'Changer le code' : 'Activer';
+  $('lockOpts').classList.toggle('hidden', !c);
+}
+function pinSheet(mode) {   // 'new' | 'change' | 'off'
+  const needCur = mode !== 'new';
+  const pinIn = (id) => `<input type="password" id="${id}" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off">`;
+  openSheet(`<h3>${mode === 'off' ? 'Désactiver le verrouillage' : mode === 'change' ? 'Changer le code' : 'Verrouiller par un code'}</h3>
+    <p class="sub">${mode === 'off' ? 'Entre ton code actuel.' : 'Un code de 4 à 8 chiffres, demandé à l\'ouverture de l\'app. C\'est un écran de confidentialité, pas un chiffrement.'}</p>
+    ${needCur ? `<label class="f" for="pinCur">Code actuel</label>${pinIn('pinCur')}` : ''}
+    ${mode === 'off' ? '' : `<label class="f" for="pin1"${needCur ? ' style="margin-top:12px"' : ''}>Nouveau code</label>${pinIn('pin1')}<label class="f" for="pin2" style="margin-top:12px">Le même, encore une fois</label>${pinIn('pin2')}`}
+    ${mode === 'new' ? `<label class="f" for="pinDelay" style="margin-top:12px">Verrouiller</label><select id="pinDelay">${LOCK_DELAYS.map(([v, l]) => `<option value="${v}"${v === 60000 ? ' selected' : ''}>${l}</option>`).join('')}</select>` : ''}
+    <div class="f-help key-res" id="pinRes" role="status"></div>
+    <div class="stack" style="margin-top:14px"><button class="btn primary block" id="pinOk" type="button">${mode === 'off' ? 'Désactiver' : 'Enregistrer'}</button><button class="btn ghost block" id="pinNo" type="button">Annuler</button></div>`, (b) => {
+    const val = (id) => { const el = b.querySelector('#' + id); return el ? el.value.trim() : ''; };
+    const bad = (t) => { const r = b.querySelector('#pinRes'); r.className = 'f-help key-res ko'; r.textContent = t; };
+    setTimeout(() => { const i = b.querySelector('input'); if (i) i.focus(); }, 60);
+    b.querySelector('#pinNo').onclick = closeSheet;
+    b.querySelector('#pinOk').onclick = async () => {
+      if (needCur && !(await pinMatches(val('pinCur')))) return bad('Code actuel incorrect.');
+      if (mode === 'off') { lsDel('np-lock'); lsDel('np-lock-fail'); closeSheet(); renderLockSet(); return toast('Verrouillage désactivé'); }
+      const p1 = val('pin1');
+      if (!PIN_OK(p1)) return bad('Le code doit faire de 4 à 8 chiffres.');
+      if (pinTooEasy(p1)) return bad('Trop facile à deviner (comme 0000 ou 1234) : choisis un autre code.');
+      if (p1 !== val('pin2')) return bad('Les deux codes sont différents.');
+      const c = lockCfg();
+      await setPin(p1, mode === 'new' ? +b.querySelector('#pinDelay').value : (c ? +c.d || 0 : 60000));
+      closeSheet(); renderLockSet(); haptic();
+      toast(mode === 'new' ? 'Verrouillage activé' : 'Code changé');
+    };
+  });
+}
+$('lockBtn').onclick = () => pinSheet(lockCfg() ? 'change' : 'new');
+$('lockOff').onclick = () => pinSheet('off');
+$('lockDelay').onchange = () => { const c = lockCfg(); if (!c) return; c.d = +$('lockDelay').value; lsSet('np-lock', JSON.stringify(c)); renderLockSet(); toast('Délai enregistré'); };
+renderLockSet();
+if (isLocked()) { if (lockCfg()) showLockForm(); else document.documentElement.classList.remove('locked'); }
+
 $('sHaptic').checked = lsGet('np-haptic', '1') === '1';
 $('sHaptic').onchange = () => { lsSet('np-haptic', $('sHaptic').checked ? '1' : '0'); haptic(); };
 $('diagBtn').onclick = async () => copyText(await diagReport(), 'Rapport copié : colle-le dans ton message d\'aide');

@@ -111,6 +111,7 @@ test.describe('Quiz type examen', () => {
     for (const t of ['Des arcs avec un sens', 'O(n)', '1']) { await choice(page, t).first().click(); await page.locator('#qzNext').click(); }
     await expect(page.locator('.qz-score .big')).toHaveText('2/3');
     await page.locator('#qzCards').click();
+    await expect(page.locator('#toast')).toContainText('1 fiche ajoutée');
     expect((await page.evaluate(() => db.get('s1'))).cards.map((x) => x.q)).toEqual(['Complexité du tri fusion ?']);
     const saved = await page.evaluate(() => dbRun('pending', 'readonly', (st) => st.get('quiz:mat:ALG')));
     expect(saved.hist[0]).toMatchObject({ score: 2, total: 3 });

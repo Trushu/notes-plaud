@@ -69,6 +69,7 @@ dans un téléphone émulé. **Aucun appel ne sort de la machine** : Groq, Gemin
 | `demarrage.spec.js` | premier lancement guidé (clés vérifiées, hors connexion, étape passée), bouton « Tester », erreur avec bouton vers le bon réglage |
 | `recherche.spec.js` | recherche avancée (expressions, exclusions, tag, matière, dates, type, contenu), fiches et questions cherchables, index recalculé une fois |
 | `revisions2.spec.js` | glossaire de la matière, carte mentale (repli, image), révision audio mains libres |
+| `organisation.spec.js` | archiver des notes (une ou plusieurs), filtre « Archivées », recherche ; vue semestre d'une matière |
 | `a11y.spec.js` | accessibilité : audit [axe-core](https://github.com/dequelabs/axe-core) (règles WCAG 2.2 niveau AA) de tous les écrans et fenêtres dans les 8 thèmes, téléphone en mode clair et sombre ; contour des champs et cases à cocher (contraste 3:1) ; clavier et lecteur d'écran (focus, fenêtres, onglets, filtres, annonces) |
 | `bugs.spec.js`, `bugs-rec.spec.js` | un test par bug corrigé : partage reçu, file d'attente, hors connexion, délais réseau, reprise du résumé, stockage plein ou illisible, mise à jour pendant un enregistrement (micro simulé) |
 

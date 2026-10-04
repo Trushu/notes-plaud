@@ -135,6 +135,10 @@ test.describe('Audit axe-core : autres écrans et fenêtres', () => {
     await auditThemes(page, 'aide de la recherche', out);
     await page.keyboard.press('Escape');
     await page.locator('#search').fill('');
+    await page.evaluate(async () => { await setArchived(['nB'], true); await renderHome(); });
+    await page.locator('#archToggle').click();
+    await auditThemes(page, 'notes archivées', out);
+    await page.locator('#archToggle').click();
     await page.locator('#selectBtn').click();
     await page.locator('#notesList .item').first().click();
     await auditThemes(page, 'sélection', out);

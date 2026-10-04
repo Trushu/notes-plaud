@@ -57,6 +57,10 @@ async function tour(page, theme, out) {
   await page.getByRole('tab', { name: 'Cours' }).click(); await audit(page, `${theme} cours rédigé`, out);
   await page.getByRole('tab', { name: 'Résumé' }).click();
   await page.locator('#askBtn').click(); await audit(page, `${theme} questions`, out);
+  // question en attente (F4) : bulle « partira juste après » et bouton Annuler
+  await page.evaluate(async () => { setAskQ([{ id: 'qa11y', q: 'Question en attente', at: Date.now(), ...askSpec() }]); await renderAsk(); });
+  await expect(page.locator('#askList .ask-wait')).toHaveCount(1); await audit(page, `${theme} question en attente`, out);
+  await page.evaluate(async () => { setAskQ([]); await renderAsk(); });
   await page.locator('#backBtn').click(); await page.locator('#backBtn').click();
   await page.locator('#tabbar [data-v=tasks]').click(); await audit(page, `${theme} tâches`, out);
   await page.locator('#fab').click(); await page.waitForTimeout(300); await audit(page, `${theme} fiche tâche`, out);

@@ -689,6 +689,7 @@
   .typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: blink 1.2s infinite ease-in-out; }
   .typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
   @keyframes blink { 0%, 80%, 100% { opacity: .25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+  .msg.ai.ask-wait { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: var(--muted); font-size: 14px; }
   .ask-st { color: var(--muted); font-size: 13px; margin-top: 6px; }
   .ts { display: inline-flex; align-items: center; gap: 3px; border: 0; background: var(--accent-soft); color: var(--accent-ink); font: 600 12.5px/1.2 var(--sans); padding: 3px 8px; border-radius: 99px; cursor: pointer; margin: 0 2px; vertical-align: 1px; font-variant-numeric: tabular-nums; }
   .ts svg { width: 11px; height: 11px; }
@@ -1734,7 +1735,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '49 · 4 oct. 2026';
+const APP_VERSION = '50 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -3244,7 +3245,7 @@ const kindOf = (t) => /insist/i.test(t) ? 'insist' : /examen|partiel|contr[ôo]l
 let busy = false;
 const RING = 2 * Math.PI * 52;
 let statusEl = 'jobStatus';
-function status(t) { $(statusEl).textContent = t || ''; }
+function status(t) { const el = $(statusEl); if (el) el.textContent = t || ''; }
 function step(id, state, detail) {
   $(id).className = 'step' + (state ? ' ' + state : '');
   if (detail != null) $(id + '-d').textContent = detail;
@@ -5263,15 +5264,20 @@ async function renderAsk() {
   $('title').textContent = askScope === 'note' && currentNote ? 'Question · ' + currentNote.title : askScope === 'course' ? 'Question · ' + (crsM ? crsM.name : 'matière') : 'Question · toutes mes notes';
   const items = await getChat();
   const notes = await askNotes();
+  const sp = askSpec(), pend = getAskQ().filter((x) => sameSpec(x, sp));
   $('askClear').classList.toggle('hidden', !items.length);
   const list = $('askList');
-  if (!items.length && !asking) {
+  if (!items.length && !pend.length) {
     list.innerHTML = `<div class="ask-empty"><b>${askScope === 'note' ? 'Interroge cet enregistrement' : askScope === 'course' ? 'Interroge toute la matière' : 'Interroge toutes tes notes'}</b>${askScope === 'note' ? 'Les réponses citent les passages : touche un horodatage pour y aller.' : `${notes.length} enregistrement${notes.length > 1 ? 's' : ''} consultables. Les réponses indiquent dans quelle note chercher.`}</div>
       <div class="ask-sugg">${SUGG[askScope].map((q) => `<button type="button">${esc(q)}</button>`).join('')}</div>`;
     list.querySelectorAll('.ask-sugg button').forEach((b) => b.onclick = () => { $('askInput').value = b.textContent; autoGrow(); if (/ $/.test(b.textContent)) $('askInput').focus(); else sendAsk(); });
     return;
   }
-  list.innerHTML = items.map((m) => `<div class="msg me">${esc(m.q)}</div><div class="msg ai${m.err ? ' err' : ''}">${m.err ? esc(m.a) : `<div class="md">${md(m.a, { i: 0, noEdit: true })}</div>`}<small>${m.err ? '' : esc((m.by || '').replace(/^openai\//, '')) + ' · '}${new Date(m.at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</small></div>`).join('');
+  list.innerHTML = items.map((m) => `<div class="msg me">${esc(m.q)}</div><div class="msg ai${m.err ? ' err' : ''}">${m.err ? esc(m.a) : `<div class="md">${md(m.a, { i: 0, noEdit: true })}</div>`}<small>${m.err ? '' : esc((m.by || '').replace(/^openai\//, '')) + ' · '}${new Date(m.at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</small></div>`).join('')
+    + pend.map((x) => `<div class="msg me">${esc(x.q)}</div>` + (x.id === askInflight
+      ? '<div class="msg ai" id="askPending"><span class="typing"><i></i><i></i><i></i></span><div class="ask-st" id="askStatus" role="status">Lecture des passages…</div></div>'
+      : `<div class="msg ai ask-wait"><span>${isOffline() ? 'Hors connexion : la question partira toute seule dès le retour du réseau.' : 'En attente : la question partira juste après.'}</span><button class="linkbtn" type="button" data-unq="${esc(x.id)}">Annuler</button></div>`)).join('');
+  list.querySelectorAll('[data-unq]').forEach((b) => b.onclick = () => { unqueueAsk(b.dataset.unq); toast('Question annulée'); renderAsk(); if (current === 'home') renderHome(); });
   const okItems = items.filter((x) => !x.err);
   list.querySelectorAll('.msg.ai .md').forEach((el, i) => { const m = okItems[i]; linkTimes(el, m && m.notes ? m.notes.map((id) => notes.find((n) => n.id === id) || { id, title: 'note' }) : notes); });
   renderMath(list);
@@ -5280,36 +5286,94 @@ async function renderAsk() {
 function autoGrow() { const t = $('askInput'); t.style.height = 'auto'; t.style.height = Math.min(140, t.scrollHeight) + 'px'; }
 async function sendAsk() {
   const q = $('askInput').value.trim();
-  if (!q || asking) return;
-  if (busy || enhancing || writing || carding) { toast('Un traitement est en cours — pose ta question dès qu\'il sera fini'); return; }
+  if (!q) return;
   if (!hasKey(provider())) { toast('Ajoute d\'abord une clé d\'IA dans les réglages'); return; }
   const notes = await askNotes();
   if (!notes.length) { toast('Aucune note transcrite à interroger'); return; }
-  asking = true; askAbort = false; setCourseCtx(askScope === 'note' ? notes[0] : null, askScope === 'course' ? getMat(askCourse) : null);
   $('askInput').value = ''; autoGrow();
+  // la question est gardée dans le téléphone AVANT l'envoi : rien n'est perdu si le réseau tombe ou si l'app se ferme
+  setAskQ([...getAskQ(), { id: 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), q, at: Date.now(), ...askSpec() }]);
+  if (isOffline()) toast('Hors connexion : ta question partira toute seule dès le retour du réseau');
+  else if (busy || enhancing || writing || carding) toast('Un traitement est en cours : ta question partira dès qu\'il sera fini');
   await renderAsk();
-  const list = $('askList');
-  if (list.querySelector('.ask-empty')) list.innerHTML = '';
-  list.insertAdjacentHTML('beforeend', `<div class="msg me">${esc(q)}</div><div class="msg ai" id="askPending"><span class="typing"><i></i><i></i><i></i></span><div class="ask-st" id="askStatus">Lecture des passages…</div></div>`);
-  $('askPending').scrollIntoView({ block: 'end', behavior: 'smooth' });
-  const prevEl = statusEl; statusEl = 'askStatus';
-  const prevItems = askScope === 'note' ? (notes[0].chat || []) : await getChat();
-  const history = prevItems.filter((m) => !m.err).slice(-3).map((m) => `Q : ${m.q}\nR : ${m.a.slice(0, 600)}`).join('\n\n');
-  let entry;
-  try {
-    const ctx = buildAskContext(notes, q);
-    const a = await askLLM(P_ASK(ctx, q, history), 'Rédaction de la réponse');
-    entry = { q, a: a.trim(), at: Date.now(), by: lastModel, notes: notes.map((n) => n.id) };
-  } catch (e) {
-    entry = { q, a: e instanceof ApiError ? e.message : 'Erreur : ' + e.message, at: Date.now(), err: true };
-  } finally { statusEl = prevEl; asking = false; }
-  if (askScope === 'note') {
-    const fresh = (await db.get(notes[0].id)) || notes[0];
+  const last = $('askList').lastElementChild; if (last) last.scrollIntoView({ block: 'end', behavior: 'smooth' });
+  flushAskQ();
+}
+
+/* Questions en attente (F4) : posées sans réseau, pendant un traitement, ou interrompues par la fermeture de l'app.
+   Gardées dans le téléphone et envoyées toutes seules, dans l'ordre, chacune avec sa portée (note, matière, toutes). */
+const ASKQ = 'np-askq';
+let askInflight = null, askFlushT = 0;
+const getAskQ = () => { try { const a = JSON.parse(lsGet(ASKQ, '[]')); return Array.isArray(a) ? a.filter((x) => x && typeof x.q === 'string' && x.id) : []; } catch (e) { return []; } };
+const setAskQ = (a) => lsSet(ASKQ, JSON.stringify(a.slice(-20)));
+const unqueueAsk = (id) => setAskQ(getAskQ().filter((x) => x.id !== id));
+const askSpec = () => ({ scope: askScope, noteId: askScope === 'note' && currentNote ? currentNote.id : null, course: askScope === 'course' ? askCourse : null });
+const sameSpec = (a, b) => a.scope === b.scope && (a.noteId || null) === (b.noteId || null) && (a.course || null) === (b.course || null);
+async function specNotes(sp) {
+  if (sp.scope === 'note') { const n = sp.noteId ? await db.get(sp.noteId) : null; return n ? [n] : []; }
+  if (sp.scope === 'course') return (await fullNotes((h) => h.hasSegs && h.course && h.course.key === sp.course)).sort((a, b) => a.created - b.created);
+  return (await fullNotes((h) => h.hasSegs)).sort((a, b) => b.created - a.created);
+}
+const specChatKey = (sp) => sp.scope === 'course' ? 'np-chat-crs-' + sp.course : ALLCHAT;
+function lsChat(key) { try { const a = JSON.parse(lsGet(key, '[]')); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+async function saveAskEntry(sp, entry) {
+  if (sp.scope === 'note') {
+    const fresh = await db.get(sp.noteId); if (!fresh) return;
     fresh.chat = [...(fresh.chat || []), entry].slice(-60); await db.put(fresh);
     if (currentNote && currentNote.id === fresh.id) currentNote.chat = fresh.chat;
-  } else { const key = chatKey(); let prev = []; try { prev = JSON.parse(lsGet(key, '[]')); } catch (e) {} lsSet(key, JSON.stringify([...prev, entry].slice(-40))); }
-  if (current === 'ask') { await renderAsk(); const last = $('askList').lastElementChild; if (last) last.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+  } else { const key = specChatKey(sp); lsSet(key, JSON.stringify([...lsChat(key), entry].slice(-40))); }
 }
+// Ouvrir l'écran Question sur la portée d'une question (depuis la notification ou le message « Réponse prête »)
+async function openAskFor(sp) {
+  if (!sp) return show('home');
+  if (sp.scope === 'note') { await openNote(sp.noteId); if (currentNote && currentNote.id === sp.noteId) openAsk('note'); return; }
+  openAsk(sp.scope, 'home', sp.course);
+}
+async function runAsk(it) {
+  const notes = await specNotes(it);
+  if (!notes.length) { unqueueAsk(it.id); return true; }   // note supprimée entre-temps
+  asking = true; askAbort = false; askInflight = it.id;
+  setCourseCtx(it.scope === 'note' ? notes[0] : null, it.scope === 'course' ? getMat(it.course) : null);
+  const here = () => current === 'ask' && sameSpec(askSpec(), it);
+  if (here()) { await renderAsk(); const p = $('askPending'); if (p) p.scrollIntoView({ block: 'end', behavior: 'smooth' }); }
+  const prevEl = statusEl; statusEl = 'askStatus';
+  const prevItems = it.scope === 'note' ? (notes[0].chat || []) : lsChat(specChatKey(it));
+  const history = prevItems.filter((m) => !m.err).slice(-3).map((m) => `Q : ${m.q}\nR : ${m.a.slice(0, 600)}`).join('\n\n');
+  let entry = null;
+  try {
+    const ctx = buildAskContext(notes, it.q);
+    const a = await askLLM(P_ASK(ctx, it.q, history), 'Rédaction de la réponse');
+    entry = { q: it.q, a: a.trim(), at: Date.now(), by: lastModel, notes: notes.map((n) => n.id) };
+  } catch (e) {
+    // réseau perdu ou arrêt : la question reste dans la file et repartira
+    if (!(e instanceof Cancelled) && !isOffline()) entry = { q: it.q, a: e instanceof ApiError ? e.message : 'Erreur : ' + e.message, at: Date.now(), err: true };
+  } finally { statusEl = prevEl; asking = false; askInflight = null; }
+  if (!entry) { if (here()) await renderAsk(); return false; }
+  unqueueAsk(it.id);
+  await saveAskEntry(it, entry);
+  if (here()) { await renderAsk(); const last = $('askList').lastElementChild; if (last) last.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+  else if (!entry.err) {
+    lsSet('np-ask-last', JSON.stringify({ scope: it.scope, noteId: it.noteId, course: it.course }));
+    const short = it.q.length > 50 ? it.q.slice(0, 50) + '…' : it.q;
+    toast(`Réponse prête : « ${short} »`, { action: 'Voir', onAction: () => openAskFor(it) });
+    notify('Réponse prête', it.q, ':ask');
+    if (current === 'home') renderHome();
+  }
+  return true;
+}
+async function flushAskQ() {
+  clearTimeout(askFlushT);
+  if (asking || isOffline()) return;
+  for (;;) {
+    const it = getAskQ()[0]; if (!it) return;
+    if (isOffline() || !hasKey(provider())) return;
+    if (busy || enhancing || writing || carding) { askFlushT = setTimeout(flushAskQ, 20000); return; }   // l'IA est déjà occupée
+    if (!(await runAsk(it))) return;
+  }
+}
+const lastAskSpec = () => { try { return JSON.parse(lsGet('np-ask-last', 'null')); } catch (e) { return null; } };
+window.addEventListener('online', () => setTimeout(flushAskQ, 1500));
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(flushAskQ, 1500); });
 
 /* =================== Fiches de révision (révision espacée) =================== */
 /* Boîtes de Leitner : chaque bonne réponse éloigne la prochaine révision (1, 3, 7, 16, 35, 80 jours) ;
@@ -6137,20 +6201,22 @@ function capHomeCards() {
 }
 async function renderHomeQueue() {
   const box = $('homeQueue'); if (!box) return;
-  const q = await queueState().catch(() => null);
-  if (!q || (!q.wait.length && !q.fail.length)) { box.innerHTML = ''; return; }
-  box.innerHTML = `<button class="card home-q" id="hqGo" type="button"><span class="sec-ic">${ICONS.list}</span><span class="grow"><b>File d'attente</b><small>${[q.wait.length ? `${q.wait.length} en attente` : '', q.fail.length ? `${q.fail.length} en échec` : ''].filter(Boolean).join(' · ')}</small></span><span class="pct2">Voir</span></button>`;
+  const q = await queueState().catch(() => null), nq = getAskQ().length;
+  if (!q || (!q.wait.length && !q.fail.length && !nq)) { box.innerHTML = ''; return; }
+  box.innerHTML = `<button class="card home-q" id="hqGo" type="button"><span class="sec-ic">${ICONS.list}</span><span class="grow"><b>File d'attente</b><small>${[q.wait.length ? `${q.wait.length} en attente` : '', q.fail.length ? `${q.fail.length} en échec` : '', nq ? `${nq} question${nq > 1 ? 's' : ''} à envoyer` : ''].filter(Boolean).join(' · ')}</small></span><span class="pct2">Voir</span></button>`;
   $('hqGo').onclick = queueSheet;
 }
 async function queueSheet() {
-  const q = await queueState();
+  const q = await queueState(), aq = getAskQ();
   const row = (h, kind) => `<div class="q-row"><div class="grow"><b>${esc(h.title || h.fileName || 'Sans titre')}</b><small>${kind === 'run' ? 'En cours…' : kind === 'wait' ? (h.status === 'resume' ? 'En attente du résumé' : 'En attente de transcription') : esc(String(h.error || 'Échec').slice(0, 160))}</small></div>
     ${kind === 'wait' ? `<button class="btn" type="button" data-qrm="${esc(h.id)}">Retirer</button>` : kind === 'fail' ? `<button class="btn" type="button" data-qre="${esc(h.id)}">Réessayer</button>` : `<button class="btn" type="button" data-qopen="1">Voir</button>`}</div>`;
   openSheet(`<h3>File d'attente</h3><p class="sub">Les fichiers sont traités un par un, dans l'ordre. Rien n'est perdu si l'app se ferme : tout reprend à la réouverture.</p>
     ${q.run.length ? `<div class="f">En cours</div>${q.run.map((h) => row(h, 'run')).join('')}` : ''}
     ${q.wait.length ? `<div class="f">En attente (${q.wait.length})</div>${q.wait.map((h) => row(h, 'wait')).join('')}` : ''}
     ${q.fail.length ? `<div class="f">En échec (${q.fail.length})</div>${q.fail.map((h) => row(h, 'fail')).join('')}${q.fail.length > 1 ? '<button class="btn block" id="qAll" type="button" style="margin-top:10px">Tout réessayer</button>' : ''}` : ''}
-    ${!q.run.length && !q.wait.length && !q.fail.length ? '<p class="sub">Rien en attente.</p>' : ''}`, (b) => {
+    ${aq.length ? `<div class="f">Questions à envoyer (${aq.length})</div>${aq.map((x) => `<div class="q-row"><div class="grow"><b>${esc(x.q.length > 90 ? x.q.slice(0, 90) + '…' : x.q)}</b><small>${x.id === askInflight ? 'Réponse en cours…' : isOffline() ? 'Partira au retour du réseau' : 'Partira dès que l\'IA est libre'}</small></div>${x.id === askInflight ? '' : `<button class="btn" type="button" data-aqrm="${esc(x.id)}">Retirer</button>`}</div>`).join('')}` : ''}
+    ${!q.run.length && !q.wait.length && !q.fail.length && !aq.length ? '<p class="sub">Rien en attente.</p>' : ''}`, (b) => {
+    b.querySelectorAll('[data-aqrm]').forEach((x) => x.onclick = () => { unqueueAsk(x.dataset.aqrm); toast('Question retirée'); queueSheet(); renderHome(); });
     b.querySelectorAll('[data-qrm]').forEach((x) => x.onclick = async () => { await queueRemove(x.dataset.qrm); queueSheet(); renderHome(); });
     b.querySelectorAll('[data-qre]').forEach((x) => x.onclick = async () => { await queueRetry([x.dataset.qre]); queueSheet(); });
     const all = b.querySelector('#qAll'); if (all) all.onclick = async () => { await queueRetry(q.fail.map((h) => h.id)); queueSheet(); };
@@ -8224,6 +8290,7 @@ $('appVersion').textContent = APP_VERSION;
 applyTheme(settings.theme);
 applyFs(settings.fs);
 setTimeout(() => askPersist(true), 4000);
+setTimeout(flushAskQ, 3000);   // questions restées en attente (réseau, fermeture de l'app)
 $('updBtn').onclick = async () => {
   $('updState').textContent = 'Recherche d\'une mise à jour…';
   try {
@@ -8532,7 +8599,7 @@ document.querySelectorAll('#trMode button').forEach((b) => b.onclick = () => { t
 $('runBanner').onclick = () => show('job');
 $('notifBtn').onclick = askNotif;
 $('notifHintBtn').onclick = askNotif;
-if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.open) { if (e.data.open === ':tasks') show('tasks'); else if (e.data.open === ':courses') show('courses'); else if (e.data.open === ':review') startReview(); else openNote(e.data.open); } });
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.open) { if (e.data.open === ':tasks') show('tasks'); else if (e.data.open === ':courses') show('courses'); else if (e.data.open === ':review') startReview(); else if (e.data.open === ':ask') openAskFor(lastAskSpec()); else openNote(e.data.open); } });
 // Reprend automatiquement un traitement interrompu (app fermée ou mise en pause par Android)
 async function resumeInterrupted() {
   if (busy || enhancing || writing) return;
@@ -8567,7 +8634,7 @@ window.addEventListener('beforeunload', (e) => { if (busy || enhancing || writin
   if (sharedOk) await startFile(shared);
   else show('home');
   renderNotif();
-  if (!shared && params.has('note')) { const id = params.get('note'); history.replaceState(history.state, '', location.pathname); if (id === ':tasks') show('tasks'); else if (id === ':courses') show('courses'); else if (id === ':review') startReview(); else openNote(id); }
+  if (!shared && params.has('note')) { const id = params.get('note'); history.replaceState(history.state, '', location.pathname); if (id === ':tasks') show('tasks'); else if (id === ':courses') show('courses'); else if (id === ':review') startReview(); else if (id === ':ask') openAskFor(lastAskSpec()); else openNote(id); }
   await recoverRec();
   const act = params.get('action');
   if (act) { history.replaceState(history.state, '', location.pathname); if (!shared) setTimeout(() => runAction(act), 300); }

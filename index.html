@@ -1734,7 +1734,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '48 · 4 oct. 2026';
+const APP_VERSION = '49 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -3660,12 +3660,14 @@ const SEARCH_OPS = { tag: 'tag', tags: 'tag', matiere: 'mat', mat: 'mat', cours:
 function parseQuery(raw) {
   const out = { text: '', raw: '', phrases: [], rawPhrases: [], excl: [], tag: [], mat: [], before: null, after: null, type: null, has: [] };
   const rest = [];
-  const re = /(-?)"([^"]*)"?|(\S+)/g; let m;
+  // matière:"droit civil" : valeur entre guillemets après un opérateur (sinon matière:droit_civil)
+  const re = /(-?)"([^"]*)"?|([^\s:"]+):"([^"]*)"?|(\S+)/g; let m;
   while ((m = re.exec(String(raw || '')))) {
     if (m[2] !== undefined) { const p = norm(m[2]).trim(); if (p) { (m[1] ? out.excl : out.phrases).push(p); if (!m[1]) out.rawPhrases.push(m[2].trim()); } continue; }
-    const tok = m[3], op = /^([^:]+):(.+)$/.exec(tok), key = op && SEARCH_OPS[norm(op[1])];
+    if (m[5] === undefined && !m[4].trim()) continue;   // matière:"" : rien à filtrer
+    const tok = m[5] !== undefined ? m[5] : `${m[3]}:${m[4]}`, op = m[5] !== undefined ? /^([^:]+):(.+)$/.exec(tok) : m[4].trim() && [tok, m[3], m[4].trim()], key = op && SEARCH_OPS[norm(op[1])];
     if (key) {
-      const v = norm(op[2]).replace(/_/g, ' ');
+      const v = norm(op[2]).replace(/_/g, ' ').trim();
       if (key === 'before' || key === 'after') { const t = fromIsoLoose(op[2]); if (t != null) out[key] = t; else rest.push(tok); }
       else if (key === 'type') out.type = /^r[ée]u/.test(v) ? 'reunion' : /^(note|perso)/.test(v) ? 'perso' : /^cours/.test(v) ? 'cours' : v;
       else out[key].push(v);
@@ -3733,7 +3735,7 @@ function searchHelp() {
       <li><code>graphe orienté</code> : l'expression telle quelle</li>
       <li><code>"tri fusion" récurrence</code> : l'expression exacte <b>et</b> le mot</li>
       <li><code>-examen</code> : sans ce mot</li>
-      <li><code>tag:algo</code> · <code>matière:physique</code> · <code>type:cours</code> (ou réunion, note)</li>
+      <li><code>tag:algo</code> · <code>matière:physique</code> · <code>matière:"droit civil"</code> · <code>type:cours</code> (ou réunion, note)</li>
       <li><code>après:2026-10-01</code> · <code>avant:15/11/2026</code></li>
       <li><code>a:fiches</code> · <code>a:audio</code> · <code>a:tâches</code> · <code>a:photos</code> · <code>a:quiz</code></li>
     </ul><p>Exemple : <code>matière:algo "tas binaire" après:2026-10-01</code></p></div>
@@ -4890,16 +4892,17 @@ async function renderTasks() {
       <h3>Aucune tâche pour l'instant</h3><p>Les tâches trouvées dans tes résumés (devoirs, exercices, actions…) apparaîtront ici. Tu peux aussi en ajouter avec le bouton +.</p></div>`;
     return;
   }
-  let html = '', left = tui.limit;   // au-delà, « Afficher plus » (des centaines de tâches à dessiner d'un coup, c'est lent)
-  const items = (arr) => { const k = Math.max(0, Math.min(arr.length, left)); left -= k; return arr.slice(0, k).map(taskItem).join(''); };
+  let html = '', left = tui.limit, cut = false;   // au-delà, « Afficher plus » (des centaines de tâches à dessiner d'un coup, c'est lent)
+  const items = (arr) => { const k = Math.max(0, Math.min(arr.length, left)); left -= k; if (k < arr.length) cut = true; return arr.slice(0, k).map(taskItem).join(''); };
   if (!list.length) html = `<div class="empty-s">${tui.stat || tui.tag || tui.mode === 'cal' ? 'Aucune tâche ici.' : all.length ? 'Rien à faire, tout est coché !' : 'Pas encore de tâche. Elles viennent toutes seules des résumés (exercices, lectures, devoirs annoncés) ; le bouton + en ajoute une à la main.'}</div>`;
   else if (tui.mode === 'due') {
     const groups = new Map(); for (const t of list) { const g = dueGroup(t); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(t); }
     for (const g of DUE_ORDER) if (groups.has(g) && left > 0) html += `<div class="group" role="heading" aria-level="2">${g} · ${groups.get(g).length}</div>` + items(groups.get(g));
   } else if (tui.mode === 'week') {
     const today = dayStart(Date.now()), late = list.filter((t) => !t.done && t.due && isoDay(t.due) < today);
-    if (late.length) html += `<div class="group" role="heading" aria-level="2">En retard · ${late.length}</div>` + items(late);
-    for (let k = 0; k < 7 && left > 0; k++) {
+    // en retard : les 5 plus urgentes seulement, pour que la semaine reste visible même avec des centaines de retards
+    if (late.length) html += `<div class="group" role="heading" aria-level="2">En retard · ${late.length}</div>` + late.slice(0, 5).map(taskItem).join('') + (late.length > 5 ? `<button class="btn ghost block" id="wkLate" type="button">Voir les ${late.length} tâches en retard</button>` : '');
+    for (let k = 0; k < 7; k++) {
       const d = today + k * DAY, ts = list.filter((t) => t.due && isoDay(t.due) === d);
       html += `<div class="group wk-day${k === 0 ? ' today' : ''}" role="heading" aria-level="2">${k === 0 ? 'Aujourd\'hui' : k === 1 ? 'Demain' : new Date(d).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' })}${ts.length ? ' · ' + ts.length : ''}</div>` + (ts.length ? items(ts) : '<div class="wk-free">Rien de prévu</div>');
     }
@@ -4910,10 +4913,11 @@ async function renderTasks() {
     const keys = [...groups.keys()].sort((a, b) => (a === 'Sans tag') - (b === 'Sans tag') || groups.get(b).length - groups.get(a).length || a.localeCompare(b));
     for (const g of keys) if (left > 0) html += `<div class="group" role="heading" aria-level="2">${g === 'Sans tag' ? g : `<span class="tag" style="--h:${tagHue(g)};height:24px;font-size:12px">${ICONS.tag}${esc(g)}</span>`} · ${groups.get(g).length}</div>` + items(groups.get(g));
   } else html += items(list);
-  if (list.length > tui.limit) html += `<button class="btn ghost block" id="tMoreItems" type="button">Afficher plus (${list.length - tui.limit} autres tâches)</button>`;
+  if (tui.mode === 'week' ? cut : list.length > tui.limit) html += `<button class="btn ghost block" id="tMoreItems" type="button">Afficher plus${tui.mode === 'week' ? '' : ` (${list.length - tui.limit} autres tâches)`}</button>`;
   if (!tui.showDone && doneCount) html += `<button class="btn ghost donebtn" id="showDone">${ICONS.eye}Voir les ${doneCount} tâche${doneCount > 1 ? 's' : ''} terminée${doneCount > 1 ? 's' : ''}</button>`;
   else if (tui.showDone && doneCount) html += `<button class="btn ghost donebtn" id="showDone">Masquer les tâches terminées</button>`;
   box.innerHTML = html;
+  if ($('wkLate')) $('wkLate').onclick = () => { tui.mode = 'due'; lsSet('np-tmode', 'due'); tui.stat = 'late'; renderTasks(); };
   if ($('tMoreItems')) $('tMoreItems').onclick = () => { tui.limit += 300; renderTasks(); };
   if ($('showDone')) $('showDone').onclick = () => { tui.showDone = !tui.showDone; renderTasks(); };
   renderMath(box);

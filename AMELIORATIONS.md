@@ -80,7 +80,7 @@ Les contraintes ne changent pas : pas d'étape de build, interface en français,
 - [ ] **S1. Verrouillage par code.** Un code à 4 à 8 chiffres est demandé à l'ouverture, après une durée réglable. C'est un écran de confidentialité, pas un chiffrement, et c'est expliqué. *Bénéfice : un téléphone prêté n'ouvre pas les notes.* · Effort M · P3
 - [x] **S2. « Tout effacer ».** Un bouton supprime les notes, l'audio, les réglages et le cache, avec une double confirmation. *Bénéfice : rendre ou revendre son téléphone en toute tranquillité.* · Effort S · **P2** — [PR #16](https://github.com/Trushu/notes-plaud/pull/16)
 - [x] **S3. Clés masquées dans les exports et les diagnostics.** · Effort S · P3 — [PR #16](https://github.com/Trushu/notes-plaud/pull/16)
-- [ ] **P1. Mesures de performance des nouvelles fonctions.** Statistiques, glossaire et recherche avancée doivent rester rapides avec 500 notes. · Effort S · **P2**
+- [x] **P1. Mesures de performance des nouvelles fonctions.** Statistiques, glossaire et recherche avancée doivent rester rapides avec 500 notes. · Effort S · **P2** — [PR #20](https://github.com/Trushu/notes-plaud/pull/20)
 
 ## Documentation
 

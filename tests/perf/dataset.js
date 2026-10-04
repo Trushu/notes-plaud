@@ -3,7 +3,7 @@
 /*
  * Jeu de données réaliste pour les mesures de performance, généré DANS la page (pas de transfert de 100 Mo) :
  * 500 notes, dont un cinquième d'enregistrements de 3 h (transcription brute + améliorée + cours rédigé),
- * le reste d'une heure. Vocabulaire pseudo-français de quelques milliers de mots, graine fixe (reproductible).
+ * le reste d'une heure, répartis en 8 matières, chacune avec des définitions (glossaire). Vocabulaire pseudo-français de quelques milliers de mots, graine fixe (reproductible).
  */
 function generate({ n = 500, long = 100, seed = 42 } = {}) {
   let x = seed;
@@ -24,7 +24,8 @@ function generate({ n = 500, long = 100, seed = 42 } = {}) {
     const note = {
       id: 'p' + i.toString(36).padStart(4, '0'), created: t0 + i * 14 * 3600000, addedAt: t0 + i * 14 * 3600000, fileName: `cours-${i}.mp3`, size: dur * 8000,
       title: `Cours ${i} : ${word()} et ${word()}`, status: 'ok', duration: dur, tags: [vocab[i % 40], vocab[(i * 7) % 40]],
-      summary: `## Résumé\n${sentence(60)}\n## Points clés\n- ${sentence(12)}\n- ${sentence(12)}\n## À retravailler à la maison\n- [ ] ${sentence(6)} 📅 2026-10-${String(1 + (i % 28)).padStart(2, '0')}\n- [${i % 3 ? ' ' : 'x'}] ${sentence(5)}\n## Questions pour réviser\n- ${sentence(8)} ? → ${sentence(6)}`,
+      summary: `## Résumé\n${sentence(60)}\n## Points clés\n- ${sentence(12)}\n- ${sentence(12)}\n## À retravailler à la maison\n- [ ] ${sentence(6)} 📅 2026-10-${String(1 + (i % 28)).padStart(2, '0')}\n- [${i % 3 ? ' ' : 'x'}] ${sentence(5)}\n## Définitions et formules\n- **${word()} ${word()}** : ${sentence(10)}\n- **${word()}** : ${sentence(8)}\n- $$x_${i % 9} = ${i}$$ : ${sentence(4)}\n## Questions pour réviser\n- ${sentence(8)} ? → ${sentence(6)}`,
+      course: { key: `m${i % 8}`, code: `M${i % 8}`, name: `Matière ${i % 8}`, uid: null, start: t0 + i * 14 * 3600000, end: t0 + i * 14 * 3600000 + dur * 1000, kind: 'cours', prof: '', location: '', full: `Matière ${i % 8}` },
       segments: segs,
     };
     if (isLong) {

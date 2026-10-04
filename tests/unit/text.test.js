@@ -157,3 +157,18 @@ test.describe('utilitaires', () => {
     assert.equal(app.baseName('2025-03-12 14-30.mp3'), '2025-03-12 14-30');
   });
 });
+
+test.describe('En bref (feuille de route I5)', () => {
+  const { app } = require('../helpers/load-app').loadApp({ now: Date.now() });
+  test('ligne « En bref » lue et retirée du résumé', () => {
+    const m = app.splitMeta('## Résumé\nTexte\nEn bref : Les graphes modélisent des relations.\nType : cours\nTags : graphes, algo');
+    assert.equal(m.brief, 'Les graphes modélisent des relations.');
+    assert.equal(m.body, '## Résumé\nTexte');
+    assert.equal(m.kind, 'cours');
+    assert.equal(app.splitMeta('## Résumé\nx').brief, null);
+  });
+  test('l\'aperçu de l\'accueil préfère « En bref »', () => {
+    assert.equal(app.excerpt({ summary: '## Résumé\nLong texte.', brief: 'Court.' }), 'Court.');
+    assert.equal(app.excerpt({ summary: '## Résumé\nLong texte.' }), 'Long texte.');
+  });
+});

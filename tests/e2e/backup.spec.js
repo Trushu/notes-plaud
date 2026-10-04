@@ -18,7 +18,7 @@ test.describe('Sauvegarde et restauration', () => {
     await page.evaluate(() => addTask({ text: 'Tâche manuelle', tags: [], prio: 0 }));
 
     await page.locator('#settingsBtn').click();
-    const [download] = await Promise.all([page.waitForEvent('download'), page.locator('#bkBtn').click()]);
+    const [download] = await Promise.all([page.waitForEvent('download'), page.locator('#bkBtn').click().then(() => page.locator('#bkDl').click())]);
     expect(download.suggestedFilename()).toMatch(/^notes-plaud-sauvegarde-\d{4}-\d{2}-\d{2}\.json$/);
     const file = info.outputPath('sauvegarde.json');
     await download.saveAs(file);
@@ -62,7 +62,7 @@ test.describe('Sauvegarde et restauration', () => {
     await page.goto('./');
     await page.locator('#settingsBtn').click();
     await page.locator('#bkKeys').check();
-    const [download] = await Promise.all([page.waitForEvent('download'), page.locator('#bkBtn').click()]);
+    const [download] = await Promise.all([page.waitForEvent('download'), page.locator('#bkBtn').click().then(() => page.locator('#bkDl').click())]);
     const file = info.outputPath('avec-cles.json');
     await download.saveAs(file);
     const data = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -77,5 +77,62 @@ test.describe('Sauvegarde et restauration', () => {
     fs.writeFileSync(file, JSON.stringify({ hello: 'world' }));
     await page.locator('#rsInput').setInputFiles(asUpload(file));
     await expect(page.locator('#toast')).toContainText('n\'est pas une sauvegarde de Notes Plaud');
+  });
+
+  test('sauvegarde chiffrée par mot de passe : illisible sans lui, restaurée avec lui, préférences comprises', async ({ page, browser, mocks }, info) => {
+    await useSettings(page, { key: 'gsk_secret' });
+    await page.goto('./');
+    await seedNotes(page, [note({ id: 'n1', title: 'Note secrète', summary: '## Résumé\nLe code du coffre est 1234.' })]);
+    await page.evaluate(() => { lsSet('np-crs', JSON.stringify({ ALG: { exam: '2027-01-15', vocab: 'Dijkstra' } })); return dbRun('pending', 'readwrite', (st) => st.put({ days: { '2026-10-01': [5, 4] } }, 'revlog')); });
+    await page.locator('#settingsBtn').click();
+    await page.locator('#bkEnc').check();
+    await page.locator('#bkBtn').click();
+    await expect(page.locator('#pw1')).toBeFocused();   // le champ prend le focus à l'ouverture
+    await page.locator('#pw1').fill('court');
+    await page.locator('#pw2').fill('court');
+    await page.locator('#pwOk').click();
+    await expect(page.locator('#pwRes')).toContainText('Au moins 8 caractères');
+    await page.locator('#pw1').fill('motdepasse-solide');
+    await page.locator('#pw2').fill('motdepasse-solide');
+    await page.locator('#pwOk').click();
+    await expect(page.locator('#sheet')).toContainText('chiffrée par mot de passe');
+    const [download] = await Promise.all([page.waitForEvent('download'), page.locator('#bkDl').click()]);
+    expect(download.suggestedFilename()).toMatch(/-chiffree\.json$/);
+    const file = info.outputPath('chiffree.json');
+    await download.saveAs(file);
+    const raw = fs.readFileSync(file, 'utf8');
+    expect(raw).not.toContain('coffre');
+    expect(JSON.parse(raw)).toMatchObject({ app: 'notes-plaud', format: 'enc1', kdf: 'PBKDF2-SHA256' });
+
+    const ctx2 = await browser.newContext(); const page2 = await ctx2.newPage();
+    const m2 = new (require('./fixtures').Mocks)(page2); await m2.install();
+    await page2.goto('./');
+    await page2.locator('#onboardSet').click();
+    await page2.locator('#rsInput').setInputFiles(asUpload(file));
+    await expect(page2.locator('#pw1')).toBeFocused();
+    await page2.locator('#pw1').fill('mauvais');
+    await page2.locator('#pwOk').click();
+    await expect(page2.locator('#sheet')).toContainText('Mot de passe incorrect');
+    await page2.locator('#pw1').fill('motdepasse-solide');
+    await page2.locator('#pwOk').click();
+    await expect(page2.locator('#toast')).toContainText('1 note restaurée');
+    const n = await page2.evaluate(() => db.get('n1'));
+    expect(n.summary).toContain('1234');
+    expect(await page2.evaluate(() => crsPrefs())).toEqual({ ALG: { exam: '2027-01-15', vocab: 'Dijkstra' } });
+    expect((await page2.evaluate(() => getRevLog())).days['2026-10-01']).toEqual([5, 4]);
+    await ctx2.close();
+  });
+
+  test('rappel de sauvegarde : fréquence réglable', async ({ page, mocks }) => {
+    await useSettings(page, { key: 'gsk' });
+    await page.goto('./');
+    await seedNotes(page, [note({ id: 'a' }), note({ id: 'b' }), note({ id: 'c' })]);
+    await page.evaluate(() => { lsSet('np-last-backup', String(Date.now() - 10 * 86400000)); renderBkRemind(); });
+    await expect(page.locator('#bkRemind')).toBeHidden();   // 10 jours < 1 mois (par défaut)
+    await page.locator('#settingsBtn').click();
+    await page.locator('#bkEvery').selectOption('7');
+    await page.locator('#backBtn').click();
+    await expect(page.locator('#bkRemind')).toBeVisible();
+    await expect(page.locator('#bkRemindTxt')).toContainText('il y a 10 jours');
   });
 });

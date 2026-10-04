@@ -207,6 +207,24 @@ test.describe('Audit axe-core : autres écrans et fenêtres', () => {
   });
 });
 
+test('Audit axe-core : sauvegarde (mot de passe, fichier prêt)', async ({ page, mocks }) => {
+  test.setTimeout(120000);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await useSettings(page, { key: 'gsk_test' });
+  await prepare(page);
+  const out = [];
+  await page.locator('#settingsBtn').click();
+  await page.locator('#bkEnc').check();
+  await page.locator('#bkBtn').click();
+  await expect(page.locator('#pw1')).toBeFocused();
+  await page.locator('#pw1').fill('a'); await page.locator('#pwOk').click();
+  await auditThemes(page, 'mot de passe', out);
+  await page.locator('#pw1').fill('motdepasse'); await page.locator('#pw2').fill('motdepasse'); await page.locator('#pwOk').click();
+  await expect(page.locator('#bkDl')).toBeVisible();
+  await auditThemes(page, 'sauvegarde prête', out);
+  if (REPORT) report('sauvegarde', out); else expect(out, out.join('\n')).toEqual([]);
+});
+
 test('contours des champs et des cases à cocher : contraste ≥ 3:1 dans les 8 thèmes (axe ne le vérifie pas)', async ({ page, mocks }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });   // pas de transition de couleur en changeant de thème
   await useSettings(page, { key: 'gsk_test' });

@@ -1587,6 +1587,9 @@
         <div class="notif-row"><div><b id="audLine">Audio</b><small>Supprimer l'audio garde les transcriptions, résumés, cours et fiches.</small></div><button class="btn hidden" id="audDelAll" type="button">Supprimer</button></div>
         <div class="row"><button class="btn primary" id="bkBtn" type="button" style="flex:1">Sauvegarder</button><button class="btn" id="rsBtn" type="button" style="flex:1">Restaurer</button></div>
         <label class="chkline" style="margin-bottom:0"><input type="checkbox" class="tck" id="bkKeys"><span>Inclure mes clés d'API et mon jeton Plaud (garde alors le fichier pour toi)</span></label>
+        <label class="chkline" style="margin-bottom:0"><input type="checkbox" class="tck" id="bkEnc"><span>Chiffrer avec un mot de passe<small style="display:block;color:var(--muted);font-weight:400;margin-top:2px">Conseillé si tu envoies la sauvegarde sur Drive ou par e-mail, surtout avec les clés.</small></span></label>
+        <div><label class="f" for="bkEvery">Me rappeler de sauvegarder</label>
+          <select id="bkEvery"><option value="7">Toutes les semaines</option><option value="14">Toutes les 2 semaines</option><option value="30">Tous les mois</option><option value="0">Jamais</option></select></div>
         <div class="f-help" id="bkLast"></div>
         <input type="file" id="rsInput" accept=".json,application/json" class="hidden">
       </div>
@@ -1652,7 +1655,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '41 · 4 oct. 2026';
+const APP_VERSION = '42 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -7444,7 +7447,10 @@ async function backupData() {
   // grand texte demandait plusieurs fois la taille des données en mémoire.
   const st = { ...settings };
   if (!$('bkKeys').checked) for (const k of SECRET_KEYS) delete st[k];
-  const head = JSON.stringify({ app: 'notes-plaud', format: 1, version: APP_VERSION, exportedAt: new Date().toISOString(), settings: st, plaudImported: importedIds() });
+  const enc = $('bkEnc').checked;
+  const pw = enc ? await askPassword('Chiffrer la sauvegarde', 'Ce mot de passe sera demandé pour la restaurer. <b>Note-le bien</b> : sans lui, le fichier est illisible (personne ne peut le retrouver).', true) : null;
+  if (enc && !pw) return;
+  const head = JSON.stringify({ app: 'notes-plaud', format: 1, version: APP_VERSION, exportedAt: new Date().toISOString(), settings: st, plaudImported: importedIds(), prefs: await backupPrefs() });
   const parts = [head.slice(0, -1) + ',"notes":['], buf = [];
   let count = 0, first = true;
   await db.each((n) => {
@@ -7454,11 +7460,85 @@ async function backupData() {
     if (buf.length >= 20) { parts.push(new Blob(buf)); buf.length = 0; }   // le navigateur peut garder ces morceaux hors de la mémoire du script
   });
   parts.push(new Blob(buf), ']}');
-  saveBlob(new Blob(parts, { type: 'application/json' }), `notes-plaud-sauvegarde-${toISODate(Date.now())}.json`);
-  lsSet('np-last-backup', String(Date.now()));
-  toast(`Sauvegarde de ${count} notes enregistrée (Téléchargements)`);
-  renderData(); renderBkRemind();
+  let blob = new Blob(parts, { type: 'application/json' });
+  if (pw) { toast('Chiffrement…'); blob = await encryptBackup(blob, pw); }
+  deliverBackup(blob, `notes-plaud-sauvegarde-${toISODate(Date.now())}${pw ? '-chiffree' : ''}.json`, count, !!pw);
 }
+/* ---- Sauvegarde chiffrée (facultative) : AES-GCM 256 bits, clé dérivée du mot de passe (PBKDF2-SHA256), tout dans le téléphone ---- */
+const BK_ITER = 310000;
+const b64e = (u8) => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+const b64d = (str) => { const bin = atob(str); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; };
+async function bkKey(pw, salt, iter) {
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+async function encryptBackup(blob, pw) {
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await bkKey(pw, salt, BK_ITER), await blob.arrayBuffer());
+  return new Blob([JSON.stringify({ app: 'notes-plaud', format: 'enc1', kdf: 'PBKDF2-SHA256', iter: BK_ITER, salt: b64e(salt), iv: b64e(iv), data: b64e(new Uint8Array(ct)) })], { type: 'application/json' });
+}
+async function decryptBackup(o, pw) {
+  const iter = Math.trunc(Number(o.iter));
+  if (!(iter >= 100000 && iter <= 5000000) || typeof o.salt !== 'string' || typeof o.iv !== 'string' || typeof o.data !== 'string') throw new Error('format');
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64d(o.iv) }, await bkKey(pw, b64d(o.salt), iter), b64d(o.data));
+  return new TextDecoder().decode(pt);
+}
+// Fenêtre « mot de passe » : renvoie le texte saisi, ou null si annulé
+function askPassword(title, sub, confirmTwice) {
+  return new Promise((res) => {
+    let done = false;
+    const end = (v) => { if (done) return; done = true; closeSheet(); res(v); };
+    openSheet(`<h3>${title}</h3><p class="sub">${sub}</p>
+      <label class="f" for="pw1">Mot de passe</label><input type="password" id="pw1" autocomplete="new-password">
+      ${confirmTwice ? '<label class="f" for="pw2" style="margin-top:12px">Le même, encore une fois</label><input type="password" id="pw2" autocomplete="new-password">' : ''}
+      <div class="f-help key-res" id="pwRes" role="status"></div>
+      <div class="stack" style="margin-top:14px"><button class="btn primary block" id="pwOk" type="button">Valider</button><button class="btn ghost block" id="pwNo" type="button">Annuler</button></div>`, (b) => {
+      const p1 = b.querySelector('#pw1'), p2 = b.querySelector('#pw2'), msg = b.querySelector('#pwRes');
+      sheetFocus(p1);
+      const ok = () => {
+        if (confirmTwice && p1.value.length < 8) { msg.className = 'f-help key-res ko'; msg.textContent = 'Au moins 8 caractères.'; return; }
+        if (confirmTwice && p1.value !== p2.value) { msg.className = 'f-help key-res ko'; msg.textContent = 'Les deux mots de passe sont différents.'; return; }
+        if (!p1.value) return;
+        end(p1.value);
+      };
+      b.querySelector('#pwOk').onclick = ok;
+      (p2 || p1).onkeydown = (e) => { if (e.key === 'Enter') ok(); };
+      b.querySelector('#pwNo').onclick = () => end(null);
+    });
+    const watch = setInterval(() => { if ($('sheet').classList.contains('hidden') || !$('pw1')) { clearInterval(watch); if (!done) { done = true; res(null); } } }, 400);
+  });
+}
+// Préférences gardées dans la sauvegarde : matières (nom, examen, vocabulaire, masquée), planning coché, journal des révisions
+const CRS_PREF_OK = (v) => { const o = obj(v); if (!o) return null; const r = {};
+  if (typeof o.name === 'string' && o.name.length < 200) r.name = o.name; if (o.hidden === true) r.hidden = true;
+  if (typeof o.exam === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(o.exam)) r.exam = o.exam; if (typeof o.vocab === 'string' && o.vocab.length < 4000) r.vocab = o.vocab; return r; };
+async function backupPrefs() { return { crs: crsPrefs(), plan: planDone(), revlog: await getRevLog() }; }
+async function restorePrefs(p) {
+  p = obj(p); if (!p) return;
+  const crs = crsPrefs(), inc = obj(p.crs) || {};
+  for (const [k, v] of Object.entries(inc)) { if (!/^[\w .:-]{1,80}$/.test(k)) continue; const c = CRS_PREF_OK(v); if (c) crs[k] = { ...c, ...(crs[k] || {}) }; }
+  lsSet('np-crs', JSON.stringify(crs)); MATS = null;
+  const plan = planDone(), ip = obj(p.plan) || {};
+  for (const [k, v] of Object.entries(ip)) { const o = obj(v); if (!o || !/^[\w .:-]{1,80}$/.test(k)) continue; plan[k] = { ...(plan[k] || {}) }; for (const [kk, vv] of Object.entries(o)) if (vv === true && kk.length < 200) plan[k][kk] = true; }
+  lsSet('np-plan', JSON.stringify(plan));
+  const log = await getRevLog(), il = obj(p.revlog) && obj(p.revlog.days);
+  if (il) { for (const [d, v] of Object.entries(il)) if (/^\d{4}-\d{2}-\d{2}$/.test(d) && Array.isArray(v) && !log.days[d]) log.days[d] = [toNum(v[0]), toNum(v[1])]; await dbRun('pending', 'readwrite', (st) => st.put(log, 'revlog')); }
+}
+// La sauvegarde est prête : la partager (Google Drive, Gmail, Fichiers…) ou la télécharger
+function deliverBackup(blob, name, count, enc) {
+  const file = new File([blob], name, { type: 'application/json' });
+  const canShare = !!(navigator.canShare && navigator.share && navigator.canShare({ files: [file] }));
+  const done = (how) => { lsSet('np-last-backup', String(Date.now())); toast(`Sauvegarde de ${count} notes ${how}`); renderData(); renderBkRemind(); };
+  openSheet(`<h3>Sauvegarde prête</h3><p class="sub">${count} notes · ${mb(blob.size)}${enc ? ' · chiffrée par mot de passe' : ''}</p>
+    <div class="stack">${canShare ? `<button class="btn primary block" id="bkShare" type="button">${ICONS.share}Envoyer vers Drive, Gmail, Fichiers…</button>` : ''}
+    <button class="btn ${canShare ? '' : 'primary '}block" id="bkDl" type="button">${ICONS.download}Enregistrer dans Téléchargements</button></div>
+    <p class="f-help">Garde une copie <b>hors du téléphone</b> (Google Drive, e-mail à toi-même…) : si tu le perds, tout se récupère avec « Restaurer ».</p>`, (b) => {
+    const sh = b.querySelector('#bkShare');
+    if (sh) sh.onclick = async () => { try { await navigator.share({ files: [file], title: name }); closeSheet(); done('envoyée'); } catch (e) { if (e && e.name !== 'AbortError') toast('Partage impossible : enregistre plutôt le fichier'); } };
+    b.querySelector('#bkDl').onclick = () => { saveBlob(blob, name); closeSheet(); done('enregistrée (Téléchargements)'); };
+  });
+}
+
 /* ---- Restauration : le fichier peut avoir été modifié ou fabriqué par quelqu'un d'autre ----
    On ne garde que des données de la bonne forme : identifiants simples, nombres, textes. Sans ça, un faux fichier
    de sauvegarde pouvait glisser du code dans l'app (et lire les clés d'API). */
@@ -7524,6 +7604,14 @@ const settingOk = (k, v) => (Object.prototype.hasOwnProperty.call(SETTING_CHECK,
 async function restoreData(file) {
   let data = null;
   try { data = JSON.parse(await file.text()); } catch (e) {}
+  if (data && data.app === 'notes-plaud' && data.format === 'enc1') {
+    for (let tries = 0; ; tries++) {
+      const pw = await askPassword('Sauvegarde chiffrée', tries ? 'Mot de passe incorrect. Réessaie.' : 'Entre le mot de passe choisi au moment de la sauvegarde.', false);
+      if (!pw) return;
+      try { data = JSON.parse(await decryptBackup(data, pw)); break; }
+      catch (e) { if (e && e.message === 'format') { toast('Fichier chiffré illisible'); return; } }
+    }
+  }
   if (!data || data.app !== 'notes-plaud' || !Array.isArray(data.notes)) { toast('Ce fichier n\'est pas une sauvegarde de Notes Plaud'); return; }
   const have = new Set(await db.keys());
   let added = 0, same = 0, bad = 0;
@@ -7558,6 +7646,7 @@ async function restoreData(file) {
     if (changed) { saveSettings(settings); applyTheme(settings.theme); applyFs(settings.fs); }
   }
   if (Array.isArray(data.plaudImported)) markImported(data.plaudImported.map(toStr).filter(Boolean));
+  await restorePrefs(data.prefs).catch(() => {});
   scheduleReminders(); updateBadge();
   toast(`${added} note${added > 1 ? 's' : ''} restaurée${added > 1 ? 's' : ''}${same ? ` · ${same} déjà présente${same > 1 ? 's' : ''}` : ''}${bad ? ` · ${bad} ignorée${bad > 1 ? 's' : ''} (illisible${bad > 1 ? 's' : ''})` : ''}`);
   renderData();
@@ -7590,7 +7679,8 @@ async function askPersist(silent) {
 }
 function renderBkRemind() {
   const n = (allNotes || []).length, last = +lsGet('np-last-backup', '0'), later = +lsGet('np-bk-later', '0');
-  const due = n >= 3 && Date.now() - last > 30 * 86400000 && Date.now() - later > 14 * 86400000;
+  const every = +lsGet('np-bk-every', '30');
+  const due = !!every && n >= 3 && Date.now() - last > every * 86400000 && Date.now() - later > Math.min(14, every) * 86400000;
   $('bkRemind').classList.toggle('hidden', !due);
   if (due) $('bkRemindTxt').textContent = last ? `Dernière sauvegarde il y a ${Math.round((Date.now() - last) / 86400000)} jours.` : `${n} notes, jamais sauvegardées. Un fichier suffit pour tout récupérer.`;
 }
@@ -7983,6 +8073,8 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 $('toTop').onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 $('bkBtn').onclick = backupData;
 $('rsBtn').onclick = () => $('rsInput').click();
+$('bkEvery').value = lsGet('np-bk-every', '30');
+$('bkEvery').onchange = () => { lsSet('np-bk-every', $('bkEvery').value); renderBkRemind(); };
 $('rsInput').onchange = (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) restoreData(f); };
 $('persistBtn').onclick = () => askPersist(false);
 $('bkRemindGo').onclick = backupData;

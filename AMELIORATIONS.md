@@ -61,8 +61,8 @@ Les contraintes ne changent pas : pas d'étape de build, interface en français,
 
 ## Fiabilité
 
-- [ ] **F1. Sauvegarde en un toucher vers Drive.** Le fichier de sauvegarde est partagé vers Google Drive, Gmail ou Fichiers, via le menu Partager d'Android, au lieu d'un simple téléchargement. Les rappels se règlent (toutes les semaines, tous les mois). *Bénéfice : une copie hors du téléphone, vraiment faite.* · Effort S · **P1**
-- [ ] **F2. Sauvegarde chiffrée par mot de passe.** Le chiffrement se fait dans le téléphone (AES-GCM, WebCrypto), et le mot de passe est demandé à la restauration. Il est conseillé dès que la sauvegarde contient les clés d'API. *Bénéfice : une sauvegarde sur Drive sans exposer ses notes ni ses clés.* · Effort M · **P1**
+- [x] **F1. Sauvegarde en un toucher vers Drive.** Le fichier de sauvegarde est partagé vers Google Drive, Gmail ou Fichiers, via le menu Partager d'Android, au lieu d'un simple téléchargement. Les rappels se règlent (toutes les semaines, tous les mois). *Bénéfice : une copie hors du téléphone, vraiment faite.* · Effort S · **P1** — [PR #13](https://github.com/Trushu/notes-plaud/pull/13)
+- [x] **F2. Sauvegarde chiffrée par mot de passe.** Le chiffrement se fait dans le téléphone (AES-GCM, WebCrypto), et le mot de passe est demandé à la restauration. Il est conseillé dès que la sauvegarde contient les clés d'API. *Bénéfice : une sauvegarde sur Drive sans exposer ses notes ni ses clés.* · Effort M · **P1** — [PR #13](https://github.com/Trushu/notes-plaud/pull/13)
 - [ ] **F3. File d'attente visible.** La liste des fichiers en attente s'affiche avec leur état. On peut retirer un fichier, et un fichier en échec peut être relancé. *Bénéfice : garder la main quand on importe plusieurs cours d'un coup.* · Effort M · **P2**
 - [ ] **F4. Questions hors ligne.** Une question posée sans réseau part toute seule au retour de la connexion. *Bénéfice : poser ses questions dans le métro.* · Effort S · P3
 - [ ] **F5. Rapport de diagnostic.** Un texte à copier (version, navigateur, stockage, dernières erreurs), sans aucune clé ni contenu de note. *Bénéfice : obtenir de l'aide facilement.* · Effort S · P3

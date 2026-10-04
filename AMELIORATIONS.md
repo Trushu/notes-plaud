@@ -52,8 +52,8 @@ Les contraintes ne changent pas : pas d'étape de build, interface en français,
 
 ## Organisation
 
-- [ ] **O1. Recherche avancée.** La recherche accepte `"expression exacte"`, `-mot` pour exclure, `tag:algo`, `matière:physique`, `avant:2026-11-01`, `après:…`, `type:cours`, et une aide intégrée. *Bénéfice : retrouver en une ligne « le passage sur les graphes en algo avant novembre ».* · Effort M · **P1**
-- [ ] **O2. Chercher aussi dans les fiches et les questions posées.** *Bénéfice : une seule barre pour tout.* · Effort S · **P2**
+- [x] **O1. Recherche avancée.** La recherche accepte `"expression exacte"`, `-mot` pour exclure, `tag:algo`, `matière:physique`, `avant:2026-11-01`, `après:…`, `type:cours`, et une aide intégrée. *Bénéfice : retrouver en une ligne « le passage sur les graphes en algo avant novembre ».* · Effort M · **P1** — [PR #12](https://github.com/Trushu/notes-plaud/pull/12)
+- [x] **O2. Chercher aussi dans les fiches et les questions posées.** *Bénéfice : une seule barre pour tout.* · Effort S · **P2** — [PR #12](https://github.com/Trushu/notes-plaud/pull/12)
 - [ ] **O3. Archiver une note.** La note est masquée de l'accueil sans être supprimée : elle reste dans la recherche, la matière et les fiches. Un filtre « Archivées » permet de la retrouver. *Bénéfice : un accueil centré sur le semestre en cours.* · Effort S · **P2**
 - [ ] **O4. Vue semestre d'une matière.** Toutes les séances du semestre, enregistrées ou manquées, les heures d'audio, les fiches maîtrisées et la date de l'examen. *Bénéfice : voir d'un coup d'œil les trous à combler.* · Effort M · **P2**
 - [ ] **O5. Tâches récurrentes.** Une tâche peut revenir chaque semaine ou chaque jour (« Relire le cours de la semaine »). *Bénéfice : les routines d'étude dans l'app.* · Effort M · P3

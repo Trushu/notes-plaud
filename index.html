@@ -834,6 +834,8 @@
   .keyrow .btn { flex: none; }
   .wz-steps { display: flex; gap: 6px; margin: 2px 0 12px; } .wz-steps i { flex: 1; height: 5px; border-radius: 3px; background: var(--surface-3); } .wz-steps i.on { background: var(--accent-ink); }
   .wz ol { margin: 6px 0 14px; padding-left: 22px; } .wz li { margin: 4px 0; }
+  #searchWrap input { padding-right: 46px; }
+  .sh-help { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; font: 700 16px/1 var(--sans); color: var(--muted); }
   .home-rev { display: flex; align-items: center; gap: 12px; padding: 14px 14px 14px 16px; margin-bottom: 14px; }
   .home-rev .sec-ic { background: var(--violet-soft); color: var(--violet); flex: none; }
   .home-rev .grow { flex: 1; min-width: 0; }
@@ -1138,6 +1140,7 @@
       <div class="search" id="searchWrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
         <input type="search" id="search" placeholder="Rechercher dans mes notes" aria-label="Rechercher dans mes notes" autocomplete="off">
+        <button class="iconbtn sh-help" id="shHelp" type="button" aria-label="Aide de la recherche avancée">?</button>
       </div>
       <div class="filters" id="filters"></div>
     </div>
@@ -1649,7 +1652,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '40 · 4 oct. 2026';
+const APP_VERSION = '41 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -1794,11 +1797,13 @@ function headOf(n) {
   h.photoIds = (n.photos || []).map((x) => x.id);
   h.cardDue = (n.cards || []).map((c) => c.due || 0);
   h.cardBox = (n.cards || []).map((c) => c.box || 0);
+  h.quizN = n.quiz && n.quiz.items ? n.quiz.items.length : 0;
   return h;
 }
 // Tout le texte cherchable d'une note complète (même ordre que l'ancienne recherche)
-const noteText = (n) => `${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''} ${n.lecture || ''} ${(n.segments || []).map((s) => s.text).join(' ')} ${(n.clean || []).map((s) => s.text).join(' ')} ${n.mine || ''} ${(n.photos || []).map((x) => x.text || '').join(' ')}`;
+const noteText = (n) => `${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''} ${n.lecture || ''} ${(n.segments || []).map((s) => s.text).join(' ')} ${(n.clean || []).map((s) => s.text).join(' ')} ${n.mine || ''} ${(n.photos || []).map((x) => x.text || '').join(' ')} ${(n.cards || []).map((c) => c.q + ' ' + c.a).join(' ')} ${(n.chat || []).map((c) => c.q + ' ' + c.a).join(' ')}`;
 const WORD_SPLIT = /[^\p{L}\p{N}]+/u;
+const WORDS_V = 2;
 const wordsOf = (n) => ' ' + [...new Set(norm(noteText(n)).split(WORD_SPLIT).filter(Boolean))].join(' ') + ' ';
 let headMap = null, headsReady = null, wordMap = null, wordsReady = null;
 function idxSet(id, h, w) {
@@ -1846,12 +1851,16 @@ function ensureWords() {
         r.onerror = () => rej(r.error);
       }, rej);
     });
+    // version 2 : les fiches et les questions posées sont aussi cherchables → les mots sont recalculés une fois
+    const wv = await dbRun('pending', 'readonly', (st) => st.get('words-v')).catch(() => null);
+    if (wv !== WORDS_V) m.clear();
     const missing = new Set([...headMap.keys()].filter((id) => !m.has(id)));
     if (missing.size) {
       const made = [];
       await scanNotes((n) => { if (missing.has(n.id)) { const w = wordsOf(n); m.set(n.id, w); made.push([n.id, w]); } });
       for (let i = 0; i < made.length; i += 100) await dbTx(['pending'], 'readwrite', (t) => { const st = t.objectStore('pending'); for (const [id, w] of made.slice(i, i + 100)) st.put(w, WK(id)); });
     }
+    if (wv !== WORDS_V) await dbRun('pending', 'readwrite', (st) => st.put(WORDS_V, 'words-v')).catch(() => {});
     wordMap = m;
     return m;
   })().catch((e) => { wordsReady = null; throw e; });
@@ -3540,24 +3549,90 @@ function filtered(ignoreDay) {
    2. pour une expression de plusieurs mots (ou avec ponctuation), on vérifie le texte exact des candidates seulement.
    Même résultat qu'une recherche dans tout le texte, sans accents ni majuscules. */
 let searchTok = 0, searchT = 0;
+/* Recherche avancée : « "expression exacte" », -mot (exclure), tag:algo, matière:physique, avant:2026-11-01, après:…, type:cours,
+   a:fiches | a:audio | a:taches. Le reste du texte se cherche comme avant (sans accents, expression contiguë). */
+const SEARCH_OPS = { tag: 'tag', tags: 'tag', matiere: 'mat', mat: 'mat', cours: 'mat', avant: 'before', apres: 'after', depuis: 'after', type: 'type', a: 'has', avec: 'has' };
+function parseQuery(raw) {
+  const out = { text: '', raw: '', phrases: [], rawPhrases: [], excl: [], tag: [], mat: [], before: null, after: null, type: null, has: [] };
+  const rest = [];
+  const re = /(-?)"([^"]*)"?|(\S+)/g; let m;
+  while ((m = re.exec(String(raw || '')))) {
+    if (m[2] !== undefined) { const p = norm(m[2]).trim(); if (p) { (m[1] ? out.excl : out.phrases).push(p); if (!m[1]) out.rawPhrases.push(m[2].trim()); } continue; }
+    const tok = m[3], op = /^([^:]+):(.+)$/.exec(tok), key = op && SEARCH_OPS[norm(op[1])];
+    if (key) {
+      const v = norm(op[2]).replace(/_/g, ' ');
+      if (key === 'before' || key === 'after') { const t = fromIsoLoose(op[2]); if (t != null) out[key] = t; else rest.push(tok); }
+      else if (key === 'type') out.type = /^r[ée]u/.test(v) ? 'reunion' : /^(note|perso)/.test(v) ? 'perso' : /^cours/.test(v) ? 'cours' : v;
+      else out[key].push(v);
+    } else if (/^-\S/.test(tok)) out.excl.push(norm(tok.slice(1)));
+    else rest.push(tok);
+  }
+  out.raw = rest.join(' ').trim(); out.text = norm(out.raw).trim();
+  return out;
+}
+// « 2026-11-01 », « 1/11/2026 », « 01-11-2026 », « 2026-11 »
+function fromIsoLoose(s) {
+  let m = /^(\d{4})-(\d{1,2})(?:-(\d{1,2}))?$/.exec(s); if (m) return new Date(+m[1], +m[2] - 1, +(m[3] || 1)).getTime();
+  m = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/.exec(s); if (m) return new Date(+m[3], +m[2] - 1, +m[1]).getTime();
+  return null;
+}
+const queryHasOps = (p) => !!(p.phrases.length || p.excl.length || p.tag.length || p.mat.length || p.before != null || p.after != null || p.type || p.has.length);
+// Texte à surligner dans les extraits et dans la note ouverte
+const highlightQ = (raw) => { const p = parseQuery(raw); return p.raw || p.rawPhrases[0] || ''; };
+function metaOk(n, p) {
+  if (p.tag.length && !p.tag.every((t) => (n.tags || []).some((x) => norm(x).includes(t)))) return false;
+  if (p.mat.length && !p.mat.every((t) => n.course && norm(`${n.course.name} ${n.course.code || ''} ${n.course.key || ''}`).includes(t))) return false;
+  if (p.before != null && !(n.created < p.before)) return false;
+  if (p.after != null && !(n.created >= p.after)) return false;
+  if (p.type && (n.kind || (n.course ? 'cours' : '')) !== p.type) return false;
+  for (const h of p.has) {
+    if (/^fiche/.test(h) && !(n.cardDue || []).length) return false;
+    if (/^(audio|son)/.test(h) && !n.hasAudio) return false;
+    if (/^tache/.test(h) && !openTasks(n)) return false;
+    if (/^photo/.test(h) && !(n.photoIds || []).length) return false;
+    if (/^quiz/.test(h) && !n.quizN) return false;
+  }
+  return true;
+}
 async function searchNotes(qRaw) {
-  const q = norm(qRaw), tok = ++searchTok;
+  const p = parseQuery(qRaw), q = p.text, tok = ++searchTok;
   const heads = await ensureHeads();
-  const terms = q.split(WORD_SPLIT).filter(Boolean);
-  const notes = [...heads.values()].filter((n) => n.id !== INBOX);
-  if (!terms.length) return new Set(notes.filter((n) => norm(`${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''} ${n.mine || ''}`).includes(q)).map((n) => n.id));
+  const notes = [...heads.values()].filter((n) => n.id !== INBOX && metaOk(n, p));
+  const terms = [...new Set([...q.split(WORD_SPLIT), ...p.phrases.flatMap((x) => x.split(WORD_SPLIT))].filter(Boolean))];
+  const exclW = p.excl.flatMap((x) => x.split(WORD_SPLIT)).filter(Boolean);
+  if (!terms.length && !exclW.length) {
+    if (!q && !p.phrases.length) return new Set(notes.map((n) => n.id));   // seulement des filtres
+    const all = [q, ...p.phrases].filter(Boolean);
+    return new Set(notes.filter((n) => { const t = norm(`${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''} ${n.mine || ''}`); return all.every((x) => t.includes(x)); }).map((n) => n.id));
+  }
   const words = await ensureWords();
   if (tok !== searchTok) return null;
-  const cands = notes.filter((n) => { const w = words.get(n.id) || ''; return terms.every((t) => w.includes(t)); });
-  if (terms.length === 1 && terms[0] === q) return new Set(cands.map((n) => n.id));   // un seul mot : l'index suffit
+  const cands = notes.filter((n) => { const w = words.get(n.id) || ''; return terms.every((t) => w.includes(t)) && !exclW.some((t) => w.includes(' ' + t + ' ')); });
+  const exprs = [...(q && !(q.split(WORD_SPLIT).filter(Boolean).length === 1 && q.split(WORD_SPLIT).filter(Boolean)[0] === q) ? [q] : []), ...p.phrases.filter((x) => !(x.split(WORD_SPLIT).filter(Boolean).length === 1 && x.split(WORD_SPLIT).filter(Boolean)[0] === x))];
+  const exclX = p.excl.filter((x) => x.split(WORD_SPLIT).filter(Boolean).length > 1);
+  if (!exprs.length && !exclX.length) return new Set(cands.map((n) => n.id));   // des mots seuls : l'index suffit
   const out = new Set();
   for (const n of cands) {
     if (tok !== searchTok) return null;   // une autre recherche a commencé
-    if (norm(`${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''}`).includes(q)) { out.add(n.id); continue; }
-    const f = await db.get(n.id);
-    if (f && norm(noteText(f)).includes(q)) out.add(n.id);
+    const light = norm(`${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''}`);
+    if (!exclX.length && exprs.every((x) => light.includes(x))) { out.add(n.id); continue; }
+    const f = await db.get(n.id); if (!f) continue;
+    const t = norm(noteText(f));
+    if (exprs.every((x) => t.includes(x)) && !exclX.some((x) => t.includes(x))) out.add(n.id);
   }
   return tok === searchTok ? out : null;
+}
+function searchHelp() {
+  openSheet(`<h3>Recherche avancée</h3><p class="sub">Combine librement ; les accents et majuscules ne comptent pas.</p>
+    <div class="md"><ul>
+      <li><code>graphe orienté</code> : l'expression telle quelle</li>
+      <li><code>"tri fusion" récurrence</code> : l'expression exacte <b>et</b> le mot</li>
+      <li><code>-examen</code> : sans ce mot</li>
+      <li><code>tag:algo</code> · <code>matière:physique</code> · <code>type:cours</code> (ou réunion, note)</li>
+      <li><code>après:2026-10-01</code> · <code>avant:15/11/2026</code></li>
+      <li><code>a:fiches</code> · <code>a:audio</code> · <code>a:tâches</code> · <code>a:photos</code> · <code>a:quiz</code></li>
+    </ul><p>Exemple : <code>matière:algo "tas binaire" après:2026-10-01</code></p></div>
+    <button class="btn block" id="shOk" type="button">Fermer</button>`, (b) => { b.querySelector('#shOk').onclick = closeSheet; });
 }
 async function runSearch() {
   const q = $('search').value.trim();
@@ -3583,6 +3658,8 @@ function findSnippet(n, qRaw, light) {
     ['tr', 'Transcription', (hasClean(n) ? n.clean : (n.segments || [])).map((x) => x.text).join(' ')],
     ['mine', 'Mes notes', plainMd(n.mine)],
     ['sum', 'Tableau', plainMd((n.photos || []).map((x) => x.text || '').join(' '))],
+    ['sum', 'Fiches', plainMd((n.cards || []).map((c) => c.q + ' → ' + c.a).join(' · '))],
+    ['sum', 'Questions', plainMd((n.chat || []).map((c) => c.q + ' → ' + c.a).join(' · '))],
   ];
   for (const [where, label, text] of places) {
     const hit = norm(text).includes(q) && findAll(text, qRaw, 1)[0];
@@ -3701,7 +3778,7 @@ function renderList() {
   if (q && ui.hitsStale) { ui.hitsStale = false; scheduleSearch(); }
   const notes = filtered(false);
   if (!notes.length) {
-    list.innerHTML = `<div class="empty-s">${q ? `Aucune note ne contient « ${esc(q)} ».` : ui.day != null ? 'Aucune note ce jour-là.' : ui.mode === 'cal' ? 'Aucune note ce mois-ci.' : 'Aucune note avec ce tag.'}</div>`;
+    list.innerHTML = `<div class="empty-s">${q ? `${queryHasOps(parseQuery(q)) ? `Aucune note ne correspond à « ${esc(q)} ». Essaie en retirant un filtre.` : `Aucune note ne contient « ${esc(q)} ».`}${queryHasOps(parseQuery(q)) ? '' : /\s/.test(q) ? ' Les mots sont cherchés comme une expression : essaie avec un seul mot, ou entre guillemets séparés (« "mot1" "mot2" »).' : ''} <button class="linkbtn" type="button" id="shHelp2">Aide de la recherche</button>` : ui.day != null ? 'Aucune note ce jour-là.' : ui.mode === 'cal' ? 'Aucune note ce mois-ci.' : 'Aucune note avec ce tag.'}</div>`;
     return;
   }
   Object.assign(lst, { notes, pos: 0, g: '', q });
@@ -3720,7 +3797,7 @@ function morePage() {
   const old = $('listMore'); if (old) old.remove();
   list.insertAdjacentHTML('beforeend', html);
   lst.pos += slice.length;
-  if (lst.q) fillSnippets(slice, lst.q, tok);
+  if (lst.q && highlightQ(lst.q)) fillSnippets(slice, highlightQ(lst.q), tok);
   if (lst.pos >= lst.notes.length) return;
   list.insertAdjacentHTML('beforeend', `<button class="btn ghost block" id="listMore" type="button">Afficher plus (${lst.notes.length - lst.pos} autres)</button>`);
   $('listMore').onclick = morePage;
@@ -3743,7 +3820,7 @@ async function fillSnippets(notes, qRaw, tok) {
 $('notesList').addEventListener('click', (e) => {
   const b = e.target.closest('.item'); if (!b) return;
   const id = b.dataset.id;
-  if (!ui.sel) { const q = $('search').value.trim(); return openNote(id, q ? { q } : null); }
+  if (!ui.sel) { const q = highlightQ($('search').value.trim()); return openNote(id, q ? { q } : null); }
   if (ui.picked.has(id)) ui.picked.delete(id); else ui.picked.add(id);
   b.classList.toggle('picked', ui.picked.has(id)); b.setAttribute('aria-pressed', String(ui.picked.has(id))); updSel();
 });
@@ -7577,6 +7654,8 @@ $('stats').onclick = () => { if (/tâche/.test($('stats').textContent)) show('ta
 $('shareDiagClose').onclick = () => $('shareDiag').classList.add('hidden');
 $('settingsBtn').onclick = showSettings;
 $('onboardBtn').onclick = () => setupWizard(1);
+$('shHelp').onclick = searchHelp;
+$('notesList').addEventListener('click', (e) => { if (e.target.id === 'shHelp2') { e.stopPropagation(); searchHelp(); } }, true);
 $('onboardSet').onclick = showSettings;
 document.querySelectorAll('[data-test]').forEach((b) => b.onclick = async () => {
   const res = $(b.dataset.in + 'Res'); res.className = 'f-help key-res'; res.textContent = 'Vérification…'; b.disabled = true;
@@ -7967,7 +8046,7 @@ window.addEventListener('beforeunload', (e) => { if (busy || enhancing || writin
   setTimeout(gcAudio, 6000);
   // après la mise à jour : les mots des notes (pour la recherche) sont préparés en arrière-plan, une seule fois
   setTimeout(async () => {
-    try { const k = (await dbRun('pending', 'readonly', (st) => st.count(IDBKeyRange.bound('words:', 'words:\uffff')))) || 0; if (headMap && k < headMap.size) ensureWords(); } catch (e) {}
+    try { const k = (await dbRun('pending', 'readonly', (st) => st.count(IDBKeyRange.bound('words:', 'words:\uffff')))) || 0; const wv = await dbRun('pending', 'readonly', (st) => st.get('words-v')).catch(() => null); if (headMap && (k < headMap.size || (wv !== WORDS_V && headMap.size))) ensureWords(); } catch (e) {}
   }, 4000);
   scheduleCourseReminders();
   if (settings.icsUrl && Date.now() - (AG.at || 0) > 12 * 3600000) setTimeout(() => syncAgenda(false), 2500);

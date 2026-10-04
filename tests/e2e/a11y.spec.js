@@ -130,6 +130,9 @@ test.describe('Audit axe-core : autres écrans et fenêtres', () => {
     await page.locator('#search').fill('parle');
     await expect(page.locator('#notesList mark').first()).toBeVisible();
     await auditThemes(page, 'recherche', out);
+    await page.locator('#shHelp').click();
+    await auditThemes(page, 'aide de la recherche', out);
+    await page.keyboard.press('Escape');
     await page.locator('#search').fill('');
     await page.locator('#selectBtn').click();
     await page.locator('#notesList .item').first().click();

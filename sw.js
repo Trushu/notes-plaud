@@ -2,7 +2,7 @@
 // - reçoit les fichiers partagés depuis Android (cible de partage)
 // - garde l'application en cache pour qu'elle s'ouvre même avec un mauvais réseau
 
-const CACHE = 'notes-plaud-v31';
+const CACHE = 'notes-plaud-v32';
 const KATEX_CACHE = 'katex-v1';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './sc-rec.png', './sc-cours.png', './sc-ask.png', './sc-tasks.png'];
 
@@ -179,7 +179,7 @@ async function checkCourses() {
   const seen = (await idbReq('pending', 'readonly', (s) => s.get('crs-notified'))) || [];
   const now = Date.now(), lead = ag.remind * 60000, hidden = ag.hidden || [];
   // la vérification Android est espacée (environ une fois par heure) : on prévient pour les cours de la prochaine heure
-  const soon = ag.events.filter((e) => e.kind !== 'due' && !hidden.includes(e.key) && !seen.includes(e.uid) && e.start - now <= lead + 60 * 60000 && e.start - now > -10 * 60000);
+  const soon = ag.events.filter((e) => e.kind !== 'due' && !e.allDay && !hidden.includes(e.key) && !seen.includes(e.uid) && e.start - now <= lead + 60 * 60000 && e.start - now > -10 * 60000);
   if (!soon.length) return;
   await idbReq('pending', 'readwrite', (s) => s.put([...seen, ...soon.map((e) => e.uid)].slice(-400), 'crs-notified'));
   const hm = (t) => new Date(t).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });

@@ -1,6 +1,9 @@
 // @ts-check
 const { defineConfig, devices } = require('@playwright/test');
 
+// Les dates calculées dans les tests doivent correspondre au fuseau du téléphone simulé (timezoneId plus bas)
+process.env.TZ = 'Europe/Brussels';
+
 const PORT = 4173;
 module.exports = defineConfig({
   testDir: './e2e',

@@ -106,3 +106,13 @@ test.describe('quizHtml', () => {
     assert.match(html, /<li>Une ligne sans réponse<\/li>/);
   });
 });
+
+test.describe('Bugs corrigés', () => {
+  test('les cases d\'une rubrique « Questions » ne décalent pas la numérotation des tâches suivantes', () => {
+    const html = app.renderSummary({ summary: '## Questions en suspens\n- [ ] Valider le budget\n- Qui paie ? → Marie\n## Actions à faire\n- [ ] Envoyer le devis\n- [ ] Réserver la salle' });
+    assert.deepEqual([...html.matchAll(/data-task="(\d+)"/g)].map((m) => +m[1]), [0, 1, 2]);
+    // et ces numéros sont bien ceux qu'utilise la modification d'une tâche
+    const ts = app.tasksOf({ id: 'n', summary: '## Questions en suspens\n- [ ] Valider le budget\n## Actions à faire\n- [ ] Envoyer le devis\n- [ ] Réserver la salle' });
+    assert.deepEqual(ts.map((t) => [t.idx, t.text]), [[0, 'Valider le budget'], [1, 'Envoyer le devis'], [2, 'Réserver la salle']]);
+  });
+});

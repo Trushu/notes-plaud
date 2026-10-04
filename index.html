@@ -999,7 +999,7 @@
     </div>
 
     <div id="shareDiag" class="card diag hidden" style="margin-bottom:14px">
-      <p>Partage reçu, mais sans fichier audio.</p>
+      <p id="shareDiagTitle">Partage reçu, mais sans fichier audio.</p>
       <div id="shareDiagTxt" style="white-space:pre-wrap; overflow-wrap:anywhere; font-size:14px"></div>
       <button class="btn" id="shareDiagClose" style="margin-top:12px">Fermer</button>
     </div>
@@ -1542,7 +1542,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '31 · 3 oct. 2026';
+const APP_VERSION = '32 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -1556,6 +1556,8 @@ window.CONFIG = {
   cleanChars: 4500,         // amélioration avec Groq : petits morceaux (limite de 8 000 tokens/min)
   gemCleanChars: 9000,      // amélioration avec Gemini : morceaux moyens, réponses plus rapides et plus fiables
   gemTimeout: 150000,       // délai max d'une requête Gemini
+  netTimeout: 30000,        // délai max pour lire le calendrier
+  dlTimeout: 90000,         // téléchargement depuis Plaud : abandon après 90 s sans recevoir un octet
 };
 const DEFAULTS = {
   key: '', lang: 'fr', whisper: 'whisper-large-v3',
@@ -1828,15 +1830,40 @@ const waitVisible = () => new Promise((res) => {
 class RateLimit extends ApiError { constructor(wait, msg) { super(msg); this.wait = wait; } }
 class ProviderDown extends ApiError {}   // service surchargé / limité : on peut basculer sur l'autre
 class Cancelled extends ApiError {}
+// Téléphone hors connexion (métro, amphi sans réseau…) : on attend le retour du réseau au lieu d'abandonner le traitement
+const isOffline = () => navigator.onLine === false;
+function waitOnline() {
+  return new Promise((res, rej) => {
+    if (!isOffline()) return res();
+    status('Hors connexion — reprise automatique dès le retour du réseau');
+    notifyBlocked('Hors connexion : le traitement reprendra tout seul dès le retour du réseau');
+    let iv = 0;
+    const done = (err) => { clearInterval(iv); window.removeEventListener('online', h); if (err) rej(err); else res(); };
+    const h = () => { if (cancelReq) done(new Cancelled('Arrêté.')); else if (!isOffline()) done(); };
+    iv = setInterval(h, 2000);   // au cas où l'événement « online » ne viendrait pas
+    window.addEventListener('online', h);
+  });
+}
 // Requêtes avec délai maximum et possibilité d'arrêt (bouton « Arrêter »)
 const activeCtls = new Set();
 let cancelReq = false;
 function cancelAll() { cancelReq = true; for (const c of activeCtls) c.abort('cancel'); }
-async function tfetch(url, init, ms) {
+// asBlob : téléchargement (fichier audio) ; le délai compte alors l'inactivité (aucun octet reçu), pas la durée totale
+async function tfetch(url, init, ms, asBlob) {
   const ctl = new AbortController(); activeCtls.add(ctl);
-  const to = setTimeout(() => ctl.abort('timeout'), ms);
+  let to = setTimeout(() => ctl.abort('timeout'), ms);
+  const rearm = () => { clearTimeout(to); to = setTimeout(() => ctl.abort('timeout'), ms); };
   try {
     const r = await fetch(url, { ...init, signal: ctl.signal });
+    if (asBlob) {
+      // chaque morceau reçu relance le délai ; le navigateur assemble le fichier lui-même (pas de copie en mémoire)
+      let blob;
+      if (r.body && r.body.pipeThrough && window.TransformStream) {
+        const watch = new TransformStream({ transform(chunk, c) { rearm(); c.enqueue(chunk); } });
+        blob = await new Response(r.body.pipeThrough(watch), { headers: { 'Content-Type': r.headers.get('Content-Type') || '' } }).blob();
+      } else blob = await r.blob();
+      return { ok: r.ok, status: r.status, headers: r.headers, blob };
+    }
     const text = await r.text();
     return { ok: r.ok, status: r.status, headers: r.headers, text };
   } catch (e) {
@@ -1870,6 +1897,7 @@ async function groq(path, init, label, opts = {}) {
     } catch (e) {
       if (e instanceof Cancelled) throw e;
       if (document.visibilityState === 'hidden' && !bgOn) { await waitVisible(); attempt--; continue; }
+      if (isOffline()) { await waitOnline(); attempt--; continue; }
       if (e.timeout) { if (attempt < 1) continue; throw new ProviderDown('Groq ne répond pas (délai dépassé). Réessaie dans quelques minutes.'); }
       if (attempt < 2) { await countdown(5, 'Connexion perdue'); continue; }
       throw new ApiError("Impossible de joindre Groq. Vérifie ta connexion Internet, puis réessaie.");
@@ -1960,9 +1988,24 @@ function toMono16k(buf, w) {
 function monoHeaderFor(rate) {
   return new Uint8Array([...u16(1), ...u16(1), ...u32(rate), ...u32(rate * 2), ...u16(2), ...u16(16)]);
 }
+// Début de trame MP3 (Layer III) à la position i : longueur de la trame et sa durée, ou null
+function mp3Frame(b, i) {
+  if (i + 3 >= b.length || b[i] !== 0xFF || (b[i + 1] & 0xE0) !== 0xE0) return null;
+  const ver = (b[i + 1] >> 3) & 3, layer = (b[i + 1] >> 1) & 3, bri = b[i + 2] >> 4, sri = (b[i + 2] >> 2) & 3, pad = (b[i + 2] >> 1) & 1;
+  if (ver === 1 || layer !== 1 || bri === 0 || bri === 15 || sri === 3) return null;
+  const br = MP3_BR[ver === 3 ? 1 : 2][bri] * 1000, sr = MP3_SR[ver][sri];
+  const len = Math.floor((ver === 3 ? 144 : 72) * br / sr) + pad;
+  return len > 4 ? { len, sec: (ver === 3 ? 1152 : 576) / sr } : null;
+}
 async function mp3Sync(file, off) {
-  const b = new Uint8Array(await file.slice(off, Math.min(file.size, off + 16384)).arrayBuffer());
-  for (let i = 0; i + 3 < b.length; i++) {
+  const b = new Uint8Array(await file.slice(off, Math.min(file.size, off + 16384 + 2048)).arrayBuffer());
+  const lim = Math.min(b.length, 16384);
+  // une vraie trame est suivie d'une autre trame : on évite ainsi les faux débuts au milieu des données
+  for (let i = 0; i + 3 < lim; i++) {
+    const f = mp3Frame(b, i);
+    if (f && (i + f.len + 3 >= b.length || mp3Frame(b, i + f.len))) return off + i;
+  }
+  for (let i = 0; i + 3 < lim; i++) {   // autre format (MPEG Layer II…) : repérage simple, comme avant
     if (b[i] === 0xFF && (b[i + 1] & 0xE0) === 0xE0 && (b[i + 1] & 0x18) !== 0x08 && (b[i + 1] & 0x06) !== 0
       && (b[i + 2] & 0xF0) !== 0xF0 && (b[i + 2] & 0x0C) !== 0x0C) return off + i;
   }
@@ -1976,14 +2019,8 @@ async function mp3Duration(blob) {
   let i = 0, sec = 0;
   if (b[0] === 0x49 && b[1] === 0x44 && b[2] === 0x33) i = 10 + ((b[6] & 127) << 21 | (b[7] & 127) << 14 | (b[8] & 127) << 7 | (b[9] & 127));
   while (i + 4 <= b.length) {
-    if (b[i] === 0xFF && (b[i + 1] & 0xE0) === 0xE0) {
-      const ver = (b[i + 1] >> 3) & 3, layer = (b[i + 1] >> 1) & 3, bri = b[i + 2] >> 4, sri = (b[i + 2] >> 2) & 3, pad = (b[i + 2] >> 1) & 1;
-      if (ver !== 1 && layer === 1 && bri > 0 && bri < 15 && sri < 3) { // Layer III
-        const br = MP3_BR[ver === 3 ? 1 : 2][bri] * 1000, sr = MP3_SR[ver][sri];
-        const len = Math.floor((ver === 3 ? 144 : 72) * br / sr) + pad;
-        if (len > 4) { sec += (ver === 3 ? 1152 : 576) / sr; i += len; continue; }
-      }
-    }
+    const f = mp3Frame(b, i);
+    if (f) { sec += f.sec; i += f.len; continue; }
     i++;
   }
   return sec;
@@ -2144,9 +2181,12 @@ async function splitAudio(file, onPrep) {
     const outPerFrame = convert ? 2 * (outRate / wav.rate) : wav.blockAlign;
     let frames = Math.floor((max - 64) / outPerFrame);
     frames = Math.max(1, Math.min(frames, Math.floor((48 << 20) / wav.blockAlign))); // on ne lit jamais plus de 48 Mo d'un coup
-    const step = frames * wav.blockAlign, parts = [];
-    for (let off = 0; off < wav.dataLen; off += step) {
-      const a = wav.dataOff + off, b = Math.min(wav.dataOff + wav.dataLen, a + step);
+    const step = frames * wav.blockAlign, parts = [], offs = [];
+    for (let off = 0; off < wav.dataLen; off += step) offs.push(off);
+    // dernier morceau minuscule : rattaché au précédent
+    if (offs.length > 1 && wav.dataLen - offs[offs.length - 1] < step / 16) offs.pop();
+    offs.forEach((off, k) => {
+      const a = wav.dataOff + off, b = k + 1 < offs.length ? wav.dataOff + offs[k + 1] : wav.dataOff + wav.dataLen;
       parts.push(async () => {
         if (!convert) {
           const slice = file.slice(a, b);
@@ -2155,7 +2195,7 @@ async function splitAudio(file, onPrep) {
         const samples = toMono16k(await file.slice(a, b).arrayBuffer(), wav);
         return { blob: new Blob([wavHeader(monoHeaderFor(outRate), samples.byteLength), samples.buffer], { type: 'audio/wav' }), name: 'audio.wav', duration: samples.length / outRate };
       });
-    }
+    });
     return parts;
   }
   if (file.size <= max) return [async () => ({ blob: file, name: 'audio.' + ext })];
@@ -2163,6 +2203,8 @@ async function splitAudio(file, onPrep) {
     const cuts = [0];
     for (let off = max; off < file.size; off += max) cuts.push(await mp3Sync(file, off));
     cuts.push(file.size);
+    // dernier morceau minuscule (quelques trames) : rattaché au précédent, Groq refuse un fichier presque vide
+    if (cuts.length > 2 && file.size - cuts[cuts.length - 2] < max / 16) cuts.splice(cuts.length - 2, 1);
     const parts = [];
     for (let i = 0; i < cuts.length - 1; i++) {
       if (cuts[i + 1] <= cuts[i]) continue;
@@ -2308,6 +2350,7 @@ async function gemini(prompt, maxOut, label, extraParts) {
       } catch (e) {
         if (e instanceof Cancelled) throw e;
         if (document.visibilityState === 'hidden' && !bgOn) { await waitVisible(); attempt--; continue; }
+        if (isOffline()) { await waitOnline(); attempt--; continue; }
         if (e.timeout) { lastErr = `« ${model} » ne répond pas (délai dépassé)`; break; }   // modèle suivant
         if (attempt < 2) { await countdown(5, 'Connexion perdue'); continue; }
         throw new ApiError('Impossible de joindre Gemini. Vérifie ta connexion Internet, puis réessaie.');
@@ -2375,6 +2418,7 @@ async function oaChat(p, prompt, maxOut, label) {
       } catch (e) {
         if (e instanceof Cancelled) throw e;
         if (document.visibilityState === 'hidden' && !bgOn) { await waitVisible(); attempt--; continue; }
+        if (isOffline()) { await waitOnline(); attempt--; continue; }
         // délai dépassé, réseau coupé ou appel refusé par le navigateur (CORS) : on passe à la suite
         if (!e.timeout && attempt < 1) { await countdown(3, 'Connexion perdue'); continue; }
         throw new ProviderDown(`${name} injoignable (${e.timeout ? 'délai dépassé' : 'connexion refusée'}).`);
@@ -2534,11 +2578,12 @@ function splitText(text, size) {
   if (cur.trim()) chunks.push(cur);
   return chunks;
 }
-async function summarize(segments, onProgress, kind = settings.kind || 'auto', recDate = Date.now()) {
+// ckpt (facultatif) : { get, set } pour garder les résumés de parties déjà faits, et reprendre là si le traitement est interrompu
+async function summarize(segments, onProgress, kind = settings.kind || 'auto', recDate = Date.now(), ckpt = null) {
   provFailed = new Set(); provOverride = null;
   try {
     for (;;) {
-      try { return await summarizeWith(segments, onProgress, kind, recDate); }
+      try { return await summarizeWith(segments, onProgress, kind, recDate, ckpt); }
       catch (e) {
         const from = PNAME[provider()], nx = fallBack(e);
         if (!nx) throw e;
@@ -2547,7 +2592,7 @@ async function summarize(segments, onProgress, kind = settings.kind || 'auto', r
     }
   } finally { provOverride = null; provFailed = new Set(); }
 }
-async function summarizeWith(segments, onProgress, kind, recDate) {
+async function summarizeWith(segments, onProgress, kind, recDate, ckpt) {
   let text = segments.map((s) => s.sep ? `\n=== ${s.text} ===` : s.text).join('\n');
   const pv = provider(), gem = pv !== 'groq';
   const OUT = 3200;
@@ -2560,13 +2605,19 @@ async function summarizeWith(segments, onProgress, kind, recDate) {
     return llm(P_FINAL(text, false, kind, recDate), OUT, 'Rédaction du résumé', true);
   }
   let round = 0;
+  const saved = (ckpt && ckpt.get()) || null;
+  const rounds = saved && saved.pv === pv && Array.isArray(saved.rounds) ? saved.rounds : [];
   while (text.length > single && round < 3) {
     const chunks = splitText(text, chunkSize);
-    const notes = [];
-    for (let i = 0; i < chunks.length; i++) {
+    const prev = rounds[round], same = !!prev && prev.n === chunks.length && prev.len === text.length;
+    const notes = same ? prev.notes.slice() : [];
+    if (!same) rounds.length = round;   // les tours suivants dépendaient de l'ancien découpage
+    if (notes.length) onProgress(`Reprise : ${notes.length} partie${notes.length > 1 ? 's' : ''} sur ${chunks.length} déjà résumée${notes.length > 1 ? 's' : ''}`, notes.length / (chunks.length + 1));
+    for (let i = notes.length; i < chunks.length; i++) {
       const label = `Résumé de la partie ${i + 1}/${chunks.length}`;
       onProgress(label, (i / (chunks.length + 1)));
       notes.push(await llm(P_PART(chunks[i], i + 1, chunks.length), 1200, label));
+      if (ckpt) { rounds[round] = { n: chunks.length, len: text.length, notes: notes.slice() }; await ckpt.set({ pv, rounds: rounds.slice() }); }
     }
     text = notes.map((n, i) => `### Partie ${i + 1}\n${n}`).join('\n\n');
     round++;
@@ -2762,10 +2813,13 @@ function dateFromName(name) {
     if (t.getMonth() !== mo - 1 || t.getDate() !== +d) return null;
     return t.getTime() > Date.now() + 86400000 || y < 2010 ? null : t.getTime();
   };
-  let m = /(?:^|\D)(20\d{2})[-_. /]?(0[1-9]|1[0-2])[-_. /]?(0[1-9]|[12]\d|3[01])(?:[ T_.-]{0,3}([01]\d|2[0-3])[-:h_. ]?([0-5]\d)(?:[-:_. ]?([0-5]\d))?)?(?!\d)/.exec(s);
-  if (m) return mk(+m[1], +m[2], +m[3], m[4], m[5], m[6]);
-  m = /(?:^|\D)(0[1-9]|[12]\d|3[01])[-_. /](0[1-9]|1[0-2])[-_. /](20\d{2})(?:[ T_.-]{1,3}([01]\d|2[0-3])[-:h_. ]?([0-5]\d))?(?!\d)/.exec(s);
-  if (m) return mk(+m[3], +m[2], +m[1], m[4], m[5]);
+  const ymd = /(?:^|\D)(20\d{2})[-_. /]?(0[1-9]|1[0-2])[-_. /]?(0[1-9]|[12]\d|3[01])(?:[ T_.-]{0,3}([01]\d|2[0-3])[-:h_. ]?([0-5]\d)(?:[-:_. ]?([0-5]\d))?)?(?!\d)/.exec(s);
+  const dmy = /(?:^|\D)(0[1-9]|[12]\d|3[01])[-_. /](0[1-9]|1[0-2])[-_. /](20\d{2})(?:[ T_.-]{1,3}([01]\d|2[0-3])[-:h_. ]?([0-5]\d))?(?!\d)/.exec(s);
+  // « 12.03.2025_0905 » : le format jour-mois-année commence avant ; sans ça, « 2025_0905 » serait lu « 5 septembre »
+  const fromYmd = (m) => mk(+m[1], +m[2], +m[3], m[4], m[5], m[6]), fromDmy = (m) => mk(+m[3], +m[2], +m[1], m[4], m[5]);
+  if (ymd && dmy) return dmy.index < ymd.index ? (fromDmy(dmy) || fromYmd(ymd)) : (fromYmd(ymd) || fromDmy(dmy));
+  if (ymd) return fromYmd(ymd);
+  if (dmy) return fromDmy(dmy);
   return null;
 }
 const toLocalInput = (t) => { const d = new Date(t), p = (x) => String(x).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
@@ -2796,32 +2850,50 @@ function renderNoteDate() {
     + I('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>');
 }
 
+// Écriture impossible dans le stockage du téléphone (plein, navigation privée…) : explication claire
+function storageMsg(e) {
+  const full = e && (e.name === 'QuotaExceededError' || /quota|space|disk/i.test(e.message || ''));
+  return full ? 'Plus assez de place dans le téléphone pour garder ce fichier. Libère de la place (par exemple Réglages → Mes données → Audio → Supprimer), puis réessaie.'
+    : 'Impossible d\'enregistrer dans le stockage du téléphone (' + ((e && (e.message || e.name)) || e) + '). Ferme complètement l\'app puis rouvre-la ; en navigation privée, ouvre-la normalement.';
+}
+function showDiag(title, text) {
+  $('shareDiagTitle').textContent = title; $('shareDiagTxt').textContent = text;
+  $('shareDiag').classList.remove('hidden');
+}
+// Renvoie false si le fichier n'a pas pu être gardé
 async function startFile(file, extra) {
-  if (file && (/\.ics$/i.test(file.name || '') || /calendar/i.test(file.type || ''))) { importIcsFile(file); return; }
-  if (!extra && (busy || enhancing || writing)) { toast('Un traitement est déjà en cours'); return; }
-  if (!file || !file.size) { toast('Aucun fichier audio reçu'); return; }
+  if (file && (/\.ics$/i.test(file.name || '') || /calendar/i.test(file.type || ''))) { importIcsFile(file); return true; }
+  if (!file || !file.size) { toast('Aucun fichier audio reçu'); return false; }
   const now = Date.now();
   const note = {
     id: 'n' + now.toString(36), created: dateFromName(file.name) || now, addedAt: now, fileName: file.name || 'audio.' + extFor(file),
     size: file.size, title: baseName(file.name), status: 'transcription', audio: file, segments: null, summary: '', duration: 0,
   };
   if (extra) { for (const [k, v] of Object.entries(extra)) if (v !== undefined) note[k] = v; }
-  if (busy || enhancing || writing) {   // enregistrement fait pendant un autre traitement : il attend son tour
-    note.queued = true; await db.put(note);
-    toast('Enregistrement gardé : il sera transcrit juste après le traitement en cours');
-    show(lastTab); return;
-  }
-  if (!settings.key) {
-    // on garde le fichier pour ne pas le perdre : il sera traité en ouvrant la note
-    Object.assign(note, { status: 'err', error: 'Clé Groq manquante. Ajoute-la dans les réglages, puis ouvre cette note pour lancer le traitement.' });
+  try {
+    if (busy || enhancing || writing) {   // pendant un autre traitement : le fichier attend son tour (avant, un fichier choisi était ignoré)
+      note.queued = true; await db.put(note);
+      toast((extra ? 'Enregistrement gardé' : 'Fichier gardé') + ' : il sera transcrit juste après le traitement en cours');
+      if (extra) show(lastTab); else if (current === 'home') renderHome();
+      return true;
+    }
+    if (!settings.key) {
+      // on garde le fichier pour ne pas le perdre : il sera traité en ouvrant la note
+      Object.assign(note, { status: 'err', error: 'Clé Groq manquante. Ajoute-la dans les réglages, puis ouvre cette note pour lancer le traitement.' });
+      await db.put(note);
+      toast('Ajoute d\'abord ta clé Groq');
+      showSettings();
+      return true;
+    }
     await db.put(note);
-    toast('Ajoute d\'abord ta clé Groq');
-    showSettings();
-    return;
+  } catch (e) {
+    if (current !== 'home') show('home');
+    showDiag('Fichier non enregistré', storageMsg(e));
+    return false;
   }
-  await db.put(note);
   if (note.created !== note.addedAt) toast('Date reprise du nom du fichier : ' + new Date(note.created).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }));
   run(note);
+  return true;
 }
 
 let runningId = null;
@@ -2886,7 +2958,9 @@ async function run(note, opts = {}) {
       step('st-sum', 'active', 'Lecture des photos du tableau…');
       await readBoards(note.id); const f = await db.get(note.id); if (f && f.photos) note.photos = f.photos;
     }
-    const raw = await summarize(withBoards(note.segments, note.photos), (label, p) => { step('st-sum', 'active', label); bar(0.5 + 0.48 * p); }, opts.kind || (note.course && (settings.kind || 'auto') === 'auto' ? 'cours' : settings.kind || 'auto'), note.created);
+    const ckpt = { get: () => note.sumPartial, set: async (v) => { note.sumPartial = v; await db.put(note).catch(() => {}); } };
+    const raw = await summarize(withBoards(note.segments, note.photos), (label, p) => { step('st-sum', 'active', label); bar(0.5 + 0.48 * p); }, opts.kind || (note.course && (settings.kind || 'auto') === 'auto' ? 'cours' : settings.kind || 'auto'), note.created, ckpt);
+    delete note.sumPartial;
     const t = splitTitle(raw, note.title);
     const meta = splitMeta(t.body);
     meta.body = autoRemind(meta.body);
@@ -2984,6 +3058,30 @@ function show(v, keepScroll) {
 let lastTab = 'home';
 
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+/* Recherche sans accents ni majuscules : renvoie les plages [début, fin[ des occurrences dans le texte d'origine
+   (les positions du texte « normalisé » ne correspondent pas toujours à celles du texte affiché). */
+function findAll(text, qRaw, max = 200) {
+  text = String(text || ''); const q = norm(qRaw); if (!q) return [];
+  const flat = norm(text), out = [];
+  if (flat.length === text.length) {
+    for (let i = flat.indexOf(q); i >= 0 && out.length < max; i = flat.indexOf(q, i + q.length)) out.push([i, i + q.length]);
+    return out;
+  }
+  let f = ''; const map = [];
+  for (let i = 0; i < text.length; i++) { const c = norm(text[i]); for (let k = 0; k < c.length; k++) { f += c[k]; map.push(i); } }
+  for (let i = f.indexOf(q); i >= 0 && out.length < max; i = f.indexOf(q, i + q.length)) {
+    let end = map[i + q.length - 1] + 1;
+    while (end < text.length && /[\u0300-\u036f]/.test(text[end])) end++;   // accent en caractère séparé
+    out.push([map[i], end]);
+  }
+  return out;
+}
+// Texte échappé, occurrences surlignées
+function markHits(text, q) {
+  text = String(text || ''); let out = '', last = 0;
+  for (const [a, b] of findAll(text, q)) { out += esc(text.slice(last, a)) + '<mark>' + esc(text.slice(a, b)) + '</mark>'; last = b; }
+  return out + esc(text.slice(last));
+}
 function greeting() {
   const h = new Date().getHours();
   return h < 5 ? 'Bonne nuit' : h < 12 ? 'Bonjour' : h < 18 ? 'Bon après-midi' : 'Bonsoir';
@@ -3019,7 +3117,13 @@ async function renderHome() {
   $('runBanner').classList.toggle('hidden', !runningId);
   $('onboard').classList.toggle('hidden', !!settings.key);
   $('greet').innerHTML = greetIcon() + '<span>' + esc(greeting()) + '</span>';
-  allNotes = await loadNotes();
+  try { allNotes = await loadNotes(); }
+  catch (e) {   // IndexedDB indisponible (navigation privée, stockage effacé ou corrompu…)
+    allNotes = [];
+    $('stats').textContent = '';
+    $('notesList').innerHTML = `<div class="card diag"><p>Impossible de lire tes notes</p><div style="font-size:14px">Le stockage du téléphone ne répond pas (${esc((e && (e.message || e.name)) || e)}). Ferme complètement l'app puis rouvre-la. En navigation privée, ouvre plutôt l'app installée.</div></div>`;
+    return;
+  }
   const total = allNotes.reduce((a, n) => a + (n.duration || 0), 0);
   const todo = allNotes.reduce((a, n) => a + openTasks(n), 0);
   $('stats').textContent = allNotes.length
@@ -3081,10 +3185,11 @@ function findSnippet(n, qRaw) {
   ];
   if (norm(n.title).includes(q)) return null;
   for (const [where, label, text] of places) {
-    const i = norm(text).indexOf(q);
-    if (i < 0) continue;
-    const a = Math.max(0, i - 50), b = Math.min(text.length, i + q.length + 70);
-    const html = (a ? '…' : '') + esc(text.slice(a, i)) + '<mark>' + esc(text.slice(i, i + q.length)) + '</mark>' + esc(text.slice(i + q.length, b)) + (b < text.length ? '…' : '');
+    const hit = norm(text).includes(q) && findAll(text, qRaw, 1)[0];
+    if (!hit) continue;
+    const [i, j] = hit;
+    const a = Math.max(0, i - 50), b = Math.min(text.length, j + 70);
+    const html = (a ? '…' : '') + esc(text.slice(a, i)) + '<mark>' + esc(text.slice(i, j)) + '</mark>' + esc(text.slice(j, b)) + (b < text.length ? '…' : '');
     return { where, label, html };
   }
   return null;
@@ -3096,15 +3201,13 @@ function highlightIn(root, qRaw) {
   const nodes = []; while (walker.nextNode()) nodes.push(walker.currentNode);
   let count = 0, first = null;
   for (const node of nodes) {
-    let txt = node.nodeValue, i = norm(txt).indexOf(q);
-    if (i < 0) continue;
-    const frag = document.createDocumentFragment();
-    let rest = node;
-    while (i >= 0 && count < 200) {
-      const after = rest.splitText(i), tail = after.splitText(q.length);
+    let rest = node, off = 0;
+    for (const [a, b] of findAll(node.nodeValue, qRaw)) {
+      if (count >= 200) break;
+      const after = rest.splitText(a - off), tail = after.splitText(b - a);
       const m = document.createElement('mark'); m.className = 'hit'; m.textContent = after.nodeValue;
       after.replaceWith(m); if (!first) first = m; count++;
-      rest = tail; txt = rest.nodeValue; i = norm(txt).indexOf(q);
+      rest = tail; off = b;
     }
   }
   if (first) { first.classList.add('cur'); setTimeout(() => first.scrollIntoView({ block: 'center', behavior: 'smooth' }), 80); }
@@ -3335,9 +3438,8 @@ function renderSummary(n) {
     const title = (nl < 0 ? p : p.slice(0, nl)).replace(/[*_`]/g, '').trim();
     const body = nl < 0 ? '' : p.slice(nl + 1);
     const k = kindOf(title);
-    let inner = md(body, ctr);
     // Questions de révision : la réponse se dévoile au toucher
-    if (k === 'quiz') inner = quizHtml(body, ctr);
+    const inner = k === 'quiz' ? quizHtml(body, ctr) : md(body, ctr);
     html += `<section class="sec k-${k}"><h3><span class="sec-ic">${ICONS[k]}</span>${esc(title)}</h3><div class="md">${inner}</div></section>`;
   }
   return html;
@@ -3349,21 +3451,20 @@ const curSegs = (n) => (trMode === 'clean' && hasClean(n)) ? n.clean : (n.segmen
 function renderTranscript() {
   const n = currentNote; if (!n) return;
   const q = $('trSearch').value.trim();
-  const re = q ? new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi') : null;
   const para = trMode === 'clean' && hasClean(n);
-  const segs = curSegs(n).filter((s) => !re || (!s.sep && s.text.match(re)));
+  // même recherche que l'accueil : sans tenir compte des accents ni des majuscules
+  const segs = curSegs(n).filter((s) => !q || (!s.sep && norm(s.text).includes(norm(q))));
   const marked = new Set();
   if (n.marks && n.marks.length) {
     const flat = curSegs(n).filter((s) => !s.sep);
     for (const m of n.marks) { let pick = null; for (const x of flat) { if (x.start <= m + 0.5) pick = x; else break; } if (pick) marked.add(pick); }
   }
-  const inl = re ? [] : inlineItems(n); let ii = 0;
+  const inl = q ? [] : inlineItems(n); let ii = 0;
   const before = (t) => { let h = ''; while (ii < inl.length && inl[ii].t <= t + 0.5) h += inl[ii++].html; return h; };
   $('noteTr').innerHTML = segs.map((s) => {
     if (s.sep) return `<div class="seg-sep">${ICONS.file}<span>${esc(s.text)}</span></div>`;
     const pre = before(s.start);
-    let t = re ? esc(s.text) : mathify(s.text);
-    if (re) t = t.replace(new RegExp(esc(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), (m) => `<mark>${m}</mark>`);
+    const t = q ? markHits(s.text, q) : mathify(s.text);
     return pre + `<div class="seg${para ? ' para' : ''}${marked.has(s) ? ' mark' : ''}" data-t="${s.start}"><time>${hms(s.start)}</time><span>${t}</span></div>`;
   }).join('') + (segs.length ? inl.slice(ii).map((x) => x.html).join('') : '') || `<p class="muted" style="padding:10px 0">${n.segments ? 'Aucun passage ne correspond.' : 'Pas de transcription.'}</p>`;
   renderMath($('noteTr'));
@@ -3799,17 +3900,17 @@ async function plaudDownload(rec) {
     const j = await plaudApi(`/file/temp-url/${encodeURIComponent(rec.id)}?is_opus=false`);
     const u = j.url || j.temp_url || (j.data && (typeof j.data === 'string' ? j.data : j.data.url || j.data.temp_url));
     if (u) {
-      const r = await fetch(`${relayBase()}/audio?u=${encodeURIComponent(u)}`);
-      if (r.ok) { const f = await asFile(await r.blob()); if (f) return f; }
+      const r = await tfetch(`${relayBase()}/audio?u=${encodeURIComponent(u)}`, {}, CONFIG.dlTimeout, true);
+      if (r.ok) { const f = await asFile(r.blob); if (f) return f; }
       else if (r.status === 400) { try { hostRefused = new URL(u).hostname; } catch (e) {} }
     }
   } catch (e) { if (e instanceof Cancelled) throw e; }
   // 2) sinon, le fichier d'origine… s'il est lisible (l'original de Plaud est souvent un .opus chiffré)
   let r;
-  try { r = await fetch(`${relayBase()}/api/file/download/${encodeURIComponent(rec.id)}?region=${plaudRegion()}`, { headers: { Authorization: 'Bearer ' + plaudToken() } }); }
-  catch (e) { throw new ApiError('Relais Plaud injoignable pendant le téléchargement.'); }
+  try { r = await tfetch(`${relayBase()}/api/file/download/${encodeURIComponent(rec.id)}?region=${plaudRegion()}`, { headers: { Authorization: 'Bearer ' + plaudToken() } }, CONFIG.dlTimeout, true); }
+  catch (e) { if (e instanceof Cancelled) throw e; throw new ApiError(e && e.timeout ? 'Téléchargement depuis Plaud interrompu (plus de réponse du réseau). Réessaie plus tard.' : 'Relais Plaud injoignable pendant le téléchargement.'); }
   if (r.status === 401) throw new ApiError('Jeton Plaud refusé ou expiré : recopie-le depuis web.plaud.ai (voir Réglages → Import depuis Plaud).');
-  if (r.ok) { const f = await asFile(await r.blob()); if (f) return f; }
+  if (r.ok) { const f = await asFile(r.blob); if (f) return f; }
   if (hostRefused) throw new ApiError(`Le relais n'accepte pas l'hébergeur « ${hostRefused} » : ajoute-le à AUDIO_HOSTS dans le code du relais Cloudflare.`);
   if (!r.ok && r.status !== 404) throw new ApiError(`Téléchargement impossible depuis Plaud (${r.status}).`);
   throw new NotReady('version MP3 pas encore prête sur le cloud Plaud');
@@ -4682,12 +4783,16 @@ function relIn(t) {
 const icsText = (v) => String(v || '').replace(/\\n/gi, '\n').replace(/\\([,;\\:])/g, '$1');
 function icsParse(text) {
   const lines = String(text).replace(/\r\n?/g, '\n').replace(/\n[ \t]/g, '').split('\n');
-  const evs = []; let cur = null;
+  const evs = []; let cur = null, sub = 0;
   for (const raw of lines) {
     const L = raw.trim();
-    if (L === 'BEGIN:VEVENT') { cur = { EXDATE: [] }; continue; }
+    if (L === 'BEGIN:VEVENT') { cur = { EXDATE: [] }; sub = 0; continue; }
     if (L === 'END:VEVENT') { if (cur) evs.push(cur); cur = null; continue; }
     if (!cur) continue;
+    // sous-composant (alarme VALARM…) : ses propriétés ne sont pas celles du cours
+    if (/^BEGIN:/i.test(L)) { sub++; continue; }
+    if (/^END:/i.test(L)) { sub = Math.max(0, sub - 1); continue; }
+    if (sub) continue;
     const m = /^([A-Za-z0-9-]+)((?:;[^:]*)?):(.*)$/.exec(raw); if (!m) continue;
     const name = m[1].toUpperCase(), params = {};
     for (const part of m[2].split(';').slice(1)) { const i = part.indexOf('='); if (i > 0) params[part.slice(0, i).toUpperCase()] = part.slice(i + 1).replace(/^"|"$/g, ''); }
@@ -4707,14 +4812,43 @@ function zonedToUtc(y, mo, d, h, mi, s, tz) {
     return t;
   } catch (e) { return new Date(y, mo, d, h, mi, s).getTime(); }
 }
+// Fuseaux nommés à la façon d'Outlook (« Romance Standard Time ») ou avec un préfixe (« /…/Europe/Brussels »)
+const WIN_TZ = { 'romance standard time': 'Europe/Paris', 'w. europe standard time': 'Europe/Berlin', 'central europe standard time': 'Europe/Budapest',
+  'central european standard time': 'Europe/Warsaw', 'gmt standard time': 'Europe/London', 'greenwich standard time': 'Atlantic/Reykjavik',
+  'e. europe standard time': 'Europe/Chisinau', 'fle standard time': 'Europe/Kiev', 'morocco standard time': 'Africa/Casablanca',
+  'eastern standard time': 'America/New_York', 'central standard time': 'America/Chicago', 'mountain standard time': 'America/Denver',
+  'pacific standard time': 'America/Los_Angeles', 'utc': 'UTC', 'coordinated universal time': 'UTC' };
+const tzCache = new Map();
+function tzName(id) {
+  id = String(id || '').trim().replace(/^"|"$/g, '');
+  if (!id) return '';
+  if (tzCache.has(id)) return tzCache.get(id);
+  const ok = (z) => { try { new Intl.DateTimeFormat('en-US', { timeZone: z }); return true; } catch (e) { return false; } };
+  let z = ok(id) ? id : '';
+  if (!z) { const parts = id.split('/').filter(Boolean); for (const k of [3, 2]) { const c = parts.slice(-k).join('/'); if (parts.length >= k && ok(c)) { z = c; break; } } }
+  if (!z) z = WIN_TZ[id.toLowerCase()] || (/brussels|bruxelles|paris|madrid|copenhagen/i.test(id) ? 'Europe/Paris' : /amsterdam|berlin|rome|vienna|stockholm|bern/i.test(id) ? 'Europe/Berlin' : /london|dublin|lisbon/i.test(id) ? 'Europe/London' : '');
+  tzCache.set(id, z);
+  return z;
+}
+const ICS_DT = /^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})?(Z)?)?$/;
+const icsDateOnly = (prop) => !!prop && (/^\d{8}$/.test(String(prop.value || '').trim()) || (prop.params && prop.params.VALUE === 'DATE'));
 function icsDate(prop) {
-  const m = /^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})?(Z)?)?$/.exec(String(prop.value || '').trim()); if (!m) return null;
+  const m = ICS_DT.exec(String(prop.value || '').trim()); if (!m) return null;
   const y = +m[1], mo = +m[2] - 1, d = +m[3];
   if (!m[4]) return new Date(y, mo, d).getTime();
   const h = +m[4], mi = +m[5], sec = +(m[6] || 0);
   if (m[7]) return Date.UTC(y, mo, d, h, mi, sec);
-  if (prop.params && prop.params.TZID) return zonedToUtc(y, mo, d, h, mi, sec, prop.params.TZID);
+  const tz = prop.params && prop.params.TZID ? tzName(prop.params.TZID) : '';
+  if (tz) return zonedToUtc(y, mo, d, h, mi, sec, tz);
   return new Date(y, mo, d, h, mi, sec).getTime();
+}
+// Heure « murale » d'une date .ics, et comment la répéter : dans son fuseau, en UTC, ou à l'heure du téléphone
+function icsWall(prop) {
+  const m = ICS_DT.exec(String(prop.value || '').trim()); if (!m) return null;
+  const wall = { y: +m[1], mo: +m[2] - 1, d: +m[3], h: +(m[4] || 0), mi: +(m[5] || 0), s: +(m[6] || 0) };
+  if (m[7]) return { wall, utc: true };
+  const tz = m[4] && prop.params && prop.params.TZID ? tzName(prop.params.TZID) : '';
+  return { wall, tz };
 }
 function icsDur(v) {
   const m = /^(-)?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/.exec(String(v || '').trim()); if (!m) return 0;
@@ -4741,34 +4875,98 @@ function parseDesc(desc, code) {
   }
   return { full, group, prof };
 }
-function expandRule(ev, rule, ex, horizon) {
-  const p = Object.fromEntries(rule.split(';').map((x) => x.split('=')));
-  const days = (p.FREQ === 'DAILY' ? 1 : p.FREQ === 'WEEKLY' ? 7 : 0) * (+p.INTERVAL || 1);
-  if (!days) return [ev];
-  const count = +p.COUNT || 400, until = p.UNTIL ? icsDate({ value: p.UNTIL, params: {} }) : horizon;
-  const out = [], len = ev.end - ev.start, d0 = new Date(ev.start);
-  for (let i = 0; i < count; i++) {
-    const d = new Date(d0); d.setDate(d0.getDate() + i * days);
-    const t = d.getTime(); if (t > Math.min(until, horizon)) break;
-    if (!ex.some((x) => Math.abs(x - t) < 60000)) out.push({ ...ev, uid: ev.uid + '#' + i, start: t, end: t + len });
+const WDAY = { SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6 };
+/* Développe une règle de répétition (RRULE) : quotidienne ou hebdomadaire, avec INTERVAL, COUNT, UNTIL, BYDAY.
+   Les dates sont calculées « au calendrier » (jour après jour) puis converties à l'heure du fuseau de l'événement,
+   pour qu'un cours de 8 h 30 reste à 8 h 30 après un changement d'heure. Le n° de séance (uid#n) ne dépend que de la règle. */
+function expandRule(ev, rule, ex, horizon, opt = {}) {
+  const p = Object.fromEntries(String(rule).split(';').map((x) => { const i = x.indexOf('='); return [x.slice(0, i).trim().toUpperCase(), x.slice(i + 1).trim()]; }));
+  const step = p.FREQ === 'DAILY' ? 1 : p.FREQ === 'WEEKLY' ? 7 : 0;
+  if (!step) return [ev];
+  const interval = Math.max(1, +p.INTERVAL || 1), count = +p.COUNT || 400;
+  const byday = [...new Set(String(p.BYDAY || '').split(',').map((x) => WDAY[x.trim().slice(-2).toUpperCase()]).filter((x) => x != null))];
+  let until = horizon;
+  if (p.UNTIL) { const u = icsDate({ value: p.UNTIL, params: {} }); if (u != null) until = Math.min(horizon, /^\d{8}$/.test(p.UNTIL) ? u + DAY - 1 : u); }
+  const d0 = new Date(ev.start);
+  const w = opt.wall || { y: d0.getFullYear(), mo: d0.getMonth(), d: d0.getDate(), h: d0.getHours(), mi: d0.getMinutes(), s: d0.getSeconds() };
+  const at = (y, mo, d) => opt.tz ? zonedToUtc(y, mo, d, w.h, w.mi, w.s, opt.tz) : opt.utc ? Date.UTC(y, mo, d, w.h, w.mi, w.s) : new Date(y, mo, d, w.h, w.mi, w.s).getTime();
+  const exDays = new Set(opt.exDays || []), out = [], len = ev.end - ev.start;
+  const dow0 = new Date(Date.UTC(w.y, w.mo, w.d)).getUTCDay();
+  let n = 0;
+  for (let k = 0; n < count && k < 5000; k++) {
+    let cands;
+    if (step === 7) {
+      const monday = w.d - ((dow0 + 6) % 7) + k * 7 * interval;
+      cands = byday.length ? byday.map((x) => monday + ((x + 6) % 7)).sort((a, b) => a - b) : [w.d + k * 7 * interval];
+    } else cands = [w.d + k * interval];
+    for (const dd of cands) {
+      if (dd < w.d) continue;   // avant le début de la série
+      const cd = new Date(Date.UTC(w.y, w.mo, dd));
+      if (step === 1 && byday.length && !byday.includes(cd.getUTCDay())) continue;
+      const t = at(cd.getUTCFullYear(), cd.getUTCMonth(), cd.getUTCDate());
+      if (t > until || n >= count) return out;
+      const i = n++;
+      const day = `${cd.getUTCFullYear()}${String(cd.getUTCMonth() + 1).padStart(2, '0')}${String(cd.getUTCDate()).padStart(2, '0')}`;
+      if (exDays.has(day) || ex.some((x) => Math.abs(x - t) < 60000)) continue;
+      out.push({ ...ev, uid: ev.uid + '#' + i, start: t, end: t + len });
+    }
   }
   return out;
 }
+function icsEvent(r) {
+  if (!r.DTSTART) return null;
+  const start = icsDate(r.DTSTART); if (start == null) return null;
+  let end = r.DTEND ? icsDate(r.DTEND) : r.DURATION ? start + icsDur(r.DURATION.value) : start;
+  if (end == null || end < start) end = start;
+  const title = icsText(r.SUMMARY && r.SUMMARY.value).trim() || 'Sans titre';
+  const allDay = icsDateOnly(r.DTSTART);
+  let kind = eventKind(title, start, allDay ? start + DAY : end);
+  if (allDay) {   // journée entière : seulement les échéances et les examens (pas les congés, fêtes…)
+    if (kind !== 'due' && kind !== 'exam') return null;
+    if (kind === 'due') end = start;
+  }
+  const code = r.CATEGORIES ? icsText(r.CATEGORIES.value).split(',')[0].trim() : '';
+  const base = title.replace(/^[.\s·•*-]+/, '').replace(/\s*[-–:,(]?\s*\b(TP|TD|CM|Cours|Exercices?|Labo|Travaux pratiques)\b\)?\.?\s*$/i, '').trim() || title;
+  const d = parseDesc(icsText(r.DESCRIPTION && r.DESCRIPTION.value), code);
+  const ev = { uid: (r.UID && r.UID.value) || title + '@' + start, title, base, code, key: code || norm(base).replace(/[^a-z0-9]+/g, '-'), kind,
+    start, end, location: icsText(r.LOCATION && r.LOCATION.value).trim(), prof: d.prof, full: d.full, group: d.group };
+  if (allDay) ev.allDay = true;
+  return ev;
+}
 function icsEvents(text) {
-  const out = [], horizon = Date.now() + 240 * DAY;
-  for (const r of icsParse(text)) {
-    if (!r.DTSTART || (r.STATUS && /CANCELLED/i.test(r.STATUS.value))) continue;
-    const start = icsDate(r.DTSTART); if (start == null) continue;
-    let end = r.DTEND ? icsDate(r.DTEND) : r.DURATION ? start + icsDur(r.DURATION.value) : start;
-    if (end == null || end < start) end = start;
-    const title = icsText(r.SUMMARY && r.SUMMARY.value).trim() || 'Sans titre';
-    const code = r.CATEGORIES ? icsText(r.CATEGORIES.value).split(',')[0].trim() : '';
-    const base = title.replace(/^[.\s·•*-]+/, '').replace(/\s*[-–:,(]?\s*\b(TP|TD|CM|Cours|Exercices?|Labo|Travaux pratiques)\b\)?\.?\s*$/i, '').trim() || title;
-    const d = parseDesc(icsText(r.DESCRIPTION && r.DESCRIPTION.value), code);
-    const ev = { uid: (r.UID && r.UID.value) || title + '@' + start, title, base, code, key: code || norm(base).replace(/[^a-z0-9]+/g, '-'), kind: eventKind(title, start, end),
-      start, end, location: icsText(r.LOCATION && r.LOCATION.value).trim(), prof: d.prof, full: d.full, group: d.group };
-    if (r.RRULE) out.push(...expandRule(ev, r.RRULE.value, r.EXDATE.map(icsDate).filter((x) => x != null), horizon));
-    else out.push(ev);
+  const out = [], horizon = Date.now() + 240 * DAY, recs = icsParse(text);
+  const cancelled = (r) => !!(r.STATUS && /CANCELLED/i.test(r.STATUS.value));
+  // séances modifiées ou annulées d'une série (même UID + RECURRENCE-ID)
+  const masters = new Set(recs.filter((r) => r.RRULE && r.UID && !r['RECURRENCE-ID']).map((r) => r.UID.value));
+  const overrides = new Map();
+  for (const r of recs) {
+    const rid = r['RECURRENCE-ID'];
+    if (!rid || !r.UID || !masters.has(r.UID.value)) continue;
+    const at = icsDate(rid); if (at == null) continue;
+    if (!overrides.has(r.UID.value)) overrides.set(r.UID.value, []);
+    overrides.get(r.UID.value).push({ at, day: icsDateOnly(rid) ? toISODate(at) : '', rec: r });
+  }
+  for (const r of recs) {
+    if (r['RECURRENCE-ID'] && r.UID && masters.has(r.UID.value)) continue;   // traité avec sa série
+    if (cancelled(r)) continue;
+    const ev = icsEvent(r); if (!ev) continue;
+    if (!r.RRULE) { out.push(ev); continue; }
+    const exDays = [], ex = [];
+    for (const x of r.EXDATE) { if (icsDateOnly(x)) exDays.push(String(x.value).trim().slice(0, 8)); else { const t = icsDate(x); if (t != null) ex.push(t); } }
+    const wz = icsWall(r.DTSTART) || {};
+    const ovs = overrides.get(ev.uid) || [];
+    for (const inst of expandRule(ev, r.RRULE.value, ex, horizon, { ...wz, exDays })) {
+      const o = ovs.find((v) => !v.used && (v.day ? v.day === toISODate(inst.start) : Math.abs(v.at - inst.start) < 60000));
+      if (!o) { out.push(inst); continue; }
+      o.used = true;
+      if (cancelled(o.rec)) continue;
+      const moved = icsEvent(o.rec);
+      if (moved) out.push({ ...moved, uid: inst.uid });
+    }
+    for (const o of ovs) {   // séance déplacée hors de la série calculée (au-delà de l'horizon…)
+      if (o.used || cancelled(o.rec)) continue;
+      const moved = icsEvent(o.rec); if (moved) out.push({ ...moved, uid: ev.uid + '@' + o.at });
+    }
   }
   return out;
 }
@@ -4798,13 +4996,13 @@ const visibleEvents = () => (AG.events || []).filter((e) => !hiddenKey(e.key));
 function courseAt(t) {
   let best = null, bd = Infinity;
   for (const e of visibleEvents()) {
-    if (e.kind === 'due') continue;
+    if (e.kind === 'due' || e.allDay) continue;
     if (t >= e.start - 20 * 60000 && t <= e.end + 10 * 60000) { const d = t < e.start ? e.start - t : t > e.end ? t - e.end : 0; if (d < bd) { best = e; bd = d; } }
   }
   return best;
 }
-const liveEvent = () => { const now = Date.now(); return visibleEvents().find((e) => e.kind !== 'due' && e.start <= now && e.end > now) || null; };
-const nextEvent = () => { const now = Date.now(); return visibleEvents().find((e) => e.kind !== 'due' && e.start > now) || null; };
+const liveEvent = () => { const now = Date.now(); return visibleEvents().find((e) => e.kind !== 'due' && !e.allDay && e.start <= now && e.end > now) || null; };
+const nextEvent = () => { const now = Date.now(); return visibleEvents().find((e) => e.kind !== 'due' && !e.allDay && e.start > now) || null; };
 function linkCourse(n, e) {
   const m = getMat(e.key);
   n.course = { key: e.key, code: e.code, name: m ? m.name : e.base, uid: e.uid, start: e.start, end: e.end, kind: e.kind, prof: e.prof || '', location: e.location || '', full: e.full || '' };
@@ -4854,14 +5052,14 @@ async function syncAgenda(manual) {
   let text = '', why = '';
   const isCal = (t) => /BEGIN:VCALENDAR/i.test(t);
   try {
-    try { const r = await fetch(url, { cache: 'no-store' }); if (r.ok) { const t = await r.text(); if (isCal(t)) text = t; } } catch (e) {}   // marche si le serveur l'autorise (CORS)
+    try { const r = await tfetch(url, { cache: 'no-store' }, CONFIG.netTimeout); if (r.ok && isCal(r.text)) text = r.text; } catch (e) {}   // marche si le serveur l'autorise (CORS)
     if (!text && relayBase()) {
       try {
-        const r = await fetch(relayBase() + '/ics?u=' + encodeURIComponent(url), { cache: 'no-store' });
-        const t = await r.text();
+        const r = await tfetch(relayBase() + '/ics?u=' + encodeURIComponent(url), { cache: 'no-store' }, CONFIG.netTimeout);
+        const t = r.text;
         if (r.ok && isCal(t)) text = t;
         else { let j = null; try { j = JSON.parse(t); } catch (e) {} why = (j && j.error) || 'erreur ' + r.status; if (r.status === 404 && /introuvable/i.test(why)) why = 'ton relais Cloudflare est une ancienne version : mets à jour son code (voir le guide)'; }
-      } catch (e) { why = 'relais Cloudflare injoignable'; }
+      } catch (e) { why = e && e.timeout ? 'le serveur du calendrier ne répond pas (délai dépassé)' : 'relais Cloudflare injoignable'; }
     } else if (!text) why = 'il faut le relais Cloudflare pour synchroniser par adresse (étape 6 du guide), ou importe le fichier .ics';
     if (!text) { lsSet('np-ics-err', why); if (manual) toast('Calendrier non synchronisé : ' + why); return null; }
     const res = await saveAgendaText(text, 'url');
@@ -4920,7 +5118,7 @@ function scheduleCourseReminders() {
   const lead = +settings.courseRemind || 0; if (!lead) return;
   const now = Date.now();
   for (const e of visibleEvents()) {
-    if (e.kind === 'due') continue;
+    if (e.kind === 'due' || e.allDay) continue;
     const at = e.start - lead * 60000;
     if (at > now - 60000 && at - now < 3 * DAY) crsTimers.push(setTimeout(() => notifyCourse(e), Math.max(0, at - now)));
   }
@@ -4951,7 +5149,7 @@ function evRow(e, notes, opts = {}) {
   const when = opts.date ? `${new Date(e.start).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}` : '';
   const sub = e.kind === 'due' ? e.title : [KIND_LBL[e.kind], when, e.location].filter(Boolean).join(' · ');
   return `<button class="ev${past ? ' past' : ''}${live ? ' live' : ''}" data-uid="${esc(e.uid)}" style="--h:${m ? m.hue : 20}">
-    <span class="ev-time">${e.kind === 'due' ? hhmm(e.start) : hhmm(e.start)}<small>${e.kind === 'due' ? 'limite' : hhmm(e.end)}</small></span>
+    <span class="ev-time">${e.allDay ? 'Journée' : hhmm(e.start)}<small>${e.kind === 'due' ? 'limite' : e.allDay ? '' : hhmm(e.end)}</small></span>
     <span class="ev-main"><b>${esc(m ? m.name : e.base)}</b><small>${esc(sub)}</small>${note ? `<small class="ev-note">${ICONS.file}${esc(note.title)}</small>` : ''}</span>${st}</button>`;
 }
 function nowCard(e, notes) {
@@ -5954,9 +6152,9 @@ async function stopRec(save) {
   const clear = () => dbRun('pending', 'readwrite', (s) => s.delete(IDBKeyRange.bound(`rec:${sid}:`, `rec:${sid}:￿`))).catch(() => {});
   const blob = new Blob(chunks, { type: (mime || 'audio/webm').split(';')[0] });
   if (!save || !blob.size) { await clear(); for (const ph of photos) await dbRun('pending', 'readwrite', (st) => st.delete('img:' + ph.id)).catch(() => {}); rec.photos = []; toast(save ? 'Enregistrement vide' : 'Enregistrement supprimé'); show(lastTab); return; }
-  await startFile(recFile(blob, t0), { created: t0, title: recName(t0), marks: marks.length ? marks : undefined, photos: photos.length ? photos : undefined, recorded: true, duration: secs });
+  const kept = await startFile(recFile(blob, t0), { created: t0, title: recName(t0), marks: marks.length ? marks : undefined, photos: photos.length ? photos : undefined, recorded: true, duration: secs });
   rec.photos = [];
-  await clear();
+  if (kept) await clear();   // sinon les morceaux restent : l'enregistrement sera récupéré à la prochaine ouverture
 }
 async function recoverRec() {   // enregistrement coupé net (app fermée) : on le reconstitue
   let keys = [];
@@ -6036,7 +6234,7 @@ function saveBlob(blob, name) {
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000);
 }
 async function backupData() {
-  const notes = (await db.all()).map((n) => { const c = { ...n }; delete c.audio; delete c.partial; delete c.audioKept; return c; });
+  const notes = (await db.all()).map((n) => { const c = { ...n }; delete c.audio; delete c.partial; delete c.sumPartial; delete c.audioKept; return c; });
   const st = { ...settings };
   if (!$('bkKeys').checked) for (const k of SECRET_KEYS) delete st[k];
   const data = { app: 'notes-plaud', format: 1, version: APP_VERSION, exportedAt: new Date().toISOString(), notes, settings: st, plaudImported: importedIds() };
@@ -6211,7 +6409,8 @@ const hadController = 'serviceWorker' in navigator && !!navigator.serviceWorker.
 let reloading = false, updatePending = false;
 function applyUpdate() {
   if (reloading) return;
-  if (busy || enhancing || writing) { updatePending = true; return; }
+  // un rechargement couperait l'enregistrement en cours ou un traitement : on attend
+  if (busy || enhancing || writing || rec.mr) { updatePending = true; return; }
   reloading = true; location.reload();
 }
 if ('serviceWorker' in navigator) {
@@ -6220,7 +6419,7 @@ if ('serviceWorker' in navigator) {
     if (document.visibilityState !== 'visible') return;
     fireReminders(); scheduleReminders(); updateBadge(); plaudAutoCheck(false);
     if (current === 'tasks') renderTasks();
-    if (updatePending && !busy && !enhancing) return applyUpdate();
+    if (updatePending) return applyUpdate();
     try { const reg = await navigator.serviceWorker.getRegistration(); if (reg) reg.update(); } catch (e) {}
   });
 }
@@ -6523,15 +6722,18 @@ window.addEventListener('beforeunload', (e) => { if (busy || enhancing || writin
   let pending = null, pendErr = '';
   try { pending = await db.takePending(); } catch (e) { pendErr = String(e && e.message || e); }
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {});
-  if (pending && pending.file) { startFile(pending.file); return; }
+  // L'emploi du temps est chargé AVANT de traiter un fichier partagé : sinon un .ics partagé effaçait l'historique
+  // des séances, et un enregistrement partagé n'était pas rangé dans son cours.
   await loadAgenda();
   current = '';
-  show('home');
+  const shared = pending && pending.file;
+  if (shared) await startFile(shared);
+  else show('home');
   renderNotif();
-  if (params.has('note')) { const id = params.get('note'); history.replaceState(history.state, '', location.pathname); if (id === ':tasks') show('tasks'); else if (id === ':courses') show('courses'); else openNote(id); }
+  if (!shared && params.has('note')) { const id = params.get('note'); history.replaceState(history.state, '', location.pathname); if (id === ':tasks') show('tasks'); else if (id === ':courses') show('courses'); else openNote(id); }
   await recoverRec();
   const act = params.get('action');
-  if (act) { history.replaceState(history.state, '', location.pathname); setTimeout(() => runAction(act), 300); }
+  if (act) { history.replaceState(history.state, '', location.pathname); if (!shared) setTimeout(() => runAction(act), 300); }
   resumeInterrupted();
   updateBadge(); scheduleReminders(); fireReminders(); setupPeriodicCheck();
   setTimeout(gcAudio, 6000);
@@ -6539,7 +6741,7 @@ window.addEventListener('beforeunload', (e) => { if (busy || enhancing || writin
   if (settings.icsUrl && Date.now() - (AG.at || 0) > 12 * 3600000) setTimeout(() => syncAgenda(false), 2500);
   setInterval(tickCourses, 30000);
   setTimeout(() => plaudAutoCheck(true), 1500);
-  if (params.has('shared') || pending) {
+  if (!shared && (params.has('shared') || pending)) {
     const i = (pending && pending.info) || {};
     const lines = [];
     if (i.files && i.files.length) lines.push('Fichiers : ' + i.files.map((f) => `${f.name || 'sans nom'} (${f.type || 'type inconnu'}, ${mb(f.size)})`).join(', '));
@@ -6548,8 +6750,7 @@ window.addEventListener('beforeunload', (e) => { if (busy || enhancing || writin
     if (pendErr) lines.push('Lecture du partage impossible : ' + pendErr);
     if (!lines.length) lines.push(pending ? "Rien du tout : l'app qui partage n'a transmis aucun contenu." : "Le partage n'a pas pu être récupéré (l'app a peut-être été relancée pendant le partage). Réessaie le partage une fois.");
     lines.push("\nEn attendant, touche « Nouvel enregistrement » : le fichier exporté apparaît en haut de la liste « Récents ».");
-    $('shareDiagTxt').textContent = lines.join('\n');
-    $('shareDiag').classList.remove('hidden');
+    showDiag('Partage reçu, mais sans fichier audio.', lines.join('\n'));
   }
 })();
 

@@ -71,6 +71,12 @@ class Mocks {
         if (this.fail && await this.fail(route, 'transcribe')) return;
         return route.fulfill({ json: this.transcript(this.calls.transcribe.length - 1) });
       }
+      if (url.endsWith('/models')) {   // « Tester la clé » : clé valide si elle commence par gsk_ (sauf gsk_bad)
+        const k = (route.request().headers().authorization || '').replace(/^Bearer /, '');
+        this.calls.models = (this.calls.models || []).concat({ p: 'groq', k });
+        if (this.fail && await this.fail(route, 'models')) return;
+        return /^gsk_/.test(k) && k !== 'gsk_bad' ? route.fulfill({ json: { data: [{ id: 'whisper-large-v3' }] } }) : route.fulfill({ status: 401, json: { error: { message: 'Invalid API Key' } } });
+      }
       if (url.endsWith('/chat/completions')) {
         const body = route.request().postDataJSON();
         const prompt = body.messages[0].content;
@@ -82,6 +88,12 @@ class Mocks {
     });
 
     await page.route('https://generativelanguage.googleapis.com/**', async (route) => {
+      if (route.request().method() === 'GET') {   // « Tester la clé »
+        const k = route.request().headers()['x-goog-api-key'] || '';
+        this.calls.models = (this.calls.models || []).concat({ p: 'gemini', k });
+        if (this.fail && await this.fail(route, 'models')) return;
+        return /^AIza/.test(k) && k !== 'AIza_bad' ? route.fulfill({ json: { models: [{ name: 'models/gemini' }] } }) : route.fulfill({ status: 400, json: { error: { message: 'API key not valid. Please pass a valid API key.' } } });
+      }
       const body = route.request().postDataJSON();
       const model = decodeURIComponent(/models\/([^:]+):/.exec(route.request().url())[1]);
       const prompt = body.contents[0].parts.map((p) => p.text || '').join('');

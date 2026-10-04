@@ -63,6 +63,7 @@ async function tour(page, theme, out) {
   await page.keyboard.press('Escape'); await page.waitForTimeout(300);
   await page.locator('#tabbar [data-v=courses]').click(); await audit(page, `${theme} cours`, out);
   await page.locator('#crsBody .mat').first().click(); await audit(page, `${theme} matière`, out);
+  await page.locator('#cVocab').click(); await page.waitForTimeout(300); await audit(page, `${theme} vocabulaire`, out); await page.keyboard.press('Escape'); await page.waitForTimeout(300);
   await page.locator('#backBtn').click();
   await page.locator('#tabbar [data-v=home]').click();
   await page.locator('#settingsBtn').click(); await audit(page, `${theme} réglages`, out);
@@ -95,6 +96,12 @@ test.describe('Audit axe-core : autres écrans et fenêtres', () => {
     await page.goto('./');
     await expect(page.locator('#onboard')).toBeVisible();
     await auditThemes(page, 'premier lancement', out);
+    await page.locator('#onboardBtn').click();
+    await expect(page.locator('#wzKey')).toBeVisible();
+    await page.locator('#wzKey').fill('x'); await page.locator('#wzGo').click();
+    await expect(page.locator('#wzRes')).toContainText('refusée');
+    await auditThemes(page, 'premier lancement guidé', out);
+    await page.keyboard.press('Escape');
 
     await useSettings(page, { key: 'gsk_test', gkey: 'AIza_test', prelay: 'https://relais.test', ptoken: 'a.b.c', pauto: false });
     let release;

@@ -830,6 +830,10 @@
   .pl-it { display: flex; align-items: center; gap: 10px; padding: 5px 0; }
   .pl-it .linkbtn { text-align: left; font-weight: 500; color: var(--ink); text-decoration: none; }
   .pl-it .tck:checked + .linkbtn { color: var(--muted); text-decoration: line-through; }
+  .key-res:empty { display: none; } .key-res.ok { color: var(--green); font-weight: 600; } .key-res.ko { color: var(--err); font-weight: 600; }
+  .keyrow .btn { flex: none; }
+  .wz-steps { display: flex; gap: 6px; margin: 2px 0 12px; } .wz-steps i { flex: 1; height: 5px; border-radius: 3px; background: var(--surface-3); } .wz-steps i.on { background: var(--accent-ink); }
+  .wz ol { margin: 6px 0 14px; padding-left: 22px; } .wz li { margin: 4px 0; }
   .home-rev { display: flex; align-items: center; gap: 12px; padding: 14px 14px 14px 16px; margin-bottom: 14px; }
   .home-rev .sec-ic { background: var(--violet-soft); color: var(--violet); flex: none; }
   .home-rev .grow { flex: 1; min-width: 0; }
@@ -1067,7 +1071,8 @@
         <li><i>1</i><span>Clé <b>Groq</b> pour la transcription<small>Obligatoire · console.groq.com/keys</small></span></li>
         <li><i>2</i><span>Clé <b>Gemini</b> pour les résumés<small>Recommandée · aistudio.google.com/apikey</small></span></li>
       </ol>
-      <button class="btn primary block" id="onboardBtn">Ajouter mes clés</button>
+      <button class="btn primary block" id="onboardBtn">Commencer (2 minutes)</button>
+      <button class="linkbtn" id="onboardSet" type="button" style="display:block;margin:10px auto 0">Ou ouvrir directement les réglages</button>
     </div>
 
     <div id="shareDiag" class="card diag hidden" style="margin-bottom:14px">
@@ -1161,6 +1166,7 @@
       <p id="jobErrorMsg"></p>
       <div class="row">
         <button class="btn primary" id="jobRetry">Réessayer</button>
+        <button class="btn hidden" id="jobFix" type="button"></button>
         <button class="btn" id="jobHome">Retour</button>
       </div>
     </div>
@@ -1372,7 +1378,9 @@
           <div class="keyrow">
             <input type="password" id="sKey" autocomplete="off" spellcheck="false" placeholder="gsk_…">
             <button class="btn" id="sKeyShow" type="button" aria-label="Voir la clé Groq">Voir</button>
+            <button class="btn" id="sKeyTest" type="button" data-test="groq" data-in="sKey" aria-label="Tester la clé Groq">Tester</button>
           </div>
+          <div class="f-help key-res" id="sKeyRes" role="status"></div>
           <div class="f-help">Crée-la sur <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a> (gratuit, sans carte bancaire).</div>
         </div>
         <div>
@@ -1408,7 +1416,8 @@
             <option value="mistral">Mistral</option>
             <option value="groq">Groq</option>
           </select>
-          <div class="f-help">Si l'IA choisie est saturée ou ne répond pas, l'app passe toute seule à la suivante qui a une clé, dans cet ordre : Gemini → Cerebras → Mistral → Groq.</div>
+          <div class="f-help">Si l'IA choisie est saturée ou ne répond pas, l'app passe toute seule à la suivante qui a une clé, dans cet ordre : Gemini → Cerebras → Mistral → Groq. Une IA qui vient d'atteindre sa limite gratuite est mise au repos un moment : les traitements suivants commencent directement par la suivante.</div>
+          <div class="f-help" id="provCool" role="status"></div>
         </div>
         <div id="gBox" class="stack">
           <div>
@@ -1416,7 +1425,9 @@
             <div class="keyrow">
               <input type="password" id="sGKey" autocomplete="off" spellcheck="false" placeholder="AIza…">
               <button class="btn" id="sGKeyShow" type="button" aria-label="Voir la clé Gemini">Voir</button>
+              <button class="btn" id="sGKeyTest" type="button" data-test="gemini" data-in="sGKey" aria-label="Tester la clé Gemini">Tester</button>
             </div>
+            <div class="f-help key-res" id="sGKeyRes" role="status"></div>
             <div class="f-help">Crée-la sur <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> (gratuit, sans carte bancaire). Sur l'offre gratuite, Google peut utiliser les textes envoyés pour améliorer ses modèles.</div>
           </div>
           <div>
@@ -1431,7 +1442,9 @@
             <div class="keyrow">
               <input type="password" id="sCKey" autocomplete="off" spellcheck="false" placeholder="csk-…">
               <button class="btn" id="sCKeyShow" type="button" aria-label="Voir la clé Cerebras">Voir</button>
+              <button class="btn" id="sCKeyTest" type="button" data-test="cerebras" data-in="sCKey" aria-label="Tester la clé Cerebras">Tester</button>
             </div>
+            <div class="f-help key-res" id="sCKeyRes" role="status"></div>
             <div class="f-help">Gratuite sur <a href="https://cloud.cerebras.ai" target="_blank" rel="noopener">cloud.cerebras.ai</a> (menu API Keys). Très rapide, limite par minute bien plus large que Groq.</div>
           </div>
           <div>
@@ -1445,7 +1458,9 @@
             <div class="keyrow">
               <input type="password" id="sMKey" autocomplete="off" spellcheck="false" placeholder="…">
               <button class="btn" id="sMKeyShow" type="button" aria-label="Voir la clé Mistral">Voir</button>
+              <button class="btn" id="sMKeyTest" type="button" data-test="mistral" data-in="sMKey" aria-label="Tester la clé Mistral">Tester</button>
             </div>
+            <div class="f-help key-res" id="sMKeyRes" role="status"></div>
             <div class="f-help">Gratuite sur <a href="https://console.mistral.ai/api-keys" target="_blank" rel="noopener">console.mistral.ai</a> (offre « Experiment »). Très bon en français. Sur l'offre gratuite, Mistral peut utiliser les textes envoyés pour entraîner ses modèles.</div>
           </div>
           <div>
@@ -1634,7 +1649,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '38 · 4 oct. 2026';
+const APP_VERSION = '40 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -1671,7 +1686,13 @@ const gemList = () => settings.gmodels.split(',').map((x) => x.trim()).filter(Bo
 const CHAIN = ['gemini', 'cerebras', 'mistral', 'groq'];
 const PNAME = { gemini: 'Gemini', cerebras: 'Cerebras', mistral: 'Mistral', groq: 'Groq' };
 const hasKey = (p) => !!(p === 'gemini' ? settings.gkey : p === 'cerebras' ? settings.ckey : p === 'mistral' ? settings.mkey : settings.key);
-const primary = () => settings.provider && settings.provider !== 'auto' ? settings.provider : (CHAIN.find(hasKey) || 'groq');
+// IA « au repos » : limite gratuite atteinte récemment → en mode automatique, on commence directement par la suivante
+// (mémorisé entre deux traitements, au lieu de refaire attendre l'utilisateur à chaque fois)
+const provCool = () => { try { return JSON.parse(localStorage.getItem('np-cool') || '{}') || {}; } catch (e) { return {}; } };
+const cooling = (p, now = Date.now()) => (provCool()[p] || 0) > now;
+function coolDown(p, ms) { const c = provCool(); c[p] = Date.now() + ms; try { localStorage.setItem('np-cool', JSON.stringify(c)); } catch (e) {} }
+const coolFor = (msg) => /quota du jour|per ?day|daily/i.test(msg) ? 6 * 3600000 : /limite|quota|surcharg|429|indisponible|ne répond pas|injoignable/i.test(msg) ? 15 * 60000 : 0;
+const primary = () => settings.provider && settings.provider !== 'auto' ? settings.provider : (CHAIN.find((p) => hasKey(p) && !cooling(p)) || CHAIN.find(hasKey) || 'groq');
 const provider = () => provOverride || primary();
 // fournisseurs à essayer ensuite (ceux qui ont une clé et n'ont pas encore échoué pendant ce traitement)
 let provFailed = new Set();
@@ -2778,8 +2799,10 @@ let provOverride = null;
 const canFallback = () => !!nextProvider();
 function fallBack(e) {   // passe au fournisseur suivant ; renvoie son nom ou null
   if (!(e instanceof ProviderDown)) return null;
-  provFailed.add(provider());
-  const nx = nextProvider();
+  const cur = provider();   // avant la mise au repos (qui change l'IA choisie en mode automatique)
+  provFailed.add(cur);
+  const ms = coolFor(e.message); if (ms) coolDown(cur, ms);
+  const nx = [primary(), ...CHAIN].find((p) => p !== cur && hasKey(p) && !provFailed.has(p)) || null;
   if (nx) provOverride = nx;
   return nx;
 }
@@ -2799,7 +2822,9 @@ const STRUCT = {
 ## Définitions et formules
 (« **Terme** : définition » ; formules en LaTeX ; « Aucune » sinon)
 ## Exemples traités
-(exemples, exercices ou cas étudiés en cours, une ligne chacun ; « Aucun » sinon)
+(exemples, exercices ou cas étudiés en cours, une ligne chacun, avec leurs valeurs chiffrées telles quelles ; « Aucun » sinon)
+## Questions posées en classe
+(questions posées par des étudiants pendant le cours et réponse de l'enseignant, chacune sur une ligne : « - Question ? → Réponse » ; repère-les aux changements de voix ou de ton dans la transcription — « Monsieur, est-ce que… », « Oui, bonne question… » ; « Aucune » sinon)
 ## À retravailler à la maison
 (liste « - [ ] … » : exercices et lectures donnés, passages traités trop vite ou restés flous, notions difficiles à revoir)
 ## Devoirs et échéances
@@ -2848,7 +2873,8 @@ Règles :
 - Réponds uniquement en Markdown. Première ligne : « # » suivi d'un titre court et précis (8 mots maximum).
 - Garde les titres de rubriques exactement comme indiqué, dans cet ordre.
 - N'invente rien qui ne soit pas dans le texte.
-- Écris les formules mathématiques ou scientifiques en LaTeX : $…$ dans une phrase, $$…$$ pour une formule isolée.
+- Écris les formules mathématiques ou scientifiques en LaTeX : $…$ dans une phrase, $$…$$ pour une formule isolée. Garde les notations de l'enseignant (mêmes lettres, mêmes indices).
+- Reprends exactement les chiffres, dates, valeurs numériques et noms propres entendus ; si un mot est incertain, choisis le terme de la matière le plus plausible plutôt qu'un mot courant.
 
 Tâches — TRÈS IMPORTANT, les lignes « - [ ] » alimentent directement la liste de tâches de l'utilisateur :
 - ne mets en « - [ ] » que des tâches concrètes, utiles et réalisables, qui commencent par un verbe à l'infinitif (« Refaire l'exercice 3 du TD 2 », « Relire le chapitre 4 sur les récurrences », « Envoyer le devis à Marie ») ;
@@ -3315,6 +3341,9 @@ async function run(note, opts = {}) {
     $('jobErrorMsg').textContent = e instanceof ApiError ? e.message : 'Erreur inattendue : ' + e.message;
     $('jobError').classList.remove('hidden');
     $('jobRetry').onclick = () => run(note);
+    const fix = errorAction($('jobErrorMsg').textContent);
+    $('jobFix').classList.toggle('hidden', !fix);
+    if (fix) { $('jobFix').textContent = fix.label; $('jobFix').onclick = fix.go; }
     notify('Échec du traitement', $('jobErrorMsg').textContent, note.id);
     if (current === 'job') { show('job', true); announce('Échec du traitement. ' + $('jobErrorMsg').textContent); }
     else { toast('Échec du traitement : ouvre la note pour voir le détail'); if (current === 'home') renderHome(); }
@@ -5103,7 +5132,8 @@ ${ctxLine()}
 - Environ ${want} fiches, selon la richesse du contenu.
 - Chaque fiche porte sur UNE notion importante : définition, théorème ou règle, formule, raisonnement, date ou chiffre clé, exemple type, piège signalé par l'enseignant, point annoncé pour l'examen.
 - Question précise et autonome (compréhensible sans le cours). Réponse courte et exacte : 1 à 4 phrases, ou une formule.
-- Formules en LaTeX : $…$. Pas de questions triviales, pas de doublons. N'invente rien qui ne soit pas dans le cours.
+- Varie les types : définition, « pourquoi », « comment calcule-t-on », application chiffrée, comparaison de deux notions, piège.
+- Formules en LaTeX : $…$. Pas de questions triviales, pas de doublons (une même notion n'est demandée qu'une fois, même reformulée). N'invente rien qui ne soit pas dans le cours.
 Réponds UNIQUEMENT avec un tableau JSON, sans aucun texte autour : [{"q": "…", "a": "…"}]
 
 Cours :
@@ -5624,6 +5654,90 @@ async function quizErrorCards(idx) {
   const b = $('qzCards'); if (b) { b.disabled = true; b.textContent = 'Fiches créées'; }
 }
 
+/* =================== Clés : test, premier lancement guidé, erreurs avec action =================== */
+const KEY_TEST = {
+  groq: (k) => ({ url: 'https://api.groq.com/openai/v1/models', headers: { Authorization: 'Bearer ' + k } }),
+  gemini: (k) => ({ url: 'https://generativelanguage.googleapis.com/v1beta/models?pageSize=1', headers: { 'x-goog-api-key': k } }),
+  cerebras: (k) => ({ url: 'https://api.cerebras.ai/v1/models', headers: { Authorization: 'Bearer ' + k } }),
+  mistral: (k) => ({ url: 'https://api.mistral.ai/v1/models', headers: { Authorization: 'Bearer ' + k } }),
+};
+const KEY_PREFIX = { groq: 'gsk_', gemini: 'AIza' };
+// Un appel minimal (liste des modèles, gratuit) pour savoir tout de suite si une clé marche
+async function testKey(p, key) {
+  key = String(key || '').trim();
+  if (!key) return { ok: false, msg: 'Colle d\'abord la clé.' };
+  if (/\s/.test(key)) return { ok: false, msg: 'La clé contient un espace : recopie-la d\'un seul bloc.' };
+  if (isOffline()) return { ok: false, net: true, msg: 'Pas de connexion Internet : réessaie une fois connecté.' };
+  const c = KEY_TEST[p](key);
+  let r;
+  try { r = await tfetch(c.url, { headers: c.headers, referrerPolicy: 'no-referrer' }, 15000); }
+  catch (e) { return { ok: false, net: true, msg: `${PNAME[p]} ne répond pas. Vérifie ta connexion, puis réessaie.` }; }
+  if (r.ok) return { ok: true, msg: `Clé ${PNAME[p]} valide ✓` };
+  if (r.status === 429) return { ok: true, msg: `Clé ${PNAME[p]} valide ✓ (limite gratuite atteinte pour le moment : elle repartira toute seule)` };
+  if (r.status === 400 || r.status === 401 || r.status === 403) {
+    const pre = KEY_PREFIX[p];
+    return { ok: false, msg: `Clé ${PNAME[p]} refusée. ${pre && !key.startsWith(pre) ? `Une clé ${PNAME[p]} commence par « ${pre} » : vérifie que tu as copié la bonne.` : 'Vérifie que tu l\'as copiée en entier, ou crée-en une nouvelle.'}` };
+  }
+  return { ok: false, net: true, msg: `${PNAME[p]} a répondu ${r.status}. Réessaie dans quelques minutes.` };
+}
+// Erreur fréquente → bouton qui mène au bon endroit
+function errorAction(msg) {
+  const m = String(msg || '');
+  const toSet = (id) => () => { showSettings(); setTimeout(() => { const el = $(id); if (el) { el.scrollIntoView({ block: 'center' }); el.focus(); } }, 350); };
+  if (/cl[ée] (API )?\S*\s*refus|Ajoute.*cl[ée]|Pas de cl[ée]|cl[ée] .*(invalide|manquante)/i.test(m)) {
+    const id = /Gemini/i.test(m) ? 'sGKey' : /Cerebras/i.test(m) ? 'sCKey' : /Mistral/i.test(m) ? 'sMKey' : 'sKey';
+    return { label: 'Vérifier ma clé', go: toSet(id) };
+  }
+  if (/plus assez de place|stockage plein|quota exceeded/i.test(m)) return { label: 'Libérer de la place', go: toSet('audDelAll') };
+  if (/limite|quota|surcharg/i.test(m) && CHAIN.filter(hasKey).length < 2) return { label: 'Ajouter une IA de secours', go: toSet('sCKey') };
+  return null;
+}
+// Assistant du premier lancement : 1. clé Groq (testée), 2. clé Gemini (facultative), 3. emploi du temps et Plaud (facultatifs)
+const WZ = {
+  1: { p: 'groq', key: 'key', title: 'Clé Groq : la transcription', site: 'https://console.groq.com/keys', siteTxt: 'console.groq.com/keys',
+    steps: ['Ouvre <b>console.groq.com/keys</b> (bouton ci-dessous) et connecte-toi, par exemple avec Google.', 'Touche <b>Create API Key</b> et donne-lui un nom (« Notes Plaud »).', 'Copie la clé (elle commence par <b>gsk_</b>), reviens ici et colle-la.'],
+    why: 'Obligatoire : Groq transforme l\'audio en texte. Gratuit, sans carte bancaire.' },
+  2: { p: 'gemini', key: 'gkey', title: 'Clé Gemini : les résumés', site: 'https://aistudio.google.com/apikey', siteTxt: 'aistudio.google.com/apikey', skip: true,
+    steps: ['Ouvre <b>aistudio.google.com/apikey</b> avec ton compte Google.', 'Touche <b>Create API key</b> (« Créer une clé API »).', 'Copie la clé (elle commence par <b>AIza</b>) et colle-la ici.'],
+    why: 'Recommandée : résumés, cours rédigés et quiz en quelques secondes, même pour 3 h de cours. Sans elle, Groq s\'en charge, plus lentement.' },
+};
+function setupWizard(step) {
+  const dots = (k) => `<div class="wz-steps" aria-hidden="true">${[1, 2, 3].map((i) => `<i class="${i <= k ? 'on' : ''}"></i>`).join('')}</div>`;
+  if (step === 3) {
+    openSheet(`<div class="wz">${dots(3)}<h3>Étape 3 sur 3 · C'est presque prêt</h3><p class="sub">Facultatif, maintenant ou plus tard dans les Réglages.</p>
+      <div class="stack"><button class="btn block" id="wzIcs" type="button">${ICONS.book}Ajouter mon emploi du temps</button>
+      <button class="btn block" id="wzPlaud" type="button">${ICONS.download}Importer depuis le cloud Plaud</button>
+      <button class="btn primary block" id="wzDone" type="button">Terminer</button></div></div>`, (body) => {
+      body.querySelector('#wzIcs').onclick = () => { closeSheet(); showSettings(); setTimeout(() => { $('agSet').scrollIntoView({ block: 'start' }); $('sIcsUrl').focus(); }, 350); };
+      body.querySelector('#wzPlaud').onclick = () => { closeSheet(); showSettings(); setTimeout(() => { $('sPRelay').scrollIntoView({ block: 'center' }); $('sPRelay').focus(); }, 350); };
+      body.querySelector('#wzDone').onclick = () => { closeSheet(); toast('Tout est prêt ! Touche « Nouvel enregistrement » ou partage un fichier depuis Plaud'); renderHome(); };
+    });
+    return;
+  }
+  const w = WZ[step];
+  openSheet(`<div class="wz">${dots(step)}<h3>Étape ${step} sur 3 · ${w.title}</h3><p class="sub">${w.why}</p>
+    <ol>${w.steps.map((x) => `<li>${x}</li>`).join('')}</ol>
+    <a class="btn block" href="${w.site}" target="_blank" rel="noopener">Ouvrir ${w.siteTxt}</a>
+    <label class="f" for="wzKey" style="margin-top:14px">Ta clé ${PNAME[w.p]}</label>
+    <div class="keyrow"><input type="password" id="wzKey" autocomplete="off" spellcheck="false" placeholder="${KEY_PREFIX[w.p]}…" value="${esc(settings[w.key] || '')}">${navigator.clipboard && navigator.clipboard.readText ? '<button class="btn" id="wzPaste" type="button">Coller</button>' : ''}</div>
+    <div class="f-help key-res" id="wzRes" role="status"></div>
+    <div class="stack" style="margin-top:12px"><button class="btn primary block" id="wzGo" type="button">Vérifier et continuer</button>${w.skip ? '<button class="btn ghost block" id="wzSkip" type="button">Passer cette étape</button>' : ''}</div></div>`, (body) => {
+    const inp = body.querySelector('#wzKey'), res = body.querySelector('#wzRes'), go = body.querySelector('#wzGo');
+    const save = (v) => { settings = { ...loadSettings(), [w.key]: v }; saveSettings(settings); };
+    const ps = body.querySelector('#wzPaste');
+    if (ps) ps.onclick = async () => { try { inp.value = (await navigator.clipboard.readText()).trim(); } catch (e) { toast('Appui long dans le champ → Coller'); inp.focus(); } };
+    go.onclick = async () => {
+      if (go.dataset.force) { save(inp.value.trim()); setupWizard(step + 1); return; }
+      res.className = 'f-help key-res'; res.textContent = 'Vérification…'; go.disabled = true;
+      const t = await testKey(w.p, inp.value); go.disabled = false;
+      res.textContent = t.msg; res.classList.add(t.ok ? 'ok' : 'ko');
+      if (t.ok) { save(inp.value.trim()); setTimeout(() => setupWizard(step + 1), 700); }
+      else if (t.net && inp.value.trim()) { go.textContent = 'Enregistrer quand même et continuer'; go.dataset.force = '1'; }
+    };
+    const sk = body.querySelector('#wzSkip'); if (sk) sk.onclick = () => setupWizard(step + 1);
+  });
+}
+
 /* =================== Planning de révision avant les examens =================== */
 /* Date d'examen : celle du calendrier (événement « Examen », « partiel »…) ou saisie à la main sur la page de la matière.
    Le planning répartit, jusqu'à la veille, la relecture des séances, la synthèse, les quiz et les fiches du jour. */
@@ -5963,15 +6077,51 @@ function linkCourse(n, e) {
   n.tags = [...new Set([...(n.tags || []), crsTag(n.course.name)])];
 }
 const courseTitle = (n) => `${n.course.name} · ${KIND_LBL[n.course.kind] || 'Cours'} du ${new Date(n.course.start).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}`;
+// Vocabulaire d'une matière : termes saisis par l'étudiant, puis termes définis dans les résumés de ses séances (« **Terme** : … »).
+// Il est donné à la reconnaissance vocale (Whisper, qui écrit alors ces mots correctement) et à l'IA.
+function defTerms(summary) {
+  const out = []; let inDefs = false;
+  for (const line of String(summary || '').split('\n')) {
+    if (/^#{1,3}\s/.test(line)) { inDefs = /d[ée]finition|vocabulaire|glossaire/i.test(line); continue; }
+    if (!inDefs) continue;
+    const m = /^\s*(?:[-*•]\s+)?\*\*([^*\n]{2,60})\*\*\s*(?::|—|–|-)/.exec(line);
+    if (m) out.push(m[1].replace(/\s*:\s*$/, '').trim());
+  }
+  return out;
+}
+const splitTerms = (s) => String(s || '').split(/[,;\n]/).map((x) => x.trim()).filter((x) => x && x.length <= 60);
+function matVocab(key, max = 40) {
+  const own = splitTerms((crsPrefs()[key] || {}).vocab), auto = [];
+  if (headMap) for (const h of headMap.values()) if (h.course && h.course.key === key) auto.push(...defTerms(h.summary));
+  const seen = new Set(), res = [];
+  for (const t of [...own, ...auto]) { const k = norm(t); if (!seen.has(k)) { seen.add(k); res.push(t); } }
+  return res.slice(0, max);
+}
 function setCourseCtx(n, m) {
   const c = n && n.course;
+  const voc = c || m ? matVocab((c || m).key) : [], vocTxt = voc.length ? ` Vocabulaire de la matière (orthographe à respecter) : ${voc.join(', ')}.` : '';
   if (c) {
-    ctxCourse = `${KIND_LBL[c.kind] || 'Cours'} universitaire de « ${c.full || c.name} »${c.code ? ` (${c.code})` : ''}, le ${new Date(c.start).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}${c.prof ? `, enseignant : ${c.prof}` : ''}. Utilise le vocabulaire de cette matière pour corriger les mots mal reconnus.`;
-    whisperPrompt = `Cours de ${c.full || c.name}${c.prof ? ', ' + c.prof : ''}.`;
+    ctxCourse = `${KIND_LBL[c.kind] || 'Cours'} universitaire de « ${c.full || c.name} »${c.code ? ` (${c.code})` : ''}, le ${new Date(c.start).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}${c.prof ? `, enseignant : ${c.prof}` : ''}. Utilise le vocabulaire de cette matière pour corriger les mots mal reconnus.${vocTxt}`;
+    // Whisper ne lit que les ~220 derniers « mots » de son invite : le vocabulaire passe en premier, le nom du cours à la fin
+    whisperPrompt = `${voc.length ? voc.join(', ') + '. ' : ''}Cours de ${c.full || c.name}${c.prof ? ', ' + c.prof : ''}.`.slice(-600);
   } else if (m) {
-    ctxCourse = `enregistrements de la matière universitaire « ${m.full || m.name} »${m.code ? ` (${m.code})` : ''}${m.profs.length ? `, enseignant(s) : ${m.profs.join(', ')}` : ''}.`;
+    ctxCourse = `enregistrements de la matière universitaire « ${m.full || m.name} »${m.code ? ` (${m.code})` : ''}${m.profs.length ? `, enseignant(s) : ${m.profs.join(', ')}` : ''}.${vocTxt}`;
     whisperPrompt = '';
   } else { ctxCourse = ''; whisperPrompt = ''; }
+}
+function vocabSheet(key) {
+  const m = getMat(key); if (!m) return;
+  const own = (crsPrefs()[key] || {}).vocab || '', auto = matVocab(key, 200).filter((t) => !splitTerms(own).some((o) => norm(o) === norm(t)));
+  openSheet(`<h3>Vocabulaire — ${esc(m.name)}</h3><p class="sub">Noms propres, termes techniques, sigles… La transcription les écrira correctement, et l'IA s'en sert pour corriger les mots mal reconnus.</p>
+    <label class="f" for="vocIn">Tes termes (séparés par des virgules)</label>
+    <textarea id="vocIn" maxlength="3000" placeholder="ex. Dijkstra, tas binaire, NP-complet">${esc(own)}</textarea>
+    ${auto.length ? `<div class="f" style="margin-top:12px">Appris dans tes résumés (${auto.length})</div><div class="tags">${auto.slice(0, 60).map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : '<p class="f-help">Les termes définis dans les résumés de tes séances (« Définitions et formules ») s\'ajouteront ici tout seuls.</p>'}
+    <button class="btn primary block" id="vocOk" type="button" style="margin-top:14px">Enregistrer</button>`, (body) => {
+    body.querySelector('#vocOk').onclick = () => {
+      const all = crsPrefs(); all[key] = { ...(all[key] || {}), vocab: splitTerms(body.querySelector('#vocIn').value).join(', ') };
+      lsSet('np-crs', JSON.stringify(all)); MATS = null; closeSheet(); toast('Vocabulaire enregistré');
+    };
+  });
 }
 const noteOfEvent = (e, notes) => notes.find((n) => n.course && n.course.uid === e.uid) || null;
 
@@ -6272,6 +6422,7 @@ async function renderCourse() {
       <button class="btn" id="cPdf" ${notes.length ? '' : 'disabled'}>${ICONS.download}PDF pour NotebookLM</button>
       <button class="btn" id="cAnki" ${cards.length ? '' : 'disabled'}>${ICONS.share}Fiches vers Anki</button>
       <button class="btn" id="cQuiz" ${notes.some((n) => n.summary) ? '' : 'disabled'}>${ICONS.quiz}Quiz d'examen</button>
+      <button class="btn" id="cVocab" type="button">${ICONS.book}Vocabulaire</button>
     </div>`;
   if (synthing === m.key) h += `<div class="card synth-run"><b>Synthèse en cours…</b><div class="lin" style="margin:10px 0 6px"><i style="width:60%"></i></div><div class="enh-st" id="synStatus"></div></div>`;
   else if (synth && synth.md) h += `<details class="card synth" id="synthBox"><summary><span class="sec-ic hue" style="--h:${m.hue}">${ICONS.spark}</span><b>Synthèse de la matière</b><small>${synth.n} séance${synth.n > 1 ? 's' : ''} · ${fmtDate(synth.at)}</small></summary><div class="md">${md(synth.md, { i: 0, noEdit: true })}</div><div class="row"><button class="btn" id="cSynCopy">${ICONS.share}Copier</button></div></details>`;
@@ -6288,6 +6439,7 @@ async function renderCourse() {
   $('cAsk').onclick = () => { currentNote = null; openAsk('course', 'course', m.key); };
   $('cRev').onclick = () => startReview(notes.filter((n) => (n.cardDue || []).length).map((n) => n.id));
   $('cPdf').onclick = () => printCourse(m.key);
+  $('cVocab').onclick = () => vocabSheet(m.key);
   $('cPlan').onclick = () => (examOf(m) ? planSheet(m.key) : examDateSheet(m.key));
   $('cQuiz').onclick = async () => quizMenu({ mat: { key: m.key, name: m.name }, notes: (await fullNotes((h) => !!h.summary && notes.some((n) => n.id === h.id))).sort((a, b) => a.created - b.created) });
   $('cAnki').onclick = async () => exportAnki(await fullNotes((h) => (h.cardDue || []).length && notes.some((n) => n.id === h.id)), m.name);
@@ -7405,7 +7557,13 @@ function renderThemes() {
 // le mode « Système » suit les changements clair/sombre de l'appareil
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if ((settings.theme || 'auto') === 'auto') applyTheme('auto'); });
 
+function renderProvCool(now = Date.now()) {
+  const c = provCool(), list = CHAIN.filter((p) => hasKey(p) && (c[p] || 0) > now);
+  $('provCool').innerHTML = list.length ? list.map((p) => `<b>${PNAME[p]}</b> au repos jusqu'à ${new Date(c[p]).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`).join(' · ') + ' (limite gratuite atteinte). <button class="linkbtn" id="provWake" type="button">Réessayer quand même</button>' : '';
+  const w = $('provWake'); if (w) w.onclick = () => { try { localStorage.removeItem('np-cool'); } catch (e) {} renderProvCool(); };
+}
 function showSettings() {
+  renderProvCool();
   $('sKind').value = settings.kind || 'auto';
   $('sRemind').value = settings.autoRemind || 'eve';
   $('sRevRem').value = settings.revRemind || '';
@@ -7431,7 +7589,13 @@ function showSettings() {
 $('stats').onclick = () => { if (/tâche/.test($('stats').textContent)) show('tasks'); };
 $('shareDiagClose').onclick = () => $('shareDiag').classList.add('hidden');
 $('settingsBtn').onclick = showSettings;
-$('onboardBtn').onclick = showSettings;
+$('onboardBtn').onclick = () => setupWizard(1);
+$('onboardSet').onclick = showSettings;
+document.querySelectorAll('[data-test]').forEach((b) => b.onclick = async () => {
+  const res = $(b.dataset.in + 'Res'); res.className = 'f-help key-res'; res.textContent = 'Vérification…'; b.disabled = true;
+  const t = await testKey(b.dataset.test, $(b.dataset.in).value); b.disabled = false;
+  res.textContent = t.msg; res.classList.add(t.ok ? 'ok' : 'ko');
+});
 $('backBtn').onclick = () => { if (current === 'review') { rv.active = false; updateBadge(); } navBack(); };
 $('jobHome').onclick = () => show('home');
 $('search').oninput = scheduleSearch;

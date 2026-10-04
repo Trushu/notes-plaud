@@ -8,6 +8,8 @@ Tout est gratuit : l'hébergement sur GitHub Pages et l'API Groq. Tu n'as besoin
 
 ## Étape 1 : créer ta clé Groq (2 min)
 
+> **Le plus simple :** installe d'abord l'app (étapes 2 et 3). À la première ouverture, touche **Commencer (2 minutes)** : un assistant te guide pour créer et coller la clé Groq, puis la clé Gemini (facultative), et **vérifie chaque clé** tout de suite. Les explications ci-dessous restent valables si tu préfères le faire à la main.
+
 1. Va sur **https://console.groq.com**, puis crée un compte (connexion Google possible).
 2. Va dans **API Keys**, puis **Create API Key**. Donne-lui un nom, par exemple « Notes Plaud ».
 3. Copie la clé (elle commence par `gsk_…`). Garde-la de côté : elle ne s'affiche qu'une seule fois.
@@ -51,6 +53,10 @@ Si Gemini est saturé, l'app peut passer toute seule à d'autres IA gratuites, d
 - **Mistral** : clé gratuite sur https://console.mistral.ai/api-keys (offre « Experiment »). Très bon en français ; sur l'offre gratuite, Mistral peut utiliser les textes envoyés pour entraîner ses modèles.
 
 Colle-les dans Réglages → Résumé. Tu peux aussi choisir l'une d'elles comme IA principale.
+
+Dans les Réglages, le bouton **Tester** à côté de chaque clé vérifie aussitôt qu'elle marche. Il affiche « Clé valide ✓ », « Clé refusée » (avec un indice, par exemple : une clé Groq commence par `gsk_`) ou « limite gratuite atteinte ». Si un traitement échoue à cause d'une clé, du stockage ou d'une limite, l'écran d'erreur propose un bouton qui mène directement au bon réglage.
+
+Quand une IA atteint sa limite gratuite (quota du jour, limite par minute), l'app la **met au repos** : pendant 15 minutes, ou quelques heures pour un quota du jour. Les traitements suivants commencent alors directement par l'IA suivante, au lieu de retenter à chaque fois. Réglages → Résumé indique quelle IA est au repos et jusqu'à quand ; **Réessayer quand même** la réactive.
 
 ## Étape 6 (facultative) : importer directement depuis le cloud Plaud
 
@@ -100,6 +106,7 @@ Notes Plaud lit le calendrier de tes cours (Moodle / WebCampus, ADE, Google Agen
 
 - **Rangement automatique :** un enregistrement fait pendant un cours (même 20 min avant ou 10 min après) est rangé tout seul dans sa **matière** : pastille colorée sur la note et dans la liste, tag de la matière.
 - **L'IA sait de quel cours il s'agit :** le nom complet de la matière, le type de séance (cours, TP), la date et l'enseignant sont donnés à la transcription (meilleure reconnaissance du vocabulaire et des noms) et au résumé.
+- **Vocabulaire de la matière** (bouton **Vocabulaire** sur la page de la matière) : ajoute les noms propres, termes techniques et sigles du cours (« Dijkstra, tas binaire, NP-complet »). La transcription les écrit correctement, et l'IA s'en sert pour corriger les mots mal reconnus. Les termes définis dans tes résumés (rubrique « Définitions et formules ») s'y ajoutent tout seuls.
 - **Onglet Cours** (en bas) : le cours **en cours** ou le **prochain** (compte à rebours, salle, bouton **Enregistrer** avec le téléphone si tu n'as pas ton Plaud), la semaine jour par jour (flèches pour changer de semaine) avec, pour chaque séance passée, ✓ si elle est enregistrée. Touche une séance pour ouvrir sa note, ou pour y **associer** une note du même jour. Une pastille rouge sur l'onglet signale un cours en ce moment. L'accueil montre aussi le prochain cours.
 - **Page d'une matière :** séances enregistrées, heures d'audio, prochaine séance, et quatre boutons :
   - **Synthèse de la matière** : l'IA rassemble toutes les séances en une fiche de révision (vue d'ensemble, plan séance par séance, notions, définitions et formules, ce que l'enseignant a souligné, **questions d'examen probables avec éléments de réponse**, points à retravailler) ;
@@ -237,7 +244,17 @@ Touche le **titre** en haut d'une note (il a un petit crayon) pour le modifier. 
 
 ### Organiser ses notes
 
-- **Type de résumé :** l'IA reconnaît s'il s'agit d'un cours, d'une réunion ou d'une note perso. Pour un cours, le résumé contient : points sur lesquels le prof a insisté, à retenir pour l'examen, à retravailler à la maison, définitions et formules, exemples, devoirs, et des questions pour réviser (touche une question pour voir la réponse). Tu peux fixer le type par défaut dans les Réglages, ou le choisir avec « Refaire le résumé ».
+- **Type de résumé :** l'IA reconnaît s'il s'agit d'un cours, d'une réunion ou d'une note perso. Pour un cours, le résumé contient :
+  - les points sur lesquels le prof a insisté ;
+  - ce qu'il faut retenir pour l'examen ;
+  - ce qu'il faut retravailler à la maison ;
+  - les définitions et formules ;
+  - les exemples, avec leurs valeurs chiffrées ;
+  - les **questions posées en classe** par les étudiants, avec la réponse de l'enseignant ;
+  - les devoirs ;
+  - des questions pour réviser.
+
+  Touche une question pour voir la réponse. Tu peux fixer le type par défaut dans les Réglages, ou le choisir avec « Refaire le résumé ».
 - **Tags :** l'IA en propose 2 à 4 par note. Sur une note, touche « + Tag » pour en ajouter, la croix pour en retirer. Sur l'accueil, la barre de tags filtre la liste. Renommer ou supprimer un tag : Réglages → Tags.
 - **Date :** si le nom du fichier contient une date (« 2025-03-12 14-30.mp3 », « 20250312_143005.m4a », « 12-03-2025 »…), la note la reprend. Sinon c'est la date du jour. Pour la changer, touche la date en haut de la note.
 - **Calendrier :** sur l'accueil, bascule « Liste / Calendrier », puis touche un jour pour voir ses notes.

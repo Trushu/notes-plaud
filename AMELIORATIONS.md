@@ -84,8 +84,8 @@ Les contraintes ne changent pas : pas d'étape de build, interface en français,
 
 ## Documentation
 
-- [ ] **Doc1. Rubrique « Nouveautés » en tête de LISEZMOI.** Un guide de démarrage pour débutant en 5 étapes, et chaque nouvelle fonction décrite à sa place. · Effort S · **P1**
-- [ ] **Doc2. Guide « Réviser un examen avec Notes Plaud ».** La méthode complète : enregistrer, résumer, fiches, quiz, planning, glossaire. · Effort S · **P2**
+- [x] **Doc1. Rubrique « Nouveautés » en tête de LISEZMOI.** Un guide de démarrage pour débutant en 5 étapes, et chaque nouvelle fonction décrite à sa place. · Effort S · **P1** — [PR #21](https://github.com/Trushu/notes-plaud/pull/21)
+- [x] **Doc2. Guide « Réviser un examen avec Notes Plaud ».** La méthode complète : enregistrer, résumer, fiches, quiz, planning, glossaire. · Effort S · **P2** — [PR #21](https://github.com/Trushu/notes-plaud/pull/21)
 
 ## Écartées (et pourquoi)
 

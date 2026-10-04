@@ -43,6 +43,7 @@ Commandes séparées :
 | `revisions2.test.js` | glossaire (`defEntries`, `glossaryOf`), carte mentale (`mindData`, `mindSvg`), formules lues à voix haute |
 | `security.test.js` | nettoyage des sauvegardes (`sanitizeNote`, `settingOk`), relais en https, options de KaTeX |
 | `relay.test.js` | relais Cloudflare : contrôle d'origine, chemins autorisés, redirections, en-têtes (chargé comme module ES) |
+| `docs.test.js` | documentation : liens internes (fichiers et titres) valides, démarrage en 5 étapes, Nouveautés à la version de l'app, fichiers à déposer présents |
 
 Les dates sont figées (option `now` du chargeur) et le fuseau est celui de Bruxelles, pour des résultats reproductibles.
 

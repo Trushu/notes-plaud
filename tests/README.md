@@ -18,6 +18,7 @@ Commandes séparées :
 
 - `npm run test:unit` : fonctions pures, en quelques dixièmes de seconde, sans navigateur ;
 - `npm run test:e2e` : parcours complets dans Chrome, en émulation de téléphone Android (Pixel 7) ;
+- `npm run test:perf` : mesures de performance (500 notes dont 100 enregistrements de 3 h, processeur ralenti ×4 comme un téléphone) ;
 - `npx playwright test --ui` : mode visuel pour suivre les tests pas à pas.
 
 ## Ce qui est testé
@@ -34,6 +35,7 @@ Commandes séparées :
 | `dates.test.js` | `dateFromName` |
 | `search.test.js` | recherche sans accents : `findAll`, `markHits` |
 | `audio.test.js` | découpage des longs fichiers MP3 et WAV (`splitAudio`, `mp3Sync`, `mp3Duration`) |
+| `search.test.js` (suite) | index léger : `headOf`, `wordsOf`, refus d'enregistrer une fiche à la place d'une note |
 | `security.test.js` | nettoyage des sauvegardes (`sanitizeNote`, `settingOk`), relais en https, options de KaTeX |
 | `relay.test.js` | relais Cloudflare : contrôle d'origine, chemins autorisés, redirections, en-têtes (chargé comme module ES) |
 
@@ -52,11 +54,22 @@ dans un téléphone émulé. **Aucun appel ne sort de la machine** : Groq, Gemin
 | `plaud.spec.js` | import depuis le cloud Plaud (bouton et automatique), test de connexion, jeton expiré |
 | `courses.spec.js` | import d'un calendrier `.ics`, rangement des notes par matière, tour de tous les écrans |
 | `security.spec.js` | contenus piégés (IA, transcription, calendrier, fausse sauvegarde), relais http refusé, jeton, KaTeX modifié refusé |
+| `index.spec.js` | index des notes : création après mise à jour, mise à jour à chaque modification, liste par pages |
+| `audio-long.spec.js` | enregistrement WebM/Opus réel (micro simulé) découpé en morceaux WAV, horodatages continus |
+| `sw.spec.js` | service worker : installation sans les icônes facultatives, hors ligne, réseau lent, cible de partage |
 | `bugs.spec.js`, `bugs-rec.spec.js` | un test par bug corrigé : partage reçu, file d'attente, hors connexion, délais réseau, reprise du résumé, stockage plein ou illisible, mise à jour pendant un enregistrement (micro simulé) |
 
 Chaque test de bout en bout vérifie aussi qu'aucune erreur JavaScript et aucune violation de la politique de sécurité (CSP) ne s'est produite.
 
 Chaque bug corrigé a son test, dans une rubrique « Bugs corrigés » : il échouait avec l'ancien code et passe avec la correction.
+
+## Mesures de performance (`perf/`)
+
+`perf/dataset.js` génère dans la page 500 notes (69 millions de caractères), dont 100 enregistrements de 3 h
+(transcription brute et améliorée, cours rédigé, fiches). `perf/perf.spec.js` mesure l'ouverture de l'app,
+l'accueil, la recherche, l'onglet Tâches, l'ouverture d'une note de 3 h et la mémoire, avec un processeur ralenti
+×4 (`PERF_CPU=1` pour la vitesse réelle). Les mesures sont affichées et jointes au rapport ; des seuils larges
+font échouer le test en cas de régression nette (`PERF_LIMITS=0` pour seulement mesurer).
 
 ## Intégration continue
 

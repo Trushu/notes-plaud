@@ -3,6 +3,8 @@ const { defineConfig, devices } = require('@playwright/test');
 
 // Les dates calculées dans les tests doivent correspondre au fuseau du téléphone simulé (timezoneId plus bas)
 process.env.TZ = 'Europe/Brussels';
+// pour que context.route() voie aussi les requêtes du service worker (tests sw.spec.js)
+process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS = '1';
 
 const PORT = 4173;
 module.exports = defineConfig({
@@ -21,7 +23,11 @@ module.exports = defineConfig({
     serviceWorkers: 'block',        // le service worker a ses propres tests ; ici on veut des appels réseau simulés prévisibles
     trace: 'retain-on-failure',
   },
-  projects: [{ name: 'android', use: { browserName: 'chromium' } }],
+  projects: [
+    { name: 'android', use: { browserName: 'chromium' } },
+    // mesures de performance (500 notes, enregistrements de 3 h) : npm run test:perf
+    { name: 'perf', testDir: './perf', retries: process.env.CI ? 1 : 0, use: { browserName: 'chromium' } },
+  ],
   webServer: {
     command: `node helpers/server.js`,
     env: { PORT: String(PORT) },

@@ -26,6 +26,7 @@ test.describe('Recherche', () => {
 
   test('ouvre la transcription filtrée sur le passage trouvé', async ({ page }) => {
     await page.locator('#search').fill('récursivité');
+    await expect(page.locator('#notesList .item')).toHaveCount(1);
     await page.locator('#notesList .item').first().click();
     await expect(page.locator('#noteTrWrap')).toBeVisible();
     await expect(page.locator('#trSearch')).toHaveValue('récursivité');
@@ -45,6 +46,7 @@ test.describe('Recherche', () => {
 
   test('ouvre le résumé avec le passage surligné', async ({ page }) => {
     await page.locator('#search').fill('complexite');
+    await expect(page.locator('#notesList .item')).toHaveCount(1);   // la recherche se fait juste après la frappe
     await page.locator('#notesList .item').click();
     await expect(page.locator('#noteSum mark.hit')).toHaveText('complexité');
   });

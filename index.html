@@ -199,6 +199,9 @@
     background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); transition: transform .12s;
   }
   .item:active { transform: scale(.985); }
+  /* longues listes (centaines de notes ou de tâches, transcriptions de 3 h) : seuls les éléments visibles sont mis en page */
+  .list > .item, #taskList > .titem { content-visibility: auto; contain-intrinsic-size: auto 104px; }
+  .tr-list > .seg { content-visibility: auto; contain-intrinsic-size: auto 56px; }
   .item-top { display: flex; gap: 10px; align-items: baseline; }
   .item .t { flex: 1; min-width: 0; font: 600 17px/1.3 var(--serif); letter-spacing: -.005em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .item .time { font-size: 13px; color: var(--muted); flex: none; font-variant-numeric: tabular-nums; }
@@ -1544,7 +1547,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '33 · 4 oct. 2026';
+const APP_VERSION = '34 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -1615,11 +1618,38 @@ async function dbRun(store, mode, fn, retry) {
     t.onabort = () => rej(t.error || new Error('Transaction annulée'));
   });
 }
+// Transaction sur plusieurs magasins à la fois (tout ou rien)
+async function dbTx(stores, mode, fn, retry) {
+  const d = await openDB();
+  let t;
+  try { t = d.transaction(stores, mode); }
+  catch (e) { if (!retry) { dbConn = null; return dbTx(stores, mode, fn, true); } throw e; }
+  return new Promise((res, rej) => {
+    fn(t);
+    t.oncomplete = () => res();
+    t.onerror = () => rej(t.error);
+    t.onabort = () => rej(t.error || new Error('Transaction annulée'));
+  });
+}
 const db = {
   all: () => dbRun('notes', 'readonly', (s) => s.getAll()),
+  keys: () => dbRun('notes', 'readonly', (s) => s.getAllKeys()),
   get: (id) => dbRun('notes', 'readonly', (s) => s.get(id)),
-  put: (n) => dbRun('notes', 'readwrite', (s) => s.put(n)),
-  del: (id) => dbRun('notes', 'readwrite', (s) => s.delete(id)),
+  // chaque enregistrement met à jour, dans la même transaction, la fiche légère et les mots de la note (voir « Index léger »)
+  put: async (n) => {
+    if (!n || n.__head) throw new Error('Enregistrement refusé : note incomplète (fiche d\'index).');
+    const h = headOf(n), w = wordsOf(n);
+    await dbTx(['notes', 'pending'], 'readwrite', (t) => { t.objectStore('notes').put(n); t.objectStore('pending').put(h, HK(n.id)); t.objectStore('pending').put(w, WK(n.id)); });
+    idxSet(n.id, h, w);
+  },
+  del: async (id) => {
+    await dbTx(['notes', 'pending'], 'readwrite', (t) => { t.objectStore('notes').delete(id); t.objectStore('pending').delete(HK(id)); t.objectStore('pending').delete(WK(id)); });
+    idxSet(id, null, null);
+  },
+  // parcourt toutes les notes complètes une à une (sans les garder toutes en mémoire)
+  each: async (fn) => {
+    for (const id of await db.keys()) { const n = await db.get(id); if (n) await fn(n); }
+  },
   takePending: async () => {
     const v = await dbRun('pending', 'readonly', (s) => s.get('shared'));
     if (!v) return null;
@@ -1635,6 +1665,95 @@ const db = {
     return { file, info: v.info || {} };
   },
 };
+
+/* =================== Index léger des notes =================== */
+/* Avec des centaines de notes et des enregistrements de 3 h, relire toutes les transcriptions à chaque affichage
+   de l'accueil, de l'onglet Tâches ou à chaque lettre tapée dans la recherche prenait plusieurs secondes et ~80 Mo.
+   Chaque note a donc, à part (magasin « pending ») :
+   - une fiche légère « head:<id> » : tout sauf les textes longs (transcriptions, cours rédigé, fiches, photos…) ;
+   - la liste de ses mots « words:<id> » (sans accents ni majuscules), pour trouver vite les notes qui contiennent un mot.
+   Elles sont réécrites dans la même transaction que la note (db.put) : toujours à jour. */
+const HEAD_V = 1;
+const HK = (id) => 'head:' + id, WK = (id) => 'words:' + id;
+const HEAVY = ['segments', 'clean', 'lecture', 'chat', 'audio', 'photos', 'cards', 'partial', 'sumPartial', 'cleanPartial', 'lecturePartial'];
+function headOf(n) {
+  const h = { __head: HEAD_V };
+  for (const k of Object.keys(n)) if (!HEAVY.includes(k)) h[k] = n[k];
+  h.hasSegs = !!(n.segments && n.segments.length);
+  h.hasClean = !!(n.clean && n.clean.length);
+  h.hasLecture = !!(n.lecture && String(n.lecture).trim());
+  h.hasAudio = !!n.audio;
+  h.photoIds = (n.photos || []).map((x) => x.id);
+  h.cardDue = (n.cards || []).map((c) => c.due || 0);
+  return h;
+}
+// Tout le texte cherchable d'une note complète (même ordre que l'ancienne recherche)
+const noteText = (n) => `${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''} ${n.lecture || ''} ${(n.segments || []).map((s) => s.text).join(' ')} ${(n.clean || []).map((s) => s.text).join(' ')} ${n.mine || ''} ${(n.photos || []).map((x) => x.text || '').join(' ')}`;
+const WORD_SPLIT = /[^\p{L}\p{N}]+/u;
+const wordsOf = (n) => ' ' + [...new Set(norm(noteText(n)).split(WORD_SPLIT).filter(Boolean))].join(' ') + ' ';
+let headMap = null, headsReady = null, wordMap = null, wordsReady = null;
+function idxSet(id, h, w) {
+  const apply = (m, v) => { if (v == null) m.delete(id); else m.set(id, v); };
+  if (headMap) apply(headMap, h); else if (headsReady) headsReady.then((m) => apply(m, h), () => {});
+  if (wordMap) apply(wordMap, w); else if (wordsReady) wordsReady.then((m) => apply(m, w), () => {});
+}
+// Parcourt toutes les notes complètes dans une seule transaction (une à la fois en mémoire)
+function scanNotes(fn) {
+  return openDB().then((d) => new Promise((res, rej) => {
+    const r = d.transaction('notes', 'readonly').objectStore('notes').openCursor();
+    r.onsuccess = () => { const c = r.result; if (!c) return res(); try { fn(c.value); } catch (e) { return rej(e); } c.continue(); };
+    r.onerror = () => rej(r.error);
+  }));
+}
+// Fiches de toutes les notes ; la première fois après la mise à jour, elles sont créées en relisant chaque note une fois
+function ensureHeads(onProgress) {
+  if (headMap) return Promise.resolve(headMap);
+  if (!headsReady) headsReady = (async () => {
+    const [keys, hs] = await Promise.all([db.keys(), dbRun('pending', 'readonly', (st) => st.getAll(IDBKeyRange.bound('head:', 'head:\uffff')))]);
+    const m = new Map();
+    for (const h of hs || []) if (h && h.__head === HEAD_V) m.set(h.id, h);
+    const want = new Set(keys), missing = new Set(keys.filter((id) => !m.has(id)));
+    if (missing.size) {   // un seul parcours des notes ; les mots, plus longs à calculer, attendront la première recherche
+      const made = [];
+      await scanNotes((n) => { if (!missing.has(n.id)) return; const h = headOf(n); m.set(n.id, h); made.push(h); if (onProgress) onProgress(made.length, missing.size); });
+      for (let i = 0; i < made.length; i += 100) await dbTx(['pending'], 'readwrite', (t) => { const st = t.objectStore('pending'); for (const h of made.slice(i, i + 100)) st.put(h, HK(h.id)); });
+    }
+    for (const id of [...m.keys()]) if (!want.has(id)) { m.delete(id); dbTx(['pending'], 'readwrite', (t) => { t.objectStore('pending').delete(HK(id)); t.objectStore('pending').delete(WK(id)); }).catch(() => {}); }
+    headMap = m;
+    return m;
+  })().catch((e) => { headsReady = null; throw e; });
+  return headsReady;
+}
+// Mots de toutes les notes (chargés à la première recherche seulement)
+function ensureWords() {
+  if (wordMap) return Promise.resolve(wordMap);
+  if (!wordsReady) wordsReady = (async () => {
+    await ensureHeads();
+    const m = new Map();
+    await new Promise((res, rej) => {
+      openDB().then((d) => {
+        const t = d.transaction('pending', 'readonly'), r = t.objectStore('pending').openCursor(IDBKeyRange.bound('words:', 'words:\uffff'));
+        r.onsuccess = () => { const c = r.result; if (c) { m.set(String(c.key).slice(6), c.value); c.continue(); } else res(); };
+        r.onerror = () => rej(r.error);
+      }, rej);
+    });
+    const missing = new Set([...headMap.keys()].filter((id) => !m.has(id)));
+    if (missing.size) {
+      const made = [];
+      await scanNotes((n) => { if (missing.has(n.id)) { const w = wordsOf(n); m.set(n.id, w); made.push([n.id, w]); } });
+      for (let i = 0; i < made.length; i += 100) await dbTx(['pending'], 'readwrite', (t) => { const st = t.objectStore('pending'); for (const [id, w] of made.slice(i, i + 100)) st.put(w, WK(id)); });
+    }
+    wordMap = m;
+    return m;
+  })().catch((e) => { wordsReady = null; throw e; });
+  return wordsReady;
+}
+// Notes complètes choisies d'après leur fiche (lues une à une)
+async function fullNotes(pick) {
+  const out = [];
+  for (const h of (await ensureHeads()).values()) if (h.id !== INBOX && pick(h)) { const n = await db.get(h.id); if (n) out.push(n); }
+  return out;
+}
 
 /* =================== Utilitaires =================== */
 const $ = (id) => document.getElementById(id);
@@ -2113,7 +2232,83 @@ async function parseMp4Audio(file) {
   }
   return null;
 }
-async function decodeToWavParts(file, info, onPrep) {
+/* ---- Lecture des fichiers WebM (enregistrements faits avec le téléphone : Opus dans WebM) ----
+   On parcourt la structure EBML du fichier par fenêtres de 4 Mo, pour repérer chaque paquet audio (SimpleBlock)
+   et son horodatage ; le décodage se fait ensuite par petits paquets, comme pour le M4A. */
+async function parseWebmAudio(file) {
+  const ID = { SEGMENT: 0x18538067, CLUSTER: 0x1F43B675, BLOCKGROUP: 0xA0, INFO: 0x1549A966, TIMECODESCALE: 0x2AD7B1, TIMECODE: 0xE7,
+    SIMPLEBLOCK: 0xA3, BLOCK: 0xA1, TRACKS: 0x1654AE6B, TRACKENTRY: 0xAE, TRACKNUMBER: 0xD7, TRACKTYPE: 0x83, CODECID: 0x86,
+    CODECPRIVATE: 0x63A2, AUDIO: 0xE1, SAMPLINGFREQ: 0xB5, CHANNELS: 0x9F };
+  const ENTER = new Set([ID.SEGMENT, ID.CLUSTER, ID.BLOCKGROUP, ID.INFO]);
+  let base = 0, buf = new Uint8Array(0);
+  const load = async (pos, need) => {
+    if (pos >= base && pos + need <= base + buf.length) return;
+    base = pos; buf = new Uint8Array(await file.slice(pos, Math.min(file.size, pos + Math.max(4 << 20, need))).arrayBuffer());
+  };
+  const at = (pos) => buf[pos - base];
+  // nombre de taille variable d'EBML ; marker : on garde le bit de longueur (identifiants)
+  const vint = (pos, marker) => {
+    const b0 = at(pos); if (b0 == null || b0 === 0) return null;
+    let len = 1, mask = 0x80; while (!(b0 & mask)) { len++; mask >>= 1; }
+    let v = marker ? b0 : b0 & (mask - 1), ones = (b0 & (mask - 1)) === mask - 1;
+    for (let i = 1; i < len; i++) { const c = at(pos + i); if (c == null) return null; v = v * 256 + c; if (c !== 0xFF) ones = false; }
+    return { v, len, unknown: !marker && ones };
+  };
+  const uint = (pos, n) => { let v = 0; for (let i = 0; i < n; i++) v = v * 256 + at(pos + i); return v; };
+  const float = (pos, n) => { const dv = new DataView(buf.buffer, buf.byteOffset + pos - base, n); return n === 4 ? dv.getFloat32(0) : dv.getFloat64(0); };
+  function readTracks(a, b) {
+    let pos = a, cur = null; const tracks = [];
+    while (pos < b) {
+      const id = vint(pos, true), sz = id && vint(pos + id.len, false); if (!id || !sz || sz.unknown) break;
+      const st = pos + id.len + sz.len;
+      if (id.v === ID.TRACKENTRY) { cur = { end: st + sz.v }; tracks.push(cur); pos = st; continue; }
+      if (id.v === ID.AUDIO) { pos = st; continue; }
+      if (cur && st <= cur.end) {
+        if (id.v === ID.TRACKNUMBER) cur.number = uint(st, sz.v);
+        else if (id.v === ID.TRACKTYPE) cur.type = uint(st, sz.v);
+        else if (id.v === ID.CODECID) cur.codec = String.fromCharCode(...buf.subarray(st - base, st - base + sz.v)).replace(/\0+$/, '');
+        else if (id.v === ID.CODECPRIVATE) cur.priv = buf.slice(st - base, st - base + sz.v);
+        else if (id.v === ID.SAMPLINGFREQ) cur.rate = float(st, sz.v);
+        else if (id.v === ID.CHANNELS) cur.channels = uint(st, sz.v);
+      }
+      pos = st + sz.v;
+    }
+    return tracks.find((t) => t.type === 2 || /^A_/.test(t.codec || '')) || null;
+  }
+  let pos = 0, scale = 1e6, track = null, clusterTime = 0;
+  const times = [], offs = [], sizes = [];
+  while (pos < file.size) {
+    await load(pos, 16);
+    const id = vint(pos, true), sz = id && vint(pos + id.len, false);
+    if (!id || !sz) break;
+    const st = pos + id.len + sz.len;
+    if (ENTER.has(id.v)) { pos = st; continue; }   // conteneur : on lit ce qu'il contient
+    if (sz.unknown) return null;
+    if (id.v === ID.TIMECODESCALE) { await load(st, sz.v); scale = uint(st, sz.v) || 1e6; }
+    else if (id.v === ID.TIMECODE) { await load(st, sz.v); clusterTime = uint(st, sz.v); }
+    else if (id.v === ID.TRACKS) { await load(st, sz.v); track = readTracks(st, st + sz.v); }
+    else if ((id.v === ID.SIMPLEBLOCK || id.v === ID.BLOCK) && track) {
+      await load(st, 16);
+      const tn = vint(st, false);
+      if (tn && tn.v === track.number) {
+        if (at(st + tn.len + 2) & 0x06) return null;   // paquets regroupés (« lacing ») : non pris en charge
+        let tc = (at(st + tn.len) << 8) | at(st + tn.len + 1); if (tc & 0x8000) tc -= 0x10000;
+        const h = tn.len + 3;
+        times.push((clusterTime + tc) * scale / 1000); offs.push(st + h); sizes.push(sz.v - h);
+      }
+    }
+    pos = st + sz.v;
+  }
+  if (!track || !times.length) return null;
+  const codec = track.codec === 'A_OPUS' ? 'opus' : track.codec === 'A_VORBIS' ? 'vorbis' : null;
+  return { codec, description: codec === 'opus' && track.priv ? track.priv : null, sampleRate: Math.round(track.rate || 48000), channels: track.channels || 1,
+    count: times.length, offsets: Float64Array.from(offs), sizes: Uint32Array.from(sizes), times: Float64Array.from(times),
+    totalSec: (times[times.length - 1] - times[0]) / 1e6 + 0.02 };
+}
+/* ---- Décodage progressif en morceaux WAV 16 kHz mono ----
+   Avant, tout l'audio décodé était gardé en mémoire avant l'envoi (≈ 350 Mo pour 3 h) : un morceau n'est plus
+   décodé qu'au moment où il va être envoyé. Le nombre de morceaux est connu d'avance (durée du fichier). */
+async function decodeLazy(file, info, onPrep) {
   const unsupported = new ApiError(`Ce téléphone ne sait pas décoder ce fichier ${info.codec ? '(' + info.codec + ')' : ''} pour le découper. Exporte l'enregistrement en MP3 depuis Plaud (1 h ≈ 12 Mo).`);
   if (!info.codec || !('AudioDecoder' in window)) throw unsupported;
   const cfg = { codec: info.codec, sampleRate: info.sampleRate, numberOfChannels: info.channels };
@@ -2121,57 +2316,76 @@ async function decodeToWavParts(file, info, onPrep) {
   let ok = false;
   try { ok = (await AudioDecoder.isConfigSupported(cfg)).supported; } catch (e) {}
   if (!ok) throw unsupported;
-  const perPart = Math.floor((CONFIG.maxAudioChunk - 64) / 2), parts = [];
-  let out = new Int16Array(perPart), n = 0, outRate = 0, ratio = 1, acc = 0, cnt = 0, pos = 0, next = 1, err = null;
-  const flushPart = () => {
-    if (!n) return;
-    const pcm = out.slice(0, n);
-    parts.push({ blob: new Blob([wavHeader(monoHeaderFor(outRate), n * 2), pcm.buffer], { type: 'audio/wav' }), name: 'audio.wav', duration: n / outRate });
-    n = 0;
-  };
+  if (!info.times) {   // M4A : horodatages tirés des durées des échantillons
+    const times = new Float64Array(info.count); let t = 0;
+    for (let k = 0; k < info.count; k++) { times[k] = t * 1e6 / info.timescale; t += info.deltas[k]; }
+    info.times = times; info.totalSec = t / info.timescale;
+  }
+  const perPart = Math.floor((CONFIG.maxAudioChunk - 64) / 2);
+  const total = info.totalSec * Math.min(16000, info.sampleRate);
+  let n = Math.max(1, Math.ceil(total / perPart));
+  if (n > 1 && total - (n - 1) * perPart < perPart / 16) n--;   // dernier morceau minuscule : rattaché au précédent
+  const st = { i: 0, outRate: 0, ratio: 1, acc: 0, cnt: 0, pos: 0, next: 1, err: null, done: false, made: 0, buf: new Int16Array(perPart), len: 0, tail: [] };
+  const ready = new Map();
+  const finish = (pcm) => { ready.set(st.made++, { blob: new Blob([wavHeader(monoHeaderFor(st.outRate), pcm.byteLength), pcm.buffer], { type: 'audio/wav' }), name: 'audio.wav', duration: pcm.length / st.outRate }); };
   const dec = new AudioDecoder({
     output: (d) => {
       try {
-        if (!outRate) { outRate = Math.min(16000, d.sampleRate); ratio = d.sampleRate / outRate; next = ratio; }
+        if (!st.outRate) { st.outRate = Math.min(16000, d.sampleRate); st.ratio = d.sampleRate / st.outRate; st.next = st.ratio; }
         const ch = d.numberOfChannels, fr = d.numberOfFrames, planes = [];
         for (let c = 0; c < ch; c++) { const a = new Float32Array(fr); d.copyTo(a, { planeIndex: c, format: 'f32-planar' }); planes.push(a); }
         for (let i = 0; i < fr; i++) {
           let v = 0; for (let c = 0; c < ch; c++) v += planes[c][i];
-          acc += v / ch; cnt++; pos++;
-          if (pos >= next) {
-            out[n++] = Math.max(-1, Math.min(1, acc / cnt)) * 32767;
-            acc = 0; cnt = 0; next += ratio;
-            if (n === perPart) flushPart();
+          st.acc += v / ch; st.cnt++; st.pos++;
+          if (st.pos >= st.next) {
+            st.buf[st.len++] = Math.max(-1, Math.min(1, st.acc / st.cnt)) * 32767;
+            st.acc = 0; st.cnt = 0; st.next += st.ratio;
+            if (st.len === perPart) {
+              if (st.made < n - 1) finish(st.buf.slice());   // morceau complet
+              else st.tail.push(st.buf.slice());           // dernier morceau : il garde tout ce qui reste
+              st.len = 0;
+            }
           }
         }
-      } catch (e) { err = e; } finally { d.close(); }
+      } catch (e) { st.err = e; } finally { d.close(); }
     },
-    error: (e) => { err = e; },
+    error: (e) => { st.err = e; },
   });
   dec.configure(cfg);
-  let i = 0, t = 0;
-  while (i < info.count) {
-    let j = i, start = info.offsets[i], end = start + info.sizes[i];
-    while (j + 1 < info.count && info.offsets[j + 1] === end && end - start < (2 << 20)) { j++; end += info.sizes[j]; }
-    const bytes = new Uint8Array(await file.slice(start, end).arrayBuffer());
+  async function step() {   // décode un paquet d'environ 2 Mo de données
+    let j = st.i, a = info.offsets[st.i], b = a + info.sizes[st.i];
+    while (j + 1 < info.count && info.offsets[j + 1] === b && b - a < (2 << 20)) { j++; b += info.sizes[j]; }
+    const bytes = new Uint8Array(await file.slice(a, b).arrayBuffer());
     let o = 0;
-    for (let k = i; k <= j; k++) {
-      dec.decode(new EncodedAudioChunk({ type: 'key', timestamp: Math.round(t * 1e6 / info.timescale),
-        duration: Math.round(info.deltas[k] * 1e6 / info.timescale), data: bytes.subarray(o, o + info.sizes[k]) }));
-      o += info.sizes[k]; t += info.deltas[k];
+    for (let k = st.i; k <= j; k++) {
+      const offset = info.offsets[k] - a;
+      dec.decode(new EncodedAudioChunk({ type: 'key', timestamp: Math.round(info.times[k]), data: bytes.subarray(offset, offset + info.sizes[k]) }));
+      o = offset + info.sizes[k];
     }
-    i = j + 1;
-    while (dec.decodeQueueSize > 100 && !err) await sleep(4);
-    if (err) break;
-    onPrep && onPrep(i / info.count);
+    st.i = j + 1;
+    while (dec.decodeQueueSize > 100 && !st.err) await sleep(4);
     await sleep(0);
   }
-  if (!err) { try { await dec.flush(); } catch (e) { err = err || e; } }
-  try { dec.close(); } catch (e) {}
-  if (err) throw new ApiError('Le décodage du fichier a échoué (' + (err.message || err) + '). Exporte l\'enregistrement en MP3 depuis Plaud.');
-  flushPart();
-  if (!parts.length) throw new ApiError('Aucun son n\'a pu être extrait de ce fichier.');
-  return parts;
+  async function want(k) {
+    while (!ready.has(k) && !st.done) {
+      if (st.err) break;
+      if (st.i < info.count) { await step(); if (onPrep && k === 0) onPrep(Math.min(1, st.i / info.count * n)); continue; }
+      try { await dec.flush(); } catch (e) { st.err = st.err || e; }
+      try { dec.close(); } catch (e) {}
+      const rest = [...st.tail, st.buf.slice(0, st.len)], len = rest.reduce((x, r) => x + r.length, 0);
+      if (len && st.outRate) { const pcm = new Int16Array(len); let o = 0; for (const r of rest) { pcm.set(r, o); o += r.length; } finish(pcm); }
+      st.done = true;
+    }
+    if (st.err) { try { dec.close(); } catch (e) {} throw new ApiError('Le décodage du fichier a échoué (' + (st.err.message || st.err) + '). Exporte l\'enregistrement en MP3 depuis Plaud.'); }
+  }
+  // chaque fonction rend son morceau (ou null s'il n'y a plus de son) ; les morceaux déjà envoyés sont oubliés
+  return Array.from({ length: n }, (_, k) => async () => {
+    await want(k);
+    for (const j of [...ready.keys()]) if (j < k) ready.delete(j);
+    const p = ready.get(k) || null; ready.delete(k);
+    if (!p && k === 0) throw new ApiError('Aucun son n\'a pu être extrait de ce fichier.');
+    return p;
+  });
 }
 
 // Renvoie une liste de fonctions, chacune produisant un morceau { blob, name } au moment de l'envoi
@@ -2221,10 +2435,12 @@ async function splitAudio(file, onPrep) {
   }
   if (/^(m4a|mp4|aac|m4b|mov|3gp)$/.test(ext) || /mp4|m4a|aac/.test(file.type)) {
     const info = await parseMp4Audio(file).catch(() => null);
-    if (info) {
-      const parts = await decodeToWavParts(file, info, onPrep);
-      return parts.map((x) => async () => x);
-    }
+    if (info) return decodeLazy(file, info, onPrep);
+  }
+  // enregistrement fait avec le téléphone (WebM/Opus) : avant, au-delà de ~43 min (20 Mo), il ne pouvait pas être transcrit
+  if (/^(webm|weba|mka)$/.test(ext) || /webm|matroska/.test(file.type)) {
+    const info = await parseWebmAudio(file).catch(() => null);
+    if (info) return decodeLazy(file, info, onPrep);
   }
   throw new ApiError(`Ce fichier .${ext} fait ${mb(file.size)}, au-delà de la limite de 25 Mo de Groq, et ce format ne peut pas être découpé dans le téléphone. Exporte l'enregistrement en MP3 depuis Plaud (1 h ≈ 12 Mo).`);
 }
@@ -2275,6 +2491,7 @@ async function transcribe(file, onPart, onPrep, saved, onSave) {
   for (let i = start; i < parts.length; i++) {
     onPart(i, parts.length);
     const part = await parts[i]();
+    if (!part) continue;   // plus de son à la fin du fichier
     const { j, model } = await transcribePart(part, i, parts.length, (m) => onPart(i, parts.length, m));
     if (!models.includes(model)) models.push(model);
     language = language || j.language || '';
@@ -2702,8 +2919,9 @@ async function addTask(o) {
   await db.put(n);
   scheduleReminders();
 }
-async function loadNotes() { return (await db.all()).filter((n) => n.id !== INBOX).sort((a, b) => b.created - a.created); }
-async function allTasks() { return (await db.all()).flatMap(tasksOf); }
+// Fiches légères (sans transcriptions) de toutes les notes, les plus récentes d'abord. Pour modifier une note : db.get(id).
+async function loadNotes(onProgress) { return [...(await ensureHeads(onProgress)).values()].filter((n) => n.id !== INBOX).sort((a, b) => b.created - a.created); }
+async function allTasks() { return [...(await ensureHeads()).values()].flatMap(tasksOf); }
 // Rappel automatique pour les tâches avec échéance (réglage)
 function remindFor(due) {
   if (!due || settings.autoRemind === 'none') return null;
@@ -3124,7 +3342,7 @@ async function renderHome() {
   $('runBanner').classList.toggle('hidden', !runningId);
   $('onboard').classList.toggle('hidden', !!settings.key);
   $('greet').innerHTML = greetIcon() + '<span>' + esc(greeting()) + '</span>';
-  try { allNotes = await loadNotes(); }
+  try { allNotes = await loadNotes((k, n) => { if (k % 10 === 1 || k === n) $('stats').textContent = `Préparation de la liste après la mise à jour… ${k}/${n}`; }); }
   catch (e) {   // IndexedDB indisponible (navigation privée, stockage effacé ou corrompu…)
     allNotes = [];
     $('stats').textContent = '';
@@ -3136,6 +3354,7 @@ async function renderHome() {
   $('stats').textContent = allNotes.length
     ? [`${allNotes.length} note${allNotes.length > 1 ? 's' : ''}`, total ? `${dur(total)} transcrites` : '', todo ? `${todo} tâche${todo > 1 ? 's' : ''} à faire` : ''].filter(Boolean).join(' · ')
     : 'Prêt pour ton premier enregistrement.';
+  if ($('search').value.trim()) ui.hitsStale = true;   // résultats à recalculer en arrière-plan (une note a pu changer)
   renderBrowse();
   renderList();
   renderBkRemind();
@@ -3173,24 +3392,61 @@ function filtered(ignoreDay) {
     if (ui.day != null) notes = notes.filter((n) => dayStart(n.created) === ui.day);
     else if (ui.mode === 'cal') notes = notes.filter((n) => monthStart(n.created) === ui.month);
   }
-  const q = norm($('search').value.trim());
-  if (q) notes = notes.filter((n) => norm(`${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''} ${n.lecture || ''} ${(n.segments || []).map((s) => s.text).join(' ')} ${(n.clean || []).map((s) => s.text).join(' ')} ${n.mine || ''} ${(n.photos || []).map((x) => x.text || '').join(' ')}`).includes(q));
+  // recherche : résultat calculé à part (searchNotes), sans relire les transcriptions à chaque affichage
+  const q = $('search').value.trim();
+  if (q) notes = ui.hits && ui.hitsQ === q ? notes.filter((n) => ui.hits.has(n.id)) : [];
   // les notes épinglées d'abord (hors filtre par jour)
   if (ui.day == null && ui.mode !== 'cal') notes = [...notes.filter((n) => n.pinned), ...notes.filter((n) => !n.pinned)];
   return notes;
 }
+/* ---- Recherche dans toutes les notes ----
+   1. les mots de chaque note (index « words ») donnent tout de suite les notes candidates ;
+   2. pour une expression de plusieurs mots (ou avec ponctuation), on vérifie le texte exact des candidates seulement.
+   Même résultat qu'une recherche dans tout le texte, sans accents ni majuscules. */
+let searchTok = 0, searchT = 0;
+async function searchNotes(qRaw) {
+  const q = norm(qRaw), tok = ++searchTok;
+  const heads = await ensureHeads();
+  const terms = q.split(WORD_SPLIT).filter(Boolean);
+  const notes = [...heads.values()].filter((n) => n.id !== INBOX);
+  if (!terms.length) return new Set(notes.filter((n) => norm(`${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''} ${n.mine || ''}`).includes(q)).map((n) => n.id));
+  const words = await ensureWords();
+  if (tok !== searchTok) return null;
+  const cands = notes.filter((n) => { const w = words.get(n.id) || ''; return terms.every((t) => w.includes(t)); });
+  if (terms.length === 1 && terms[0] === q) return new Set(cands.map((n) => n.id));   // un seul mot : l'index suffit
+  const out = new Set();
+  for (const n of cands) {
+    if (tok !== searchTok) return null;   // une autre recherche a commencé
+    if (norm(`${n.title} ${(n.tags || []).join(' ')} ${n.summary || ''}`).includes(q)) { out.add(n.id); continue; }
+    const f = await db.get(n.id);
+    if (f && norm(noteText(f)).includes(q)) out.add(n.id);
+  }
+  return tok === searchTok ? out : null;
+}
+async function runSearch() {
+  const q = $('search').value.trim();
+  if (!q) { ui.hits = null; ui.hitsQ = ''; renderBrowse(); renderList(); return; }
+  const slow = setTimeout(() => { if (ui.hitsQ !== q) $('notesList').innerHTML = '<div class="empty-s" role="status">Recherche…</div>'; }, 250);
+  let hits;
+  try { hits = await searchNotes(q); } finally { clearTimeout(slow); }
+  if (!hits || $('search').value.trim() !== q) return;   // dépassée par une frappe plus récente
+  ui.hits = hits; ui.hitsQ = q;
+  renderBrowse(); renderList();
+}
+function scheduleSearch() { clearTimeout(searchT); searchT = setTimeout(runSearch, 150); }
 // Où la recherche a trouvé le texte, avec un extrait surligné
 const plainMd = (t, dropHeads) => String(t || '').split('\n').filter((l) => !(dropHeads && /^#{1,6}\s/.test(l))).join('\n').replace(/^\s*[-*•]\s+\[[ xX]\]\s*/gm, '').replace(/^\s*[-*•]\s+/gm, '').replace(/[📅⏰⏫🔼🔽✅]\s*\d{4}-\d{2}-\d{2}(?:[ T]\d{1,2}:\d{2})?/gu, '').replace(/\$\$?|\\[()[\]]/g, '').replace(/[*_`#>|]/g, ' ').replace(/\s+/g, ' ').trim();
-function findSnippet(n, qRaw) {
+// light : n est une fiche (sans transcription) ; renvoie undefined si l'extrait est peut-être dans la note complète
+function findSnippet(n, qRaw, light) {
   const q = norm(qRaw); if (!q) return null;
-  const places = [
+  if (norm(n.title).includes(q)) return null;
+  const places = light ? [['sum', 'Résumé', plainMd(n.summary, true)]] : [
     ['sum', 'Résumé', plainMd(n.summary, true)],
     ['lecture', 'Cours', plainMd(n.lecture)],
     ['tr', 'Transcription', (hasClean(n) ? n.clean : (n.segments || [])).map((x) => x.text).join(' ')],
     ['mine', 'Mes notes', plainMd(n.mine)],
     ['sum', 'Tableau', plainMd((n.photos || []).map((x) => x.text || '').join(' '))],
   ];
-  if (norm(n.title).includes(q)) return null;
   for (const [where, label, text] of places) {
     const hit = norm(text).includes(q) && findAll(text, qRaw, 1)[0];
     if (!hit) continue;
@@ -3199,7 +3455,7 @@ function findSnippet(n, qRaw) {
     const html = (a ? '…' : '') + esc(text.slice(a, i)) + '<mark>' + esc(text.slice(i, j)) + '</mark>' + esc(text.slice(j, b)) + (b < text.length ? '…' : '');
     return { where, label, html };
   }
-  return null;
+  return light ? undefined : null;
 }
 // Surligne les occurrences dans un bloc déjà affiché, et fait défiler jusqu'à la première
 function highlightIn(root, qRaw) {
@@ -3274,45 +3530,84 @@ function updSel() {
   $('selMerge').disabled = n < 2;
 }
 
-function renderList() {
-  const list = $('notesList');
-  list.classList.toggle('selmode', ui.sel);
-  if (!allNotes.length) { list.innerHTML = EMPTY; return; }
-  const notes = filtered(false);
-  if (!notes.length) {
-    const q = $('search').value.trim();
-    list.innerHTML = `<div class="empty-s">${q ? `Aucune note ne contient « ${esc(q)} ».` : ui.day != null ? 'Aucune note ce jour-là.' : ui.mode === 'cal' ? 'Aucune note ce mois-ci.' : 'Aucune note avec ce tag.'}</div>`;
-    return;
-  }
-  let html = '', g = '';
-  const qRaw = $('search').value.trim();
-  for (const n of notes) {
-    const gg = ui.day != null ? '' : (n.pinned && ui.mode !== 'cal' ? 'Épinglées' : groupOf(n.created));
-    if (gg !== g) { html += `<div class="group">${gg}</div>`; g = gg; }
-    const tasks = openTasks(n);
-    const badge = n.id === runningId ? `<span class="pill run">${ICONS.clock}En cours…</span>` : n.status === 'ok' ? '' :
-      n.status === 'resume-err' ? `<span class="pill err">${ICONS.alert}Résumé à refaire</span>` :
-      n.status === 'err' ? `<span class="pill err">${ICONS.alert}Échec</span>` : `<span class="pill run">${ICONS.alert}Interrompu</span>`;
-    const crsM = n.course ? getMat(n.course.key) : null, hue = crsM ? crsM.hue : null;
-    const tags = (n.tags || []).filter((t) => !n.course || t !== crsTag(n.course.name)).slice(0, 3).map((t) => tagHtml(t)).join('');
-    html += `
+/* La liste s'affiche par pages de 60 (la suite arrive en défilant) : avec 500 notes, tout dessiner d'un coup était lent. */
+const PAGE = 60;
+const lst = { notes: [], pos: 0, g: '', q: '', tok: 0, obs: null };
+function noteItem(n) {
+  const tasks = openTasks(n);
+  const badge = n.id === runningId ? `<span class="pill run">${ICONS.clock}En cours…</span>` : n.status === 'ok' ? '' :
+    n.status === 'resume-err' ? `<span class="pill err">${ICONS.alert}Résumé à refaire</span>` :
+    n.status === 'err' ? `<span class="pill err">${ICONS.alert}Échec</span>` : `<span class="pill run">${ICONS.alert}Interrompu</span>`;
+  const crsM = n.course ? getMat(n.course.key) : null, hue = crsM ? crsM.hue : null;
+  const tags = (n.tags || []).filter((t) => !n.course || t !== crsTag(n.course.name)).slice(0, 3).map((t) => tagHtml(t)).join('');
+  const ex = excerpt(n);
+  return `
       <button class="item${ui.picked.has(n.id) ? ' picked' : ''}${n.course ? ' has-crs' : ''}" data-id="${esc(n.id)}"${hue != null ? ` style="--h:${hue}"` : ''}>
         <span class="ck"></span>
         <span class="item-top"><span class="t">${n.pinned ? `<span class="pin">${ICONS.pin}</span>` : ''}${esc(n.title)}</span><span class="time">${shortTime(n.created)}</span></span>
-        ${excerpt(n) ? `<span class="ex">${esc(excerpt(n))}</span>` : ''}
-        ${qRaw ? (() => { const sn = findSnippet(n, qRaw); return sn ? `<span class="snip" data-where="${sn.where}"><b>${sn.label}</b>${sn.html}</span>` : ''; })() : ''}
+        ${ex ? `<span class="ex">${esc(ex)}</span>` : ''}
+        ${lst.q ? '<span class="snipbox"></span>' : ''}
         <span class="m">${n.course ? `<span class="pill hue"${hue != null ? ` style="--h:${hue}"` : ''}>${ICONS.book}${esc(n.course.name)}${n.course.kind && n.course.kind !== 'cours' ? ' · ' + (KIND_LBL[n.course.kind] || '') : ''}</span>` : ''}${n.duration ? `<span class="pill">${ICONS.clock}${dur(n.duration)}</span>` : ''}${tasks ? `<span class="pill task">${ICONS.check}${tasks} à faire</span>` : ''}${badge}</span>
         ${tags ? `<span class="tags">${tags}</span>` : ''}
       </button>`;
-  }
-  list.innerHTML = html;
-  list.querySelectorAll('.item').forEach((b) => b.onclick = () => {
-    const id = b.dataset.id;
-    if (!ui.sel) { const sn = b.querySelector('.snip'); return openNote(id, sn ? { q: $('search').value.trim(), where: sn.dataset.where } : null); }
-    if (ui.picked.has(id)) ui.picked.delete(id); else ui.picked.add(id);
-    b.classList.toggle('picked', ui.picked.has(id)); updSel();
-  });
 }
+function renderList() {
+  const list = $('notesList');
+  list.classList.toggle('selmode', ui.sel);
+  if (lst.obs) { lst.obs.disconnect(); lst.obs = null; }
+  lst.tok++;
+  if (!allNotes.length) { list.innerHTML = EMPTY; return; }
+  const q = $('search').value.trim();
+  if (q && ui.hitsQ !== q) { list.innerHTML = '<div class="empty-s" role="status">Recherche…</div>'; scheduleSearch(); return; }
+  if (q && ui.hitsStale) { ui.hitsStale = false; scheduleSearch(); }
+  const notes = filtered(false);
+  if (!notes.length) {
+    list.innerHTML = `<div class="empty-s">${q ? `Aucune note ne contient « ${esc(q)} ».` : ui.day != null ? 'Aucune note ce jour-là.' : ui.mode === 'cal' ? 'Aucune note ce mois-ci.' : 'Aucune note avec ce tag.'}</div>`;
+    return;
+  }
+  Object.assign(lst, { notes, pos: 0, g: '', q });
+  list.innerHTML = '';
+  morePage();
+}
+function morePage() {
+  const list = $('notesList'), tok = lst.tok;
+  const slice = lst.notes.slice(lst.pos, lst.pos + PAGE);
+  let html = '';
+  for (const n of slice) {
+    const gg = ui.day != null ? '' : (n.pinned && ui.mode !== 'cal' ? 'Épinglées' : groupOf(n.created));
+    if (gg !== lst.g) { html += `<div class="group">${gg}</div>`; lst.g = gg; }
+    html += noteItem(n);
+  }
+  const old = $('listMore'); if (old) old.remove();
+  list.insertAdjacentHTML('beforeend', html);
+  lst.pos += slice.length;
+  if (lst.q) fillSnippets(slice, lst.q, tok);
+  if (lst.pos >= lst.notes.length) return;
+  list.insertAdjacentHTML('beforeend', `<button class="btn ghost block" id="listMore" type="button">Afficher plus (${lst.notes.length - lst.pos} autres)</button>`);
+  $('listMore').onclick = morePage;
+  if ('IntersectionObserver' in window) {
+    lst.obs = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting) && tok === lst.tok) { lst.obs.disconnect(); lst.obs = null; morePage(); } }, { rootMargin: '600px' });
+    lst.obs.observe($('listMore'));
+  }
+}
+// Extraits trouvés par la recherche : calculés après l'affichage, note par note
+async function fillSnippets(notes, qRaw, tok) {
+  for (const h of notes) {
+    if (tok !== lst.tok) return;
+    let sn = findSnippet(h, qRaw, true);   // d'abord dans la fiche (résumé, mes notes)
+    if (sn === undefined) { const n = await db.get(h.id); if (tok !== lst.tok) return; sn = n ? findSnippet(n, qRaw) : null; }
+    const box = sn && $('notesList').querySelector(`.item[data-id="${CSS.escape(h.id)}"] .snipbox`);
+    if (box) box.outerHTML = `<span class="snip" data-where="${sn.where}"><b>${sn.label}</b>${sn.html}</span>`;
+  }
+}
+// un seul écouteur pour toute la liste
+$('notesList').addEventListener('click', (e) => {
+  const b = e.target.closest('.item'); if (!b) return;
+  const id = b.dataset.id;
+  if (!ui.sel) { const q = $('search').value.trim(); return openNote(id, q ? { q } : null); }
+  if (ui.picked.has(id)) ui.picked.delete(id); else ui.picked.add(id);
+  b.classList.toggle('picked', ui.picked.has(id)); updSel();
+});
 
 /* ---- Feuille du bas ---- */
 function openSheet(html, mount) {
@@ -3384,7 +3679,14 @@ async function renderTagAdmin() {
       <button class="iconbtn" data-ren="${esc(t)}" aria-label="Renommer">${I('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>')}</button>
       <button class="iconbtn" data-del="${esc(t)}" aria-label="Supprimer">${ICONS.trash}</button></div>`).join('')
     : '<span class="muted" style="font-size:14px">Aucun tag pour l\'instant. Les résumés en proposent automatiquement, et tu peux en ajouter depuis une note.</span>';
-  const apply = async (fn) => { for (const n of allNotes) { const before = JSON.stringify(n.tags || []); fn(n); if (JSON.stringify(n.tags || []) !== before) await db.put(n); } renderTagAdmin(); };
+  const apply = async (fn) => {
+    for (const h of allNotes) {
+      const probe = { tags: [...(h.tags || [])] }; fn(probe);
+      if (JSON.stringify(probe.tags) === JSON.stringify(h.tags || [])) continue;
+      const n = await db.get(h.id); if (n) { fn(n); await db.put(n); }
+    }
+    renderTagAdmin();
+  };
   $('tagAdmin').querySelectorAll('[data-ren]').forEach((b) => b.onclick = () => {
     const old = b.dataset.ren, nv = cleanTag(prompt('Nouveau nom du tag :', old) || '');
     if (!nv || nv === old) return;
@@ -3455,8 +3757,12 @@ function renderSummary(n) {
 let trMode = 'clean', enhancing = null, writing = null;
 const hasClean = (n) => !!(n && n.clean && n.clean.length);
 const curSegs = (n) => (trMode === 'clean' && hasClean(n)) ? n.clean : (n.segments || []);
+let trDirty = false, lectDirty = false;
 function renderTranscript() {
   const n = currentNote; if (!n) return;
+  // onglet caché : on dessinera en l'ouvrant (une transcription de 3 h, c'est des milliers de paragraphes)
+  if ($('noteTrWrap').classList.contains('hidden')) { trDirty = true; return; }
+  trDirty = false;
   const q = $('trSearch').value.trim();
   const para = trMode === 'clean' && hasClean(n);
   // même recherche que l'accueil : sans tenir compte des accents ni des majuscules
@@ -3673,6 +3979,8 @@ function renderLecture() {
   $('lectBtn').innerHTML = part ? `${ICONS.refresh}Reprendre la rédaction (${part} % fait)` : has ? `${ICONS.refresh}Refaire le cours rédigé` : `${ICONS.defs}Rédiger le cours`;
   if (running) $('lectErr').classList.add('hidden');
   const box = $('noteLect');
+  if (has && !running && $('noteLectWrap').classList.contains('hidden')) { lectDirty = true; return; }
+  lectDirty = false;
   if (has && !running) {
     box.classList.remove('hidden'); box.innerHTML = `<div class="md lect">${md(n.lecture, { i: 0, noEdit: true })}</div>`; renderMath(box);
     // Sommaire cliquable quand le cours est long
@@ -3781,6 +4089,8 @@ async function openNote(id, opts) {
   trMode = 'clean';
   $('enhErr').classList.add('hidden');
   $('lectErr').classList.add('hidden');
+  $('noteTr').innerHTML = ''; $('noteLect').innerHTML = '';   // libère la note précédente (elle peut faire 3 h)
+  setTab('sum');   // d'abord, pour ne pas dessiner les onglets cachés
   renderEnh();
   renderTranscript();
   renderLecture();
@@ -3796,6 +4106,7 @@ async function openNote(id, opts) {
   resetMine();
   renderExtras(n);
   renderChapters(n);
+  if (opts && opts.q && !opts.where) { const sn = findSnippet(n, opts.q); if (sn) opts = { ...opts, where: sn.where }; else opts = null; }
   if (!(opts && opts.q) && !(opts && opts.noRestore)) restorePos(n);
   if (opts && opts.q) {
     if (opts.where === 'tr') { setTab('tr'); $('trSearch').value = opts.q; renderTranscript(); }
@@ -3821,6 +4132,7 @@ function setTab(t) {
   $('noteTrWrap').classList.toggle('hidden', t !== 'tr');
   $('noteLectWrap').classList.toggle('hidden', t !== 'lecture');
   if (t === 'lecture') renderLecture();
+  if (t === 'tr' && trDirty) renderTranscript();
 }
 // cocher une action : on met à jour le Markdown de la note (et donc les exports)
 $('noteSum').addEventListener('change', async (e) => {
@@ -4105,7 +4417,7 @@ async function renderMergeHint(n) {
 }
 
 /* =================== Onglet Tâches =================== */
-const tui = { mode: lsGet('np-tmode', 'due'), tag: null, stat: null, showDone: false, day: null, month: monthStart(Date.now()) };
+const tui = { mode: lsGet('np-tmode', 'due'), tag: null, stat: null, showDone: false, day: null, month: monthStart(Date.now()), limit: 150 };
 let taskCache = [];
 const DAY = 86400000;
 const inlineMd = (t) => md(t, { i: 0, noEdit: true }).replace(/^<p>|<\/p>$/g, '');
@@ -4195,19 +4507,22 @@ async function renderTasks() {
       <h3>Aucune tâche pour l'instant</h3><p>Les tâches trouvées dans tes résumés (devoirs, exercices, actions…) apparaîtront ici. Tu peux aussi en ajouter avec le bouton +.</p></div>`;
     return;
   }
-  let html = '';
+  let html = '', left = tui.limit;   // au-delà, « Afficher plus » (des centaines de tâches à dessiner d'un coup, c'est lent)
+  const items = (arr) => { const k = Math.max(0, Math.min(arr.length, left)); left -= k; return arr.slice(0, k).map(taskItem).join(''); };
   if (!list.length) html = `<div class="empty-s">${tui.stat || tui.tag || tui.mode === 'cal' ? 'Aucune tâche ici.' : 'Rien à faire, tout est coché !'}</div>`;
   else if (tui.mode === 'due') {
     const groups = new Map(); for (const t of list) { const g = dueGroup(t); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(t); }
-    for (const g of DUE_ORDER) if (groups.has(g)) html += `<div class="group">${g} · ${groups.get(g).length}</div>` + groups.get(g).map(taskItem).join('');
+    for (const g of DUE_ORDER) if (groups.has(g) && left > 0) html += `<div class="group">${g} · ${groups.get(g).length}</div>` + items(groups.get(g));
   } else if (tui.mode === 'tag') {
     const groups = new Map(); for (const t of list) { const g = tui.tag || t.allTags[0] || 'Sans tag'; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(t); }
     const keys = [...groups.keys()].sort((a, b) => (a === 'Sans tag') - (b === 'Sans tag') || groups.get(b).length - groups.get(a).length || a.localeCompare(b));
-    for (const g of keys) html += `<div class="group">${g === 'Sans tag' ? g : `<span class="tag" style="--h:${tagHue(g)};height:24px;font-size:12px">${ICONS.tag}${esc(g)}</span>`} · ${groups.get(g).length}</div>` + groups.get(g).map(taskItem).join('');
-  } else html += list.map(taskItem).join('');
+    for (const g of keys) if (left > 0) html += `<div class="group">${g === 'Sans tag' ? g : `<span class="tag" style="--h:${tagHue(g)};height:24px;font-size:12px">${ICONS.tag}${esc(g)}</span>`} · ${groups.get(g).length}</div>` + items(groups.get(g));
+  } else html += items(list);
+  if (list.length > tui.limit) html += `<button class="btn ghost block" id="tMoreItems" type="button">Afficher plus (${list.length - tui.limit} autres tâches)</button>`;
   if (!tui.showDone && doneCount) html += `<button class="btn ghost donebtn" id="showDone">${ICONS.eye}Voir les ${doneCount} tâche${doneCount > 1 ? 's' : ''} terminée${doneCount > 1 ? 's' : ''}</button>`;
   else if (tui.showDone && doneCount) html += `<button class="btn ghost donebtn" id="showDone">Masquer les tâches terminées</button>`;
   box.innerHTML = html;
+  if ($('tMoreItems')) $('tMoreItems').onclick = () => { tui.limit += 300; renderTasks(); };
   if ($('showDone')) $('showDone').onclick = () => { tui.showDone = !tui.showDone; renderTasks(); };
   renderMath(box);
   updateBadge();
@@ -4542,9 +4857,8 @@ async function jumpTo(noteId, sec) {
 }
 async function askNotes() {
   if (askScope === 'note' && currentNote) return [await db.get(currentNote.id) || currentNote];
-  const all = (await loadNotes()).filter((n) => n.segments && n.segments.length);
-  if (askScope === 'course') return all.filter((n) => n.course && n.course.key === askCourse).sort((a, b) => a.created - b.created);
-  return all;
+  if (askScope === 'course') return (await fullNotes((h) => h.hasSegs && h.course && h.course.key === askCourse)).sort((a, b) => a.created - b.created);
+  return (await fullNotes((h) => h.hasSegs)).sort((a, b) => b.created - a.created);
 }
 const chatKey = () => askScope === 'course' ? 'np-chat-crs-' + askCourse : ALLCHAT;
 async function getChat() {
@@ -4719,7 +5033,7 @@ async function renderReview() {
 }
 async function startReview(noteId) {
   const ids = Array.isArray(noteId) ? noteId : noteId ? [noteId] : null;
-  const notes = ids ? (await Promise.all(ids.map((id) => db.get(id)))).filter(Boolean) : await loadNotes();
+  const notes = ids ? (await Promise.all(ids.map((id) => db.get(id)))).filter(Boolean) : await fullNotes((h) => (h.cardDue || []).length);
   let cards = notes.flatMap((n) => (n.cards || []).map((c) => ({ ...c, noteId: n.id, noteTitle: n.title })));
   let q = cards.filter(isDue);
   if (!q.length && ids) q = cards;   // « Revoir » : toutes les fiches
@@ -5310,7 +5624,7 @@ async function renderCourse() {
   const now = Date.now(), sess = m.events.filter((e) => e.kind !== 'due');
   const past = sess.filter((e) => e.start <= now).sort((a, b) => b.start - a.start), up = sess.filter((e) => e.start > now);
   const rec = past.filter((e) => noteOfEvent(e, notes)).length, audio = notes.reduce((a, n) => a + (n.duration || 0), 0);
-  const cards = notes.flatMap((n) => n.cards || []), dueCards = cards.filter(isDue).length;
+  const cards = notes.flatMap((n) => n.cardDue || []), dueCards = cards.filter((d) => !d || d <= Date.now()).length;
   const synth = await getSynth(m.key);
   const loose = notes.filter((n) => !n.course.uid || !m.events.some((e) => e.uid === n.course.uid));
   const dues = m.events.filter((e) => e.kind === 'due' && e.start > now - DAY);
@@ -5340,7 +5654,7 @@ async function renderCourse() {
   if ($('cUpBtn')) $('cUpBtn').onclick = () => { $('cUpMore').classList.remove('hidden'); $('cUpBtn').remove(); };
   $('cSynth').onclick = () => courseSynth(m.key);
   $('cAsk').onclick = () => { currentNote = null; openAsk('course', 'course', m.key); };
-  $('cRev').onclick = () => startReview(notes.filter((n) => (n.cards || []).length).map((n) => n.id));
+  $('cRev').onclick = () => startReview(notes.filter((n) => (n.cardDue || []).length).map((n) => n.id));
   $('cPdf').onclick = () => printCourse(m.key);
   if ($('cSynCopy')) $('cSynCopy').onclick = async () => { try { await navigator.clipboard.writeText(`# ${m.name} — synthèse\n\n${synth.md}`); toast('Synthèse copiée'); } catch (e) { toast('Copie impossible'); } };
   $('cRename').onclick = () => {
@@ -5355,8 +5669,9 @@ async function renderCourse() {
   };
 }
 async function renameCourseNotes(key, from, to) {
-  for (const n of await loadNotes()) {
-    if (!n.course || n.course.key !== key) continue;
+  for (const h of await loadNotes()) {
+    if (!h.course || h.course.key !== key) continue;
+    const n = await db.get(h.id); if (!n || !n.course) continue;
     n.tags = [...new Set((n.tags || []).map((t) => t === crsTag(from) ? crsTag(to) : t))]; n.course.name = to; await db.put(n);
   }
 }
@@ -5408,7 +5723,7 @@ async function courseSynth(key) {
 }
 async function printCourse(key) {
   const m = getMat(key); if (!m) return;
-  const notes = (await loadNotes()).filter((n) => n.course && n.course.key === key).sort((a, b) => a.created - b.created);
+  const notes = (await fullNotes((n) => n.course && n.course.key === key)).sort((a, b) => a.created - b.created);
   openSheet(`<h3>PDF de la matière</h3><p class="sub">Un seul fichier pour NotebookLM : la synthèse (si faite), puis chaque séance (${notes.length}).</p>
     <div class="stack"><button class="btn primary block" id="pcLight">Résumés et cours rédigés</button><button class="btn block" id="pcFull">Tout, avec les transcriptions</button></div>`, (b) => {
     const go = async (full) => {
@@ -5899,13 +6214,13 @@ async function gcAudio() {   // audio dont plus aucune note ne se sert (note sup
   try {
     const ids = await audioDB.keys(); if (!ids.length) return;
     const used = new Set();
-    for (const n of await db.all()) for (const p of audioParts(n)) used.add(p.id);
+    for (const n of (await ensureHeads()).values()) for (const p of audioParts(n)) used.add(p.id);
     for (const id of ids) if (!used.has(id)) await audioDB.del(id);
   } catch (e) {}
   try {
     const keys = await dbRun('pending', 'readonly', (st) => st.getAllKeys(IDBKeyRange.bound('img:', 'img:\uffff')));
     const used = new Set([...(rec.photos || []).map((x) => x.id)]);
-    for (const n of await db.all()) for (const ph of n.photos || []) used.add(ph.id);
+    for (const n of (await ensureHeads()).values()) for (const id of n.photoIds || []) used.add(id);
     for (const k of keys || []) if (!used.has(String(k).slice(4))) await dbRun('pending', 'readwrite', (st) => st.delete(k));
   } catch (e) {}
 }
@@ -6247,13 +6562,23 @@ function saveBlob(blob, name) {
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 8000);
 }
 async function backupData() {
-  const notes = (await db.all()).map((n) => { const c = { ...n }; delete c.audio; delete c.partial; delete c.sumPartial; delete c.audioKept; return c; });
+  // Le fichier est assemblé note par note : avec des centaines d'enregistrements de 3 h, construire un seul
+  // grand texte demandait plusieurs fois la taille des données en mémoire.
   const st = { ...settings };
   if (!$('bkKeys').checked) for (const k of SECRET_KEYS) delete st[k];
-  const data = { app: 'notes-plaud', format: 1, version: APP_VERSION, exportedAt: new Date().toISOString(), notes, settings: st, plaudImported: importedIds() };
-  saveBlob(new Blob([JSON.stringify(data)], { type: 'application/json' }), `notes-plaud-sauvegarde-${toISODate(Date.now())}.json`);
+  const head = JSON.stringify({ app: 'notes-plaud', format: 1, version: APP_VERSION, exportedAt: new Date().toISOString(), settings: st, plaudImported: importedIds() });
+  const parts = [head.slice(0, -1) + ',"notes":['], buf = [];
+  let count = 0, first = true;
+  await db.each((n) => {
+    const c = { ...n }; delete c.audio; delete c.partial; delete c.sumPartial; delete c.audioKept;
+    buf.push((first ? '' : ',') + JSON.stringify(c)); first = false;
+    if (n.id !== INBOX) count++;
+    if (buf.length >= 20) { parts.push(new Blob(buf)); buf.length = 0; }   // le navigateur peut garder ces morceaux hors de la mémoire du script
+  });
+  parts.push(new Blob(buf), ']}');
+  saveBlob(new Blob(parts, { type: 'application/json' }), `notes-plaud-sauvegarde-${toISODate(Date.now())}.json`);
   lsSet('np-last-backup', String(Date.now()));
-  toast(`Sauvegarde de ${notes.filter((n) => n.id !== INBOX).length} notes enregistrée (Téléchargements)`);
+  toast(`Sauvegarde de ${count} notes enregistrée (Téléchargements)`);
   renderData(); renderBkRemind();
 }
 /* ---- Restauration : le fichier peut avoir été modifié ou fabriqué par quelqu'un d'autre ----
@@ -6318,14 +6643,14 @@ async function restoreData(file) {
   let data = null;
   try { data = JSON.parse(await file.text()); } catch (e) {}
   if (!data || data.app !== 'notes-plaud' || !Array.isArray(data.notes)) { toast('Ce fichier n\'est pas une sauvegarde de Notes Plaud'); return; }
-  const have = new Map((await db.all()).map((n) => [n.id, n]));
+  const have = new Set(await db.keys());
   let added = 0, same = 0, bad = 0;
   for (const raw of data.notes) {
     const n = sanitizeNote(raw);
     if (!n) { if (raw) bad++; continue; }
-    const cur = have.get(n.id);
-    if (!cur) { await db.put(n); added++; continue; }
-    if (n.id === INBOX) {   // tâches ajoutées à la main : on fusionne les lignes manquantes
+    if (!have.has(n.id)) { await db.put(n); have.add(n.id); added++; continue; }
+    const cur = n.id === INBOX ? await db.get(INBOX) : null;
+    if (cur) {   // tâches ajoutées à la main : on fusionne les lignes manquantes
       const lines = new Set((cur.summary || '').split('\n'));
       const extra = (n.summary || '').split('\n').filter((l) => TASK_RE.test(l) && !lines.has(l));
       if (extra.length) { cur.summary = cur.summary.replace(/\s+$/, '') + '\n' + extra.join('\n'); await db.put(cur); }
@@ -6357,7 +6682,7 @@ async function restoreData(file) {
   if (current === 'home') renderHome();
 }
 async function renderData() {
-  const notes = (await db.all()).filter((n) => n.id !== INBOX);
+  const notes = await loadNotes();
   let line = `${notes.length} note${notes.length > 1 ? 's' : ''}`, state = '';
   try {
     if (navigator.storage && navigator.storage.estimate) { const e = await navigator.storage.estimate(); line += ` · ${mb(e.usage || 0)} utilisés`; }
@@ -6455,7 +6780,7 @@ $('settingsBtn').onclick = showSettings;
 $('onboardBtn').onclick = showSettings;
 $('backBtn').onclick = () => { if (current === 'review') { rv.active = false; updateBadge(); } navBack(); };
 $('jobHome').onclick = () => show('home');
-$('search').oninput = renderList;
+$('search').oninput = scheduleSearch;
 $('homeMode').querySelectorAll('button').forEach((b) => {
   b.innerHTML = (b.dataset.mode === 'cal' ? ICONS.cal + 'Calendrier' : ICONS.list + 'Liste');
   b.onclick = () => { ui.mode = b.dataset.mode; lsSet('np-mode', ui.mode); ui.day = null; ui.month = monthStart(Date.now()); renderBrowse(); renderList(); };
@@ -6788,10 +7113,11 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('mess
 // Reprend automatiquement un traitement interrompu (app fermée ou mise en pause par Android)
 async function resumeInterrupted() {
   if (busy || enhancing || writing) return;
-  let notes = [];
-  try { notes = (await db.all()).sort((a, b) => b.created - a.created); } catch (e) { return; }
-  const n = [...notes].reverse().find((x) => (x.status === 'transcription' && x.audio) || (x.status === 'resume' && x.segments));   // la plus ancienne d'abord
-  if (n) {
+  let heads = [];
+  try { heads = [...(await ensureHeads()).values()].sort((a, b) => a.created - b.created); } catch (e) { return; }
+  const h = heads.find((x) => (x.status === 'transcription' && x.hasAudio) || (x.status === 'resume' && x.hasSegs));   // la plus ancienne d'abord
+  const n = h && await db.get(h.id);
+  if (n && !busy && !enhancing && !writing) {
     toast((n.queued ? 'Traitement : ' : 'Reprise du traitement : ') + baseName(n.title || n.fileName));
     if (n.queued) { delete n.queued; await db.put(n); }
     run(n, { background: current !== 'job' });
@@ -6825,6 +7151,10 @@ window.addEventListener('beforeunload', (e) => { if (busy || enhancing || writin
   resumeInterrupted();
   updateBadge(); scheduleReminders(); fireReminders(); setupPeriodicCheck();
   setTimeout(gcAudio, 6000);
+  // après la mise à jour : les mots des notes (pour la recherche) sont préparés en arrière-plan, une seule fois
+  setTimeout(async () => {
+    try { const k = (await dbRun('pending', 'readonly', (st) => st.count(IDBKeyRange.bound('words:', 'words:\uffff')))) || 0; if (headMap && k < headMap.size) ensureWords(); } catch (e) {}
+  }, 4000);
   scheduleCourseReminders();
   if (settings.icsUrl && Date.now() - (AG.at || 0) > 12 * 3600000) setTimeout(() => syncAgenda(false), 2500);
   setInterval(tickCourses, 30000);

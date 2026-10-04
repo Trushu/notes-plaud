@@ -64,8 +64,10 @@ class Mocks {
       if (url.endsWith('/audio/transcriptions')) {
         const body = (route.request().postDataBuffer() || Buffer.alloc(0)).toString('latin1');
         const field = (name) => { const m = new RegExp(`name="${name}"\\r\\n\\r\\n([^\\r]*)`).exec(body); return m ? m[1] : null; };
-        const fm = /name="file"; filename="([^"]*)"/.exec(body);
-        this.calls.transcribe.push({ model: field('model'), language: field('language'), prompt: field('prompt'), filename: fm ? fm[1] : null, size: body.length });
+        const fm = /name="file"; filename="([^"]*)"(?:\r\nContent-Type: ([^\r]*))?\r\n\r\n/.exec(body);
+        const head = fm ? body.slice(fm.index + fm[0].length, fm.index + fm[0].length + 44) : '';
+        this.calls.transcribe.push({ model: field('model'), language: field('language'), prompt: field('prompt'), filename: fm ? fm[1] : null, type: fm ? fm[2] : null,
+          size: body.length, riff: head.slice(0, 4) === 'RIFF' ? Buffer.from(head, 'latin1').readUInt32LE(40) : null });
         if (this.fail && await this.fail(route, 'transcribe')) return;
         return route.fulfill({ json: this.transcript(this.calls.transcribe.length - 1) });
       }

@@ -25,6 +25,7 @@ test.describe('Recherche', () => {
     await page.goto('./');
     await seedNotes(page, [note({ id: 'nA', title: 'Algorithmique', segments: [{ start: 0, end: 5, text: 'Bonjour.' }, { start: 65, end: 70, text: 'La récursivité & les piles.' }] })]);
     await page.locator('#search').fill('recursivite');
+    await expect(page.locator('#notesList .item')).toHaveCount(1);
     await page.locator('#notesList .item').click();
     await expect(page.locator('#noteTr .seg')).toHaveCount(1);
     await expect(page.locator('#noteTr .seg mark')).toHaveText('récursivité');

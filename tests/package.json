@@ -9,6 +9,7 @@
     "test:perf": "playwright test --project=perf"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@playwright/test": "1.56.1",
     "katex": "0.16.47"
   }

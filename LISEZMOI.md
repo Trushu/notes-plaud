@@ -125,6 +125,13 @@ L'export Moodle « récents et à venir » couvre environ deux mois : l'app **ga
 
 Réglages → **Apparence** : choisis parmi 8 thèmes — **Système** (suit le mode clair/sombre du téléphone), **Clair**, **Sombre**, **Parchemin**, **Océan**, **Forêt**, **Nuit** et **Prune**. Le changement est immédiat et retenu. « Système » bascule tout seul entre clair et sombre selon l'heure/les réglages Android. Juste en dessous, **Taille du texte des notes** agrandit ou réduit le texte des résumés, cours et transcriptions (pratique pour réviser).
 
+Les 8 thèmes respectent les contrastes recommandés pour l'accessibilité (WCAG niveau AA) : textes lisibles en plein soleil, contour des champs et des cases à cocher bien visible. Si tu as activé **Supprimer les animations** dans les réglages d'accessibilité d'Android, l'app n'anime plus rien.
+
+## Accessibilité (TalkBack, clavier)
+
+- **TalkBack** (lecteur d'écran d'Android) : chaque bouton annonce ce qu'il fait (« Modifier le titre », « Retirer le tag algo », « Terminée : Refaire l'exercice 3 »…), les filtres disent s'ils sont actifs, et les titres de rubriques (Épinglées, Aujourd'hui, Matières, parties des Réglages…) se parcourent avec la navigation par titres. En changeant d'écran, la lecture reprend au titre du nouvel écran ; les fenêtres du bas (tâche, tags, date…) gardent la lecture à l'intérieur jusqu'à leur fermeture (geste Retour), puis reviennent au bouton qui les avait ouvertes. Le nombre de résultats d'une recherche et les échecs de traitement sont annoncés.
+- **Clavier Bluetooth** : **Tab** pour passer d'un élément à l'autre (un contour épais montre où l'on est), **Entrée** ou **Espace** pour activer, **flèches** pour changer d'onglet ou d'option (thème, taille du texte, priorité), **Échap** pour fermer une fenêtre ou la photo. Dans les fiches de révision, le focus passe tout seul à la réponse puis à la question suivante.
+
 ## Utilisation
 
 - **Depuis Plaud :** automatiquement si l'import depuis le cloud est configuré (étape 6). Sinon, ouvre l'enregistrement, puis **Exporter → Audio → MP3 → Partager → Notes Plaud**.
@@ -185,7 +192,7 @@ Sur une note, touche l'icône **bulle ?** en haut (ou **Demander** sous le résu
 
 - **Appui long sur l'icône** de l'app : **Enregistrer un cours**, **Mes cours**, **Poser une question**, **Mes tâches**. Tu peux glisser un raccourci sur l'écran d'accueil.
 - **Tag NFC** (autocollant NTAG, ou ton Flipper Zero en émulation NFC) : écris-y l'adresse de ton app suivie de `?action=rec`, par exemple `https://ton-pseudo.github.io/notes-plaud/?action=rec`. Approcher le téléphone du tag ouvre l'app et **lance l'enregistrement**. Autres actions : `?action=cours`, `?action=question`, `?action=taches`. (L'appli gratuite « NFC Tools » écrit un tag en 30 secondes : Écrire → Ajouter un enregistrement → URL.)
-- **Télécommande Bluetooth** — clicker de présentation, clavier, ou Flipper Zero (Apps → Bluetooth → Remote, appairé au téléphone) — pendant un enregistrement au téléphone : **→ / Entrée / Page suivante** = marquer un moment, **Espace** = pause/reprise. Avec des **écouteurs Bluetooth** : « piste suivante » (souvent un double appui) = marquer, lecture/pause = pause, souvent même écran verrouillé (selon le téléphone). Dans le lecteur d'une note : **Espace** lecture/pause, **← / →** reculer de 10 s / avancer de 30 s.
+- **Télécommande Bluetooth** — clicker de présentation, clavier, ou Flipper Zero (Apps → Bluetooth → Remote, appairé au téléphone) — pendant un enregistrement au téléphone : **→ / Entrée / Page suivante** = marquer un moment, **Espace** = pause/reprise. Avec des **écouteurs Bluetooth** : « piste suivante » (souvent un double appui) = marquer, lecture/pause = pause, souvent même écran verrouillé (selon le téléphone). Dans le lecteur d'une note : **Espace** lecture/pause, **← / →** reculer de 10 s / avancer de 30 s. Si tu navigues au clavier avec **Tab**, ces touches agissent d'abord sur le bouton qui a le focus (toucher l'écran rend aux touches leur rôle de télécommande).
 
 ### Envoyer une note vers NotebookLM
 

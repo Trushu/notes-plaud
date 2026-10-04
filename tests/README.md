@@ -57,11 +57,14 @@ dans un téléphone émulé. **Aucun appel ne sort de la machine** : Groq, Gemin
 | `index.spec.js` | index des notes : création après mise à jour, mise à jour à chaque modification, liste par pages |
 | `audio-long.spec.js` | enregistrement WebM/Opus réel (micro simulé) découpé en morceaux WAV, horodatages continus |
 | `sw.spec.js` | service worker : installation sans les icônes facultatives, hors ligne, réseau lent, cible de partage |
+| `a11y.spec.js` | accessibilité : audit [axe-core](https://github.com/dequelabs/axe-core) (règles WCAG 2.2 niveau AA) de tous les écrans et fenêtres dans les 8 thèmes, téléphone en mode clair et sombre ; contour des champs et cases à cocher (contraste 3:1) ; clavier et lecteur d'écran (focus, fenêtres, onglets, filtres, annonces) |
 | `bugs.spec.js`, `bugs-rec.spec.js` | un test par bug corrigé : partage reçu, file d'attente, hors connexion, délais réseau, reprise du résumé, stockage plein ou illisible, mise à jour pendant un enregistrement (micro simulé) |
 
 Chaque test de bout en bout vérifie aussi qu'aucune erreur JavaScript et aucune violation de la politique de sécurité (CSP) ne s'est produite.
 
 Chaque bug corrigé a son test, dans une rubrique « Bugs corrigés » : il échouait avec l'ancien code et passe avec la correction.
+
+`A11Y_REPORT=1 npx playwright test a11y` affiche la liste des problèmes d'accessibilité trouvés (par thème, avec les couleurs en cause) au lieu de faire échouer le test.
 
 ## Mesures de performance (`perf/`)
 

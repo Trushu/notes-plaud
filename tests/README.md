@@ -44,6 +44,7 @@ Commandes séparées :
 | `security.test.js` | nettoyage des sauvegardes (`sanitizeNote`, `settingOk`), relais en https, options de KaTeX |
 | `relay.test.js` | relais Cloudflare : contrôle d'origine, chemins autorisés, redirections, en-têtes (chargé comme module ES) |
 | `horsligne.test.js` | file des questions en attente : lecture tolérante, limite, portée (`getAskQ`, `sameSpec`) |
+| `verrou.test.js` | verrouillage par code : règles du code (`PIN_OK`, `pinTooEasy`), pauses (`lockWaitFor`), réglage abîmé, hors des sauvegardes |
 | `docs.test.js` | documentation : liens internes (fichiers et titres) valides, démarrage en 5 étapes, Nouveautés à la version de l'app, fichiers à déposer présents |
 
 Les dates sont figées (option `now` du chargeur) et le fuseau est celui de Bruxelles, pour des résultats reproductibles.
@@ -57,6 +58,7 @@ dans un téléphone émulé. **Aucun appel ne sort de la machine** : Groq, Gemin
 | `note-from-file.spec.js` | fichier audio → transcription → résumé → note ; Groq ou Gemini ; clé manquante ou refusée |
 | `search.spec.js` | recherche sans accents dans résumés, transcriptions, cours rédigés, « Mes notes » |
 | `tasks.spec.js` | onglet Tâches : groupes, filtres, cocher, ajouter, modifier, supprimer, tâche hebdomadaire, vue Semaine |
+| `verrou.spec.js` | verrouillage : activer, ouvrir verrouillé, erreurs et pause, code oublié (clé d'API), délai d'absence, sélecteur de fichier, désactiver |
 | `horsligne.spec.js` | questions hors ligne : attente puis envoi au retour du réseau, reprise après fermeture, annulation, file de l'accueil |
 | `backup.spec.js` | sauvegarde (avec ou sans clés, chiffrée par mot de passe) et restauration sur un navigateur vierge, préférences comprises, rappel réglable |
 | `plaud.spec.js` | import depuis le cloud Plaud (bouton et automatique), test de connexion, jeton expiré |

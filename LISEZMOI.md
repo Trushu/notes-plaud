@@ -4,7 +4,59 @@ Le principe : dans l'app Plaud, tu fais **Exporter → Audio → MP3 → Partage
 
 Tout est gratuit : l'hébergement sur GitHub Pages et l'API Groq. Tu n'as besoin d'aucune carte bancaire.
 
+**Nouveau ici ?** Lis d'abord [Démarrer en 5 étapes](#démarrer-en-5-étapes). Tu prépares un examen ? Le guide [Réviser un examen avec Notes Plaud](GUIDE-EXAMEN.md) explique la méthode complète.
+
+## Démarrer en 5 étapes
+
+1. **Mettre l'app en ligne** sur GitHub Pages, gratuitement, en 5 minutes sur un ordinateur. Voir l'[étape 2 détaillée](#étape-2--mettre-lapp-en-ligne-sur-github-pages-5-min-plus-simple-sur-pc).
+2. **L'installer sur le téléphone** depuis Chrome : menu ⋮ → **Installer l'application**. Voir l'[étape 3](#étape-3--installer-lapp-sur-le-téléphone).
+3. **Suivre l'assistant** qui s'ouvre au premier lancement (**Commencer (2 minutes)**) :
+   - il aide à créer la clé Groq, obligatoire, et la **teste** aussitôt ;
+   - puis la clé Gemini, conseillée ;
+   - puis, en option, l'emploi du temps (pour ranger tes cours par matière) et l'import automatique depuis Plaud.
+
+   Chaque étape explique où cliquer.
+4. **Faire ton premier cours.** Partage un MP3 depuis l'app Plaud (**Exporter → Audio → MP3 → Partager → Notes Plaud**), choisis un fichier, ou touche **Enregistrer avec le téléphone**. Quelques minutes plus tard, tu as le résumé, les points d'examen, les tâches et la transcription. Voir [Utilisation](#utilisation).
+5. **Réviser un peu chaque jour.** Sous le résumé, crée les **fiches** et lance un **quiz**. L'accueil te rappelle ensuite les fiches du jour et le compte à rebours de tes examens. Voir le [guide examen](GUIDE-EXAMEN.md).
+
+En cas de souci, la plupart des messages d'erreur ont un bouton qui mène au bon réglage. Sinon, va voir [En cas de problème](#en-cas-de-problème).
+
+## Nouveautés (version 49, octobre 2026)
+
+**Réviser et préparer ses examens**
+- **Fiches du jour sur l'accueil**, toutes matières confondues, et **statistiques de révision** : série de jours, taux de réussite, prévision sur 7 jours, avancement par matière. Voir [Réviser avec des fiches](#réviser-avec-des-fiches).
+- **Écrire et corriger ses fiches**, **export Anki / AnkiDroid**, **révision audio mains libres** et **rappel quotidien**.
+- **Quiz type examen** à 4 choix, en mode chronométré si tu veux. La correction a un lien vers le passage du cours, et tes erreurs deviennent des fiches. Voir [S'entraîner avec un quiz](#sentraîner-avec-un-quiz-type-examen).
+- **Planning de révision** jour par jour jusqu'à l'examen, avec un compte à rebours sur l'accueil. Voir [Préparer un examen](#préparer-un-examen--le-planning-de-révision).
+- **Glossaire par matière**, **carte mentale** d'une séance, et « **Vu aussi dans d'autres séances** » pour relier les notions d'un cours à l'autre.
+
+**Une IA plus juste**
+- **Vocabulaire de la matière** : les noms propres et le jargon du cours sont mieux reconnus.
+- Le résumé ajoute **« En bref »** (l'essentiel en une phrase) et les **questions posées en classe** avec leur réponse.
+- Quand une IA gratuite atteint sa limite, l'app la **met au repos** et passe directement à la suivante.
+
+**Prise en main**
+- **Assistant de premier lancement** et boutons **Tester** pour chaque clé.
+- Les **messages d'erreur** ont un bouton vers le bon réglage.
+
+**Organisation**
+- **Recherche avancée**, par exemple `matière:"droit civil" "tas binaire" après:2026-10-01 -examen`. Elle cherche aussi dans les fiches et les questions. Voir [Rechercher](#rechercher-épingler-sauvegarder).
+- **Archiver** les notes d'un semestre passé, et vue **Semestre** de chaque matière.
+- **Tâches qui se répètent** (chaque jour, semaine ou mois) et vue **Semaine**. Voir [Onglet Tâches](#onglet-tâches).
+
+**Fiabilité et données**
+- **Sauvegarde envoyée vers Drive ou Gmail** en un geste, **chiffrée par mot de passe** si tu veux, avec un rappel réglable.
+- **File d'attente** visible sur l'accueil (réessayer, retirer), **rapport de diagnostic** sans clés ni contenu, et **tout effacer** avant de rendre un téléphone.
+
+**Confort**
+- Thème **Contraste élevé** (9 thèmes en tout), **police de lecture** au choix, mise en page sur **deux colonnes** sur tablette et ordinateur.
+- Accueil plus lisible, avec deux cartes d'information au plus, et **vibrations** de confirmation (désactivables).
+
 ---
+
+## Installation pas à pas
+
+Le détail de chaque étape, si l'assistant ne suffit pas ou si tu préfères tout faire à la main.
 
 ## Étape 1 : créer ta clé Groq (2 min)
 

@@ -572,7 +572,8 @@
   .mrow b { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .mrow small { color: var(--muted); font-size: 13px; }
   .chkline { display: flex; gap: 10px; align-items: center; margin: 14px 2px; font-size: 14.5px; cursor: pointer; }
-  .selbar .bar3 { grid-template-columns: 46px 1fr 1fr 1fr !important; }
+  .selbar .bar3 { grid-template-columns: 46px 1fr 1fr 1fr 1fr !important; }
+  .selbar .bar3 .btn { padding: 0 6px; font-size: 13.5px; }
   .selbar #selCancel { padding: 0; }
   .plaud-imp { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 13px 14px; margin-top: 10px; cursor: pointer; font: inherit; color: inherit; }
   .plaud-imp .sec-ic { flex: none; background: var(--blue-soft); color: var(--blue); }
@@ -841,6 +842,15 @@
   .mm-box { max-height: 60vh; overflow: auto; border: 1px solid var(--line); border-radius: 14px; -webkit-overflow-scrolling: touch; }
   .mm-box svg { display: block; } .mm-sec { cursor: pointer; } .mm-sec:focus-visible rect { stroke-width: 4; }
   .rv-top #rvListen { margin-left: auto; }
+  .fchip-o { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 99px; background: var(--surface); color: var(--ink-2); border: 1px solid var(--ctl); font-size: 13px; font-weight: 600; cursor: pointer; }
+  .fchip-o svg { width: 14px; height: 14px; } .fchip-o.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .arch-lbl { font-size: 11.5px; font-weight: 600; color: var(--muted); border: 1px solid var(--ctl); border-radius: 6px; padding: 0 5px; vertical-align: 2px; }
+  .sem { padding: 14px; margin-bottom: 14px; }
+  .sem-grid { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0 8px; }
+  .sem-grid button { width: 22px; height: 22px; border-radius: 6px; border: 0; padding: 0; cursor: pointer; background: var(--surface-3); }
+  .sem-grid button.ok { background: var(--green); } .sem-grid button.miss { background: var(--err); } .sem-grid button.up { background: transparent; box-shadow: inset 0 0 0 2px var(--ctl); }
+  .sem-leg { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12.5px; color: var(--muted); }
+  .sem-leg i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
   .home-rev { display: flex; align-items: center; gap: 12px; padding: 14px 14px 14px 16px; margin-bottom: 14px; }
   .home-rev .sec-ic { background: var(--violet-soft); color: var(--violet); flex: none; }
   .home-rev .grow { flex: 1; min-width: 0; }
@@ -1273,6 +1283,7 @@
       <button class="btn ghost" id="resumAgain">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg><span>Refaire le résumé</span></button>
       <button class="btn ghost hidden" id="audDelNote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>Supprimer l'audio</button>
+      <button class="btn ghost" id="archNote" type="button">Archiver</button>
       <button class="btn ghost danger" id="delNote">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Supprimer</button>
     </div>
@@ -1649,6 +1660,7 @@
     <button class="btn" id="selCancel" aria-label="Annuler"></button>
     <button class="btn" id="selTag">Taguer</button>
     <button class="btn" id="selMerge">Fusionner</button>
+    <button class="btn" id="selArch" type="button">Archiver</button>
     <button class="btn danger" id="selDel">Supprimer</button>
   </div>
 </div>
@@ -1661,7 +1673,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '43 · 4 oct. 2026';
+const APP_VERSION = '44 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -3101,6 +3113,7 @@ const ICONS = {
   mic: I('<rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/>'),
   cards: I('<rect x="3" y="6" width="14" height="14" rx="2.5"/><path d="M7 3h11.5A2.5 2.5 0 0 1 21 5.5V17"/>'),
   chart: I('<path d="M4 20h16"/><path d="M7 16v-5M12 16V6M17 16v-8"/>'),
+  archive: I('<rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v9.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V9M10 13h4"/>'),
   edit: I('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>'),
   play: I('<path d="M8 5.5v13l10.5-6.5z"/>'),
   pin: I('<path d="M9 3.5h6l-1.2 5.5 3.7 3.4V14H6.5v-1.6L10.2 9z"/><path d="M12 14v6.5"/>'),
@@ -3550,6 +3563,7 @@ function filtered(ignoreDay) {
   // recherche : résultat calculé à part (searchNotes), sans relire les transcriptions à chaque affichage
   const q = $('search').value.trim();
   if (q) notes = ui.hits && ui.hitsQ === q ? notes.filter((n) => ui.hits.has(n.id)) : [];
+  else notes = notes.filter((n) => !!n.archived === !!ui.arch);   // archivées : seulement via le filtre « Archivées » ou la recherche
   // les notes épinglées d'abord (hors filtre par jour)
   if (ui.day == null && ui.mode !== 'cal') notes = [...notes.filter((n) => n.pinned), ...notes.filter((n) => !n.pinned)];
   return notes;
@@ -3713,9 +3727,12 @@ function renderBrowse() {
     tags.map(([t, c]) => `<button class="tag${ui.tag === t ? ' on' : ''}" style="--h:${tagHue(t)}" data-t="${esc(t)}" aria-pressed="${ui.tag === t}" aria-label="${esc(t)} ${c} note${c > 1 ? 's' : ''}">${esc(t)} <span class="n">${c}</span></button>`).join('');
   backTag();
   $('tagBar').querySelectorAll('button').forEach((b) => b.onclick = () => { ui.tag = b.dataset.t && ui.tag !== b.dataset.t ? b.dataset.t : null; renderBrowse(); renderList(); });
-  $('filters').innerHTML = ui.day != null
-    ? `<button class="fchip" id="clearDay" aria-label="Retirer le filtre : ${new Date(ui.day).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}">${new Date(ui.day).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}${ICONS.x}</button>` : '';
+  const nArch = (allNotes || []).filter((n) => n.archived).length;
+  if (!nArch) ui.arch = false;
+  $('filters').innerHTML = (nArch ? `<button class="fchip-o${ui.arch ? ' on' : ''}" id="archToggle" type="button" aria-pressed="${!!ui.arch}">${ICONS.archive}Archivées (${nArch})</button>` : '') + (ui.day != null
+    ? `<button class="fchip" id="clearDay" aria-label="Retirer le filtre : ${new Date(ui.day).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}">${new Date(ui.day).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}${ICONS.x}</button>` : '');
   if (ui.day != null) $('clearDay').onclick = () => { ui.day = null; renderBrowse(); renderList(); };
+  if (nArch) $('archToggle').onclick = () => { ui.arch = !ui.arch; renderBrowse(); renderList(); };
   if (ui.mode === 'cal') renderCal();
 }
 function renderCal() {
@@ -3752,7 +3769,8 @@ function setSel(on) {
 function updSel() {
   const n = ui.picked.size;
   $('selCount').textContent = n ? `${n} note${n > 1 ? 's' : ''} sélectionnée${n > 1 ? 's' : ''}` : 'Touche les notes à sélectionner';
-  $('selTag').disabled = $('selDel').disabled = !n;
+  $('selTag').disabled = $('selDel').disabled = $('selArch').disabled = !n;
+  $('selArch').textContent = n && [...ui.picked].every((id) => (allNotes.find((x) => x.id === id) || {}).archived) ? 'Désarchiver' : 'Archiver';
   $('selMerge').disabled = n < 2;
 }
 
@@ -3770,7 +3788,7 @@ function noteItem(n) {
   return `
       <button class="item${ui.picked.has(n.id) ? ' picked' : ''}${n.course ? ' has-crs' : ''}" data-id="${esc(n.id)}"${ui.sel ? ` aria-pressed="${ui.picked.has(n.id)}"` : ''}${hue != null ? ` style="--h:${hue}"` : ''}>
         <span class="ck"></span>
-        <span class="item-top"><span class="t">${n.pinned ? `<span class="pin">${ICONS.pin}</span>` : ''}${esc(n.title)}</span><span class="time">${shortTime(n.created)}</span></span>
+        <span class="item-top"><span class="t">${n.pinned ? `<span class="pin">${ICONS.pin}</span>` : ''}${esc(n.title)}${n.archived ? ' <span class="arch-lbl">archivée</span>' : ''}</span><span class="time">${shortTime(n.created)}</span></span>
         ${ex ? `<span class="ex">${esc(ex)}</span>` : ''}
         ${lst.q ? '<span class="snipbox"></span>' : ''}
         <span class="m">${n.course ? `<span class="pill hue"${hue != null ? ` style="--h:${hue}"` : ''}>${ICONS.book}${esc(n.course.name)}${n.course.kind && n.course.kind !== 'cours' ? ' · ' + (KIND_LBL[n.course.kind] || '') : ''}</span>` : ''}${n.duration ? `<span class="pill">${ICONS.clock}${dur(n.duration)}</span>` : ''}${tasks ? `<span class="pill task">${ICONS.check}${tasks} à faire</span>` : ''}${badge}</span>
@@ -3788,7 +3806,7 @@ function renderList() {
   if (q && ui.hitsStale) { ui.hitsStale = false; scheduleSearch(); }
   const notes = filtered(false);
   if (!notes.length) {
-    list.innerHTML = `<div class="empty-s">${q ? `${queryHasOps(parseQuery(q)) ? `Aucune note ne correspond à « ${esc(q)} ». Essaie en retirant un filtre.` : `Aucune note ne contient « ${esc(q)} ».`}${queryHasOps(parseQuery(q)) ? '' : /\s/.test(q) ? ' Les mots sont cherchés comme une expression : essaie avec un seul mot, ou entre guillemets séparés (« "mot1" "mot2" »).' : ''} <button class="linkbtn" type="button" id="shHelp2">Aide de la recherche</button>` : ui.day != null ? 'Aucune note ce jour-là.' : ui.mode === 'cal' ? 'Aucune note ce mois-ci.' : 'Aucune note avec ce tag.'}</div>`;
+    list.innerHTML = `<div class="empty-s">${q ? `${queryHasOps(parseQuery(q)) ? `Aucune note ne correspond à « ${esc(q)} ». Essaie en retirant un filtre.` : `Aucune note ne contient « ${esc(q)} ».`}${queryHasOps(parseQuery(q)) ? '' : /\s/.test(q) ? ' Les mots sont cherchés comme une expression : essaie avec un seul mot, ou entre guillemets séparés (« "mot1" "mot2" »).' : ''} <button class="linkbtn" type="button" id="shHelp2">Aide de la recherche</button>` : ui.day != null ? 'Aucune note ce jour-là.' : ui.mode === 'cal' ? 'Aucune note ce mois-ci.' : ui.tag ? 'Aucune note avec ce tag.' : ui.arch ? 'Aucune note archivée.' : 'Toutes tes notes sont archivées : touche « Archivées » pour les voir.'}</div>`;
     return;
   }
   Object.assign(lst, { notes, pos: 0, g: '', q });
@@ -4375,6 +4393,7 @@ async function openNote(id, opts) {
   $('resumAgain').querySelector('span').textContent = n.summary ? 'Refaire le résumé' : 'Générer le résumé';
   setTab('sum');
   $('pinBtn').setAttribute('aria-pressed', String(!!n.pinned));
+  $('archNote').innerHTML = ICONS.archive + (n.archived ? 'Désarchiver' : 'Archiver');
   $('pinBtn').setAttribute('aria-label', n.pinned ? 'Désépingler la note' : 'Épingler la note');
   show('note');
   renderMarks(n);
@@ -5971,6 +5990,20 @@ function setupWizard(step) {
   });
 }
 
+/* ---- Vue semestre d'une matière : chaque séance d'un coup d'œil (enregistrée, manquée, à venir) ---- */
+function semesterHtml(m, notes, now = Date.now()) {
+  const sess = (m.events || []).filter((e) => e.kind !== 'due' && !e.allDay).sort((a, b) => a.start - b.start);
+  if (!sess.length) return '';
+  const st = (e) => (noteOfEvent(e, notes) ? 'ok' : e.start > now ? 'up' : 'miss');
+  const LBL = { ok: 'enregistrée', miss: 'non enregistrée', up: 'à venir' };
+  const c = { ok: 0, miss: 0, up: 0 }; for (const e of sess) c[st(e)]++;
+  const cards = notes.flatMap((n) => n.cardBox || []), mast = cards.filter((b) => b >= 4).length;
+  return `<div class="card sem"><b>Semestre</b> <small class="muted">· ${sess.length} séance${sess.length > 1 ? 's' : ''}${cards.length ? ` · ${Math.round(100 * mast / cards.length)} % des fiches maîtrisées` : ''}</small>
+    <div class="sem-grid" role="group" aria-label="Séances du semestre">${sess.map((e) => { const s = st(e); return `<button type="button" class="${s}" data-uid="${esc(e.uid)}" aria-label="${esc(new Date(e.start).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }))}, ${KIND_LBL[e.kind] || 'cours'} ${LBL[s]}" title="${esc(dayShort(e.start))} · ${LBL[s]}"></button>`; }).join('')}</div>
+    <div class="sem-leg"><span><i style="background:var(--green)"></i>${c.ok} enregistrée${c.ok > 1 ? 's' : ''}</span><span><i style="background:var(--err)"></i>${c.miss} manquée${c.miss > 1 ? 's' : ''}</span><span><i style="box-shadow:inset 0 0 0 2px var(--ctl)"></i>${c.up} à venir</span></div>
+    ${c.miss ? '<p class="f-help">Une séance manquée ? Touche son carré pour lui associer une note (un enregistrement d\'un camarade, par exemple).</p>' : ''}</div>`;
+}
+
 /* =================== Planning de révision avant les examens =================== */
 /* Date d'examen : celle du calendrier (événement « Examen », « partiel »…) ou saisie à la main sur la page de la matière.
    Le planning répartit, jusqu'à la veille, la relecture des séances, la synthèse, les quiz et les fiches du jour. */
@@ -6647,6 +6680,7 @@ async function renderCourse() {
       <div class="card tile"><b>${up[0] ? esc(dayShort(up[0].start)) : '—'}</b><small>${up[0] ? 'prochaine séance, ' + hhmm(up[0].start) : 'plus de séance prévue'}</small></div>
       <div class="card tile"><b>${cards.length ? dueCards : '—'}</b><small>${cards.length ? 'fiches à réviser' : 'pas encore de fiches'}</small></div>
     </div>
+    ${semesterHtml(m, notes, now)}
     ${(() => { const ex = examOf(m); return `<div class="card crs-exam"><span class="sec-ic">${ICONS.flag}</span><div class="grow"><b>${ex ? 'Examen ' + esc(new Date(ex.at).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long' })) + ' · ' + relDays(ex.at) : 'Pas de date d\'examen'}</b><small>${ex ? 'Planning de révision jour par jour' : 'Ajoute-la pour obtenir un planning de révision'}</small></div><button class="btn${ex ? ' primary' : ''}" id="cPlan" type="button">${ex ? 'Planning' : 'Ajouter'}</button></div>`; })()}
     <div class="crs-acts">
       <button class="btn" id="cSynth" ${notes.some((n) => n.summary) ? '' : 'disabled'}>${ICONS.spark}${synth ? 'Refaire la synthèse' : 'Synthèse de la matière'}</button>
@@ -8245,6 +8279,20 @@ async function deleteNotes(ids) {
   toast(label, { action: 'Annuler', onAction: async () => { for (const n of keep) await db.put(n); scheduleReminders(); updateBadge(); toast(keep.length > 1 ? 'Notes restaurées' : 'Note restaurée'); if (current === 'home') renderHome(); } });
   scheduleReminders(); updateBadge();
 }
+async function setArchived(ids, on) {
+  for (const id of ids) { const n = await db.get(id); if (!n) continue; n.archived = on || undefined; if (!on) delete n.archived; await db.put(n); if (currentNote && currentNote.id === id) currentNote.archived = n.archived; }
+  toast(on ? `${ids.length > 1 ? ids.length + ' notes archivées' : 'Note archivée'} : retrouve-la avec « Archivées » ou la recherche` : 'Note désarchivée');
+}
+$('archNote').onclick = async () => {
+  if (!currentNote) return;
+  const on = !currentNote.archived; await setArchived([currentNote.id], on);
+  $('archNote').innerHTML = ICONS.archive + (on ? 'Désarchiver' : 'Archiver');
+};
+$('selArch').onclick = async () => {
+  const ids = [...ui.picked]; if (!ids.length) return;
+  const allArch = ids.every((id) => (allNotes.find((n) => n.id === id) || {}).archived);
+  await setArchived(ids, !allArch); setSel(false); renderHome();
+};
 $('delNote').onclick = async () => {
   if (!currentNote || currentNote.id === runningId) return;
   const id = currentNote.id; currentNote = null; show('home');

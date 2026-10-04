@@ -108,14 +108,16 @@ Notes Plaud lit le calendrier de tes cours (Moodle / WebCampus, ADE, Google Agen
 - **L'IA sait de quel cours il s'agit :** le nom complet de la matière, le type de séance (cours, TP), la date et l'enseignant sont donnés à la transcription (meilleure reconnaissance du vocabulaire et des noms) et au résumé.
 - **Vocabulaire de la matière** (bouton **Vocabulaire** sur la page de la matière) : ajoute les noms propres, termes techniques et sigles du cours (« Dijkstra, tas binaire, NP-complet »). La transcription les écrit correctement, et l'IA s'en sert pour corriger les mots mal reconnus. Les termes définis dans tes résumés (rubrique « Définitions et formules ») s'y ajoutent tout seuls.
 - **Onglet Cours** (en bas) : le cours **en cours** ou le **prochain** (compte à rebours, salle, bouton **Enregistrer** avec le téléphone si tu n'as pas ton Plaud), la semaine jour par jour (flèches pour changer de semaine) avec, pour chaque séance passée, ✓ si elle est enregistrée. Touche une séance pour ouvrir sa note, ou pour y **associer** une note du même jour. Une pastille rouge sur l'onglet signale un cours en ce moment. L'accueil montre aussi le prochain cours.
-- **Page d'une matière :** séances enregistrées, heures d'audio, prochaine séance, et quatre boutons :
-  - **Synthèse de la matière** : l'IA rassemble toutes les séances en une fiche de révision (vue d'ensemble, plan séance par séance, notions, définitions et formules, ce que l'enseignant a souligné, **questions d'examen probables avec éléments de réponse**, points à retravailler) ;
-  - **Poser une question** à toute la matière (« Dans quelle séance a-t-on vu… ? ») ;
-  - **Réviser les fiches** de toutes ses séances ;
-  - **PDF pour NotebookLM** : une seule source avec la synthèse et toutes les séances (au choix avec ou sans les transcriptions).
-  - **Glossaire** : toutes les définitions et formules des séances, par ordre alphabétique, avec la séance d'où elles viennent. On peut y chercher une notion, le copier, ou **créer des fiches** « Que signifie… ? » en un geste.
-  - **Quiz d'examen**, **Vocabulaire** et **Planning** (date d'examen) : voir plus bas.
-  - En bas : **Renommer** la matière, ou la **Masquer** (un cours que tu ne suis pas ; réversible dans Réglages → Emploi du temps).
+- **Page d'une matière :** séances enregistrées, heures d'audio, prochaine séance.
+  - La vue **Semestre** met un carré par séance : vert si elle est enregistrée, rouge si elle a été manquée, vide si elle est à venir. Elle indique aussi la part des fiches maîtrisées. Touche une séance manquée pour lui associer une note.
+  - Les boutons :
+    - **Synthèse de la matière** : l'IA rassemble toutes les séances en une fiche de révision (vue d'ensemble, plan séance par séance, notions, définitions et formules, ce que l'enseignant a souligné, **questions d'examen probables avec éléments de réponse**, points à retravailler) ;
+    - **Poser une question** à toute la matière (« Dans quelle séance a-t-on vu… ? ») ;
+    - **Réviser les fiches** de toutes ses séances ;
+    - **PDF pour NotebookLM** : une seule source avec la synthèse et toutes les séances (au choix avec ou sans les transcriptions).
+    - **Glossaire** : toutes les définitions et formules des séances, par ordre alphabétique, avec la séance d'où elles viennent. On peut y chercher une notion, le copier, ou **créer des fiches** « Que signifie… ? » en un geste.
+    - **Quiz d'examen**, **Vocabulaire** et **Planning** (date d'examen) : voir plus bas.
+    - En bas : **Renommer** la matière, ou la **Masquer** (un cours que tu ne suis pas ; réversible dans Réglages → Emploi du temps).
 - **Échéances :** les devoirs à remettre présents dans le calendrier deviennent des **tâches** datées (une seule fois chacun), avec la matière en tag.
 - **Rappel avant chaque cours** (Réglages → Emploi du temps) : une notification « pense à lancer ton Plaud » 5 à 30 min avant.
 - Sur une note, touche la pastille de la matière pour **changer de matière** ou la **détacher**.
@@ -277,7 +279,8 @@ Touche le **titre** en haut d'une note (il a un petit crayon) pour le modifier. 
 - **Tags :** l'IA en propose 2 à 4 par note. Sur une note, touche « + Tag » pour en ajouter, la croix pour en retirer. Sur l'accueil, la barre de tags filtre la liste. Renommer ou supprimer un tag : Réglages → Tags.
 - **Date :** si le nom du fichier contient une date (« 2025-03-12 14-30.mp3 », « 20250312_143005.m4a », « 12-03-2025 »…), la note la reprend. Sinon c'est la date du jour. Pour la changer, touche la date en haut de la note.
 - **Calendrier :** sur l'accueil, bascule « Liste / Calendrier », puis touche un jour pour voir ses notes.
-- **Sélection :** « Sélectionner » sur l'accueil permet de taguer ou supprimer plusieurs notes d'un coup. Une note seule se supprime aussi depuis son écran (bouton « Supprimer » en bas).
+- **Sélection :** « Sélectionner » sur l'accueil permet de taguer, archiver ou supprimer plusieurs notes d'un coup.
+- **Archiver :** en bas d'une note, **Archiver** la retire de l'accueil sans la supprimer. Elle reste dans la recherche, dans sa matière, dans les fiches et le planning. Le bouton **Archivées (N)**, sous la recherche, les affiche ; **Désarchiver** la remet sur l'accueil. C'est pratique pour repartir d'un accueil propre à chaque semestre. Une note seule se supprime aussi depuis son écran (bouton « Supprimer » en bas).
 
 ### Plusieurs enregistrements pour un même cours
 

@@ -89,7 +89,7 @@ test.describe('Révisions', () => {
     await page.locator('#settingsBtn').click();
     await page.locator('#sRevRem').selectOption('07:30');
     await page.locator('#sSave').click();
-    expect(await page.evaluate(() => dbRun('pending', 'readonly', (st) => st.get('rev-remind')))).toEqual({ at: '07:30' });
+    await expect.poll(() => page.evaluate(() => dbRun('pending', 'readonly', (st) => st.get('rev-remind')))).toEqual({ at: '07:30' });
     // l'app est en arrière-plan à 20 h : notification ; une seconde vérification le même jour ne renvoie rien
     await page.evaluate(() => {
       Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });

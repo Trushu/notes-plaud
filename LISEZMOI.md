@@ -21,7 +21,7 @@ Tout est gratuit : l'hébergement sur GitHub Pages et l'API Groq. Tu n'as besoin
 
 En cas de souci, la plupart des messages d'erreur ont un bouton qui mène au bon réglage. Sinon, va voir [En cas de problème](#en-cas-de-problème).
 
-## Nouveautés (version 51, octobre 2026)
+## Nouveautés (version 52, octobre 2026)
 
 **Réviser et préparer ses examens**
 - **Fiches du jour sur l'accueil**, toutes matières confondues, et **statistiques de révision** : série de jours, taux de réussite, prévision sur 7 jours, avancement par matière. Voir [Réviser avec des fiches](#réviser-avec-des-fiches).

@@ -430,6 +430,7 @@
   .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
   .tagbar { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 4px; margin: 12px -2px 0; scrollbar-width: none; }
   .tagbar::-webkit-scrollbar { display: none; }
+  .tagbar > * { flex: none; }   /* les pastilles gardent leur largeur : la barre défile au lieu de les écraser */
   .item .tags { margin-top: 8px; gap: 5px; }
   .item .tags .tag { height: 24px; padding: 0 9px; font-size: 12px; cursor: inherit; }
   /* Barre d'outils de l'accueil */
@@ -661,6 +662,7 @@
   .toc { margin-bottom: 12px; }
   .toc summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; align-items: center; gap: 8px; }
   .toc summary::-webkit-details-marker { display: none; }
+  .toc summary svg { width: 18px; height: 18px; flex: none; }
   .toc summary::after { content: ""; margin-left: auto; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); transition: transform .2s; }
   .toc[open] summary::after { transform: rotate(225deg); }
   .toc ol { margin: 10px 0 2px; padding-left: 20px; }
@@ -1774,7 +1776,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '51 · 4 oct. 2026';
+const APP_VERSION = '52 · 5 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests

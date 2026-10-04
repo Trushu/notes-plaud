@@ -54,7 +54,7 @@ dans un téléphone émulé. **Aucun appel ne sort de la machine** : Groq, Gemin
 | `note-from-file.spec.js` | fichier audio → transcription → résumé → note ; Groq ou Gemini ; clé manquante ou refusée |
 | `search.spec.js` | recherche sans accents dans résumés, transcriptions, cours rédigés, « Mes notes » |
 | `tasks.spec.js` | onglet Tâches : groupes, filtres, cocher, ajouter, modifier, supprimer |
-| `backup.spec.js` | sauvegarde (avec ou sans clés) et restauration sur un navigateur vierge |
+| `backup.spec.js` | sauvegarde (avec ou sans clés, chiffrée par mot de passe) et restauration sur un navigateur vierge, préférences comprises, rappel réglable |
 | `plaud.spec.js` | import depuis le cloud Plaud (bouton et automatique), test de connexion, jeton expiré |
 | `courses.spec.js` | import d'un calendrier `.ics`, rangement des notes par matière, tour de tous les écrans |
 | `security.spec.js` | contenus piégés (IA, transcription, calendrier, fausse sauvegarde), relais http refusé, jeton, KaTeX modifié refusé |

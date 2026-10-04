@@ -56,6 +56,7 @@ test.describe('Révisions', () => {
     await expect(page.locator('#ceQ')).toHaveValue('Qu\'est-ce qu\'un groupe ?');
     await page.locator('#ceA').fill('Un ensemble muni d\'une loi associative, avec neutre et inverses');
     await page.locator('#ceOk').click();
+    await expect(page.locator('#toast')).toContainText('Fiche modifiée');
     const cards = await page.evaluate(async () => (await db.get('nA')).cards);
     expect(cards.find((c) => c.id === 'a1').a).toContain('neutre et inverses');
     expect(cards.find((c) => c.id === 'a2').box).toBe(4);   // la progression des autres fiches ne bouge pas

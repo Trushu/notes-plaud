@@ -7494,7 +7494,7 @@ function askPassword(title, sub, confirmTwice) {
       <div class="f-help key-res" id="pwRes" role="status"></div>
       <div class="stack" style="margin-top:14px"><button class="btn primary block" id="pwOk" type="button">Valider</button><button class="btn ghost block" id="pwNo" type="button">Annuler</button></div>`, (b) => {
       const p1 = b.querySelector('#pw1'), p2 = b.querySelector('#pw2'), msg = b.querySelector('#pwRes');
-      setTimeout(() => p1.focus(), 60);
+      sheetFocus(p1);
       const ok = () => {
         if (confirmTwice && p1.value.length < 8) { msg.className = 'f-help key-res ko'; msg.textContent = 'Au moins 8 caractères.'; return; }
         if (confirmTwice && p1.value !== p2.value) { msg.className = 'f-help key-res ko'; msg.textContent = 'Les deux mots de passe sont différents.'; return; }

@@ -5,7 +5,7 @@
  * plus des vérifications que l'outil ne fait pas (libellés, clavier, lecteur d'écran).
  */
 const { AxeBuilder } = require('@axe-core/playwright');
-const { test, expect, mp3, useSettings, seedNotes, note, serveKatex } = require('./fixtures');
+const { test, expect, mp3, useSettings, seedNotes, note, serveKatex, SUMMARY } = require('./fixtures');
 
 // micro simulé par Chromium (écran d'enregistrement)
 test.use({ permissions: ['microphone'], launchOptions: { args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'] } });
@@ -133,10 +133,21 @@ test.describe('Audit axe-core : autres écrans et fenêtres', () => {
     await expect(page.locator('#sheet')).toBeVisible();
     await auditThemes(page, 'import Plaud', out);
     await page.keyboard.press('Escape');
+    await expect(page.locator('#homeRev')).toContainText('à réviser');
+    await page.locator('#hrStats').click();
+    await expect(page.locator('#sheet .rs-tiles')).toBeVisible();
+    await auditThemes(page, 'statistiques de révision', out);
+    await page.keyboard.press('Escape');
 
     await page.locator('#notesList .item[data-id="nA"]').click();
     await page.locator('#stCards').click();
     await auditThemes(page, 'fenêtre fiches', out);
+    await page.locator('#cmList').click();
+    await auditThemes(page, 'liste des fiches', out);
+    await page.locator('[data-ed="c1"]').click();
+    await auditThemes(page, 'modifier une fiche', out);
+    await page.keyboard.press('Escape');
+    await page.locator('#stCards').click();
     await page.locator('#cmGo').click();
     await auditThemes(page, 'révision (question)', out);
     await page.locator('#rvShow').click();
@@ -144,6 +155,19 @@ test.describe('Audit axe-core : autres écrans et fenêtres', () => {
     await page.locator('[data-g="2"]').click();
     await auditThemes(page, 'révision terminée', out);
     await page.locator('#rvEnd').click();
+
+    const qzItems = [{ q: 'Que vaut $x^2$ en 2 ?', choices: ['2', '4', '8', '16'], ok: 1, why: 'Deux fois deux.', t: '0:05' }, { q: 'Un graphe ?', choices: ['Sommets et arêtes', 'Une liste', 'Un nombre', 'Un arbre'], ok: 0, why: '' }, { q: 'Un arbre ?', choices: ['Graphe connexe sans cycle', 'Une liste', 'Un tas', 'Un nombre'], ok: 0, why: '' }];
+    mocks.summary = (p) => (/^Tu prépares un quiz/.test(p) ? JSON.stringify(qzItems) : SUMMARY);
+    await page.locator('#stQuiz').click();
+    await auditThemes(page, 'fenêtre quiz', out);
+    await page.locator('#qzNew').click();
+    await expect(page.locator('.qz-card')).toBeVisible();
+    await auditThemes(page, 'quiz (question)', out);
+    await page.locator('.qz-ch').first().click();
+    await auditThemes(page, 'quiz (correction)', out);
+    await page.evaluate(() => { qz.i = qz.items.length; drawQuiz(); });
+    await auditThemes(page, 'quiz (résultat)', out);
+    await page.locator('#qzEnd').click();
 
     await page.locator('#phStrip [data-ph]').click();
     await expect(page.locator('#lightbox')).toBeVisible();

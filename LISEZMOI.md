@@ -176,7 +176,20 @@ Sur une note, touche l'icône **bulle ?** en haut (ou **Demander** sous le résu
 
 - Sous le résumé d'une note, **Fiches de révision → Créer** : l'IA prépare 8 à 20 questions-réponses sur les notions importantes (définitions, formules, théorèmes, pièges signalés, points d'examen). Touche ensuite le bouton pour **réviser**, voir la **liste** ou **recréer** les fiches.
 - Il n'y a plus d'onglet « Réviser » : la séance se lance depuis la note (bouton sous le résumé, qui indique combien de fiches sont à revoir) ou depuis la page d'une **matière** (**Réviser les fiches** de toutes ses séances). « Retour » ou « Terminer » ramène là où tu étais.
-- En séance : lis la question, réfléchis, **touche la carte** pour voir la réponse, puis note-toi : **À revoir** (revient dans 10 min, dans la même séance), **Difficile** (revient plus tôt : demain pour une nouvelle fiche) ou **Je savais** (3 jours, puis 7, 16, 35, 80 jours à chaque réussite). C'est la **révision espacée** : chaque fiche revient juste avant que tu l'oublies. Une fiche inutile se supprime pendant la séance.
+- En séance : lis la question, réfléchis, **touche la carte** pour voir la réponse, puis note-toi : **À revoir** (revient dans 10 min, dans la même séance), **Difficile** (revient plus tôt : demain pour une nouvelle fiche) ou **Je savais** (3 jours, puis 7, 16, 35, 80 jours à chaque réussite). C'est la **révision espacée** : chaque fiche revient juste avant que tu l'oublies. Pendant la séance, une fiche se **modifie** ou se **supprime**.
+- **Toutes les matières d'un coup :** quand des fiches sont à revoir, l'accueil affiche **« 12 fiches à réviser »** : **Réviser** lance la séance du jour avec toutes les matières.
+- **Statistiques** (icône graphique sur cette carte, ou bouton sous le résumé → **Statistiques de révision**) : fiches à réviser, maîtrisées, **jours d'affilée**, taux de réussite sur 30 jours, fiches qui reviennent les 7 prochains jours, et l'avancement **par matière** (avec un bouton pour réviser une seule matière).
+- **Tes propres fiches :** dans le menu des fiches, **Écrire une fiche** en ajoute une ; **Voir et modifier les fiches** permet de corriger une question ou une réponse de l'IA (crayon). La progression est gardée.
+- **Anki / AnkiDroid :** **Exporter vers Anki** (menu des fiches d'une note), **Fiches vers Anki** (page d'une matière) ou **Exporter toutes les fiches** (statistiques) télécharge un fichier texte. Dans Anki : **Fichier → Importer** ; dans AnkiDroid : **⋮ → Importer**. Chaque matière devient un paquet « Notes Plaud::Matière », les tags suivent, les formules s'affichent. Réimporter le même fichier met les fiches à jour sans doublon.
+- **Rappel quotidien :** Réglages → Notifications → **Rappel quotidien de révision** : une notification à l'heure choisie s'il reste des fiches à réviser (une par jour au plus).
+
+### S'entraîner avec un quiz type examen
+
+- Sous le résumé d'une note, **Quiz type examen → Lancer**. Sur la page d'une **matière**, **Quiz d'examen** porte sur toutes ses séances. L'IA prépare une dizaine de **questions à 4 choix**, avec des pièges plausibles et des questions de compréhension et d'application.
+- **Entraînement :** après chaque réponse, la correction s'affiche, avec l'explication et un bouton **▷ 12:34** pour réécouter le passage du cours.
+- **Mode examen** (case à cocher au lancement) : chronométré, à 1 minute par question, avec la correction seulement à la fin. Quand le temps est écoulé, les questions sans réponse comptent comme fausses.
+- **Résultat :** le score, la correction de chaque question, et **Créer des fiches pour mes erreurs**. Les questions ratées deviennent des fiches de révision, qui reviendront en révision espacée.
+- Le quiz est **gardé** : **Refaire ce quiz** le rejoue sans attendre l'IA, dans un ordre de propositions différent. **Nouveau quiz** en prépare un autre. Le dernier score et le meilleur sont affichés.
 
 ### Rechercher, épingler, sauvegarder
 

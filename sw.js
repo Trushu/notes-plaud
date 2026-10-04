@@ -10,7 +10,7 @@
 // - installation : seuls les fichiers indispensables doivent être présents (avant, une icône de raccourci manquante
 //   sur le site empêchait toute l'installation, donc le partage depuis Plaud).
 
-const CACHE = 'notes-plaud-v35';
+const CACHE = 'notes-plaud-v37';
 const KATEX_CACHE = 'katex-v2';   // KaTeX en version figée (0.16.47), vérifiée par empreinte dans la page
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 const OPTIONAL = ['./sc-rec.png', './sc-cours.png', './sc-ask.png', './sc-tasks.png'];   // icônes des raccourcis
@@ -215,4 +215,20 @@ async function checkCourses() {
     });
   }
 }
-self.addEventListener('periodicsync', (e) => { if (e.tag === 'reminders') e.waitUntil(Promise.all([checkReminders().catch(() => {}), checkCourses().catch(() => {})])); });
+// ---- Rappel quotidien de révision : à l'heure choisie dans l'app, s'il reste des fiches à réviser ----
+async function checkReviews() {
+  const cfg = await idbReq('pending', 'readonly', (s) => s.get('rev-remind'));
+  if (!cfg || !/^\d{2}:\d{2}$/.test(cfg.at || '')) return;
+  const now = new Date(), t = new Date(now); t.setHours(+cfg.at.slice(0, 2), +cfg.at.slice(3), 0, 0);
+  if (now < t) return;
+  const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  if ((await idbReq('pending', 'readonly', (s) => s.get('rev-notified'))) === key) return;
+  const heads = (await idbReq('pending', 'readonly', (s) => s.getAll(IDBKeyRange.bound('head:', 'head:\uffff')))) || [];
+  const due = heads.reduce((a, h) => a + (h.cardDue || []).filter((d) => !d || d <= now.getTime()).length, 0);
+  if (!due) return;
+  await idbReq('pending', 'readwrite', (s) => s.put(key, 'rev-notified'));
+  await self.registration.showNotification(`🧠 ${due} fiche${due > 1 ? 's' : ''} à réviser`, {
+    body: 'Quelques minutes suffisent pour tout garder en mémoire', icon: 'icon-192.png', badge: 'icon-192.png', tag: 'rev-' + key, data: { id: ':review' },
+  });
+}
+self.addEventListener('periodicsync', (e) => { if (e.tag === 'reminders') e.waitUntil(Promise.all([checkReminders().catch(() => {}), checkCourses().catch(() => {}), checkReviews().catch(() => {})])); });

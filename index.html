@@ -722,6 +722,24 @@
   .rv-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; color: var(--muted); font-size: 14px; font-variant-numeric: tabular-nums; }
   .rv-bar { height: 6px; border-radius: 9px; background: var(--surface-3); overflow: hidden; margin-bottom: 16px; }
   .rv-bar i { display: block; height: 100%; width: 0; background: var(--grad); transition: width .3s; }
+  .qz-time { font-weight: 700; color: var(--ink); min-width: 4.5em; text-align: right; }
+  .qz-time.low { color: var(--err); }
+  .qz-card { padding: 20px 18px; display: flex; flex-direction: column; gap: 12px; }
+  .qz-q { font-size: calc(17px * var(--rd)); font-weight: 600; line-height: 1.45; }
+  .qz-chs { display: flex; flex-direction: column; gap: 8px; }
+  .qz-ch { display: flex; gap: 12px; align-items: flex-start; width: 100%; text-align: left; padding: 12px 14px; border-radius: 14px; border: 1.5px solid var(--ctl); background: var(--surface); color: var(--ink); font: inherit; font-size: calc(15.5px * var(--rd)); line-height: 1.4; cursor: pointer; }
+  .qz-ch .l { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; background: var(--surface-2); color: var(--ink-2); }
+  .qz-ch .md { flex: 1; min-width: 0; } .qz-ch .md p { margin: 0; }
+  .qz-ch.ok { border-color: var(--green); background: var(--green-soft); } .qz-ch.ok .l { background: var(--green); color: var(--surface); }
+  .qz-ch.ko { border-color: var(--err); background: var(--err-soft); } .qz-ch.ko .l { background: var(--err); color: var(--surface); }
+  .qz-ch[disabled] { cursor: default; opacity: 1; }
+  .qz-why { padding: 12px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); font-size: calc(14.5px * var(--rd)); }
+  .qz-why b.ok { color: var(--green); } .qz-why b.ko { color: var(--err); }
+  .qz-score { text-align: center; padding: 22px 18px; }
+  .qz-score .big { font: 600 44px/1 var(--serif); }
+  .qz-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .qz-item { padding: 14px; }
+  .qz-item .r { font-size: 14px; margin-top: 6px; }
   .rv-card { padding: 22px 20px; min-height: 260px; cursor: pointer; display: flex; flex-direction: column; gap: 14px; }
   .rv-deck { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-ink); }
   .rv-q { font: 600 calc(20px * var(--rd))/1.35 var(--serif); }
@@ -797,6 +815,28 @@
   .home-crs b { display: block; font: 600 17px/1.25 var(--serif); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .home-crs span.d { display: block; color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .home-crs .btn { min-height: 40px; padding: 0 12px; flex: none; }
+  .home-rev { display: flex; align-items: center; gap: 12px; padding: 14px 14px 14px 16px; margin-bottom: 14px; }
+  .home-rev .sec-ic { background: var(--violet-soft); color: var(--violet); flex: none; }
+  .home-rev .grow { flex: 1; min-width: 0; }
+  .home-rev b { display: block; font: 600 17px/1.25 var(--serif); }
+  .home-rev small { display: block; color: var(--muted); font-size: 13px; }
+  .home-rev .btn { min-height: 40px; padding: 0 14px; flex: none; }
+  .rs-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 4px 0 10px; }
+  .rs-tiles div { background: var(--surface-2); border-radius: 12px; padding: 10px 6px; text-align: center; }
+  .rs-tiles b { display: block; font: 600 22px/1.1 var(--serif); }
+  .rs-tiles span { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+  .rs-bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; height: 110px; align-items: end; margin: 6px 0 16px; }
+  .rs-bars div { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 3px; }
+  .rs-bars i { display: block; width: 70%; min-height: 3px; border-radius: 6px 6px 2px 2px; background: var(--violet); }
+  .rs-bars b { font-size: 12px; } .rs-bars span { font-size: 11.5px; color: var(--muted); }
+  .rs-mats { display: flex; flex-direction: column; gap: 8px; }
+  .rs-mat { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; }
+  .rs-mat .grow { flex: 1; min-width: 0; } .rs-mat b { display: block; font-weight: 600; } .rs-mat small { color: var(--muted); font-size: 12.5px; }
+  .rs-mat .lvl { display: block; height: 5px; border-radius: 3px; background: var(--surface-3); margin-top: 6px; overflow: hidden; }
+  .rs-mat .lvl i { display: block; height: 100%; background: var(--green); }
+  .rs-mat .btn { min-height: 38px; padding: 0 12px; flex: none; }
+  .cm-row { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .cm-row .md { flex: 1; min-width: 0; }
   .home-crs .crs-open { flex: 1; min-width: 0; border: 0; background: none; padding: 0; text-align: left; font: inherit; color: inherit; cursor: pointer; }
   .wk-nav { display: flex; align-items: center; gap: 8px; margin: 6px 0 2px; }
   .wk-nav b { flex: 1; text-align: center; font-weight: 600; font-size: 15px; line-height: 1.25; }
@@ -1027,6 +1067,7 @@
         <div class="row" style="margin-top:10px"><button class="btn primary" id="bkRemindGo" style="min-height:38px">Sauvegarder</button><button class="btn ghost" id="bkRemindX" style="min-height:38px">Plus tard</button></div></div>
     </div>
     <div id="homeCrs"></div>
+    <div id="homeRev"></div>
     <button class="card run-banner rec-banner hidden" id="recBanner">
       <span class="rec-dot"></span>
       <div><b>Enregistrement en cours</b><small id="recBannerTime"></small></div>
@@ -1129,6 +1170,7 @@
     <div class="card study hidden" id="noteStudy">
       <div class="study-row"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a7.5 7.5 0 0 1-11.1 6.6L4 19.5l1.4-4.3A7.5 7.5 0 1 1 20 11.5z"/></svg></span><div><b>Poser une question</b><small>Réponses avec renvois aux passages</small></div><button class="btn" id="stAsk" type="button">Demander</button></div>
       <div class="study-row"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="14" rx="2.5"/><path d="M7 3h11.5A2.5 2.5 0 0 1 21 5.5V17"/></svg></span><div><b>Fiches de révision</b><small id="stCardsInfo"></small></div><button class="btn" id="stCards" type="button"></button></div>
+      <div class="study-row"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.3-2.5 3.9M12 17h.01"/></svg></span><div><b>Quiz type examen</b><small id="stQuizInfo">Questions à choix multiple, correction expliquée</small></div><button class="btn" id="stQuiz" type="button">Lancer</button></div>
     </div>
     <div id="noteExtras">
       <div class="card xcard photos" id="phBox">
@@ -1253,6 +1295,13 @@
       <div class="rv-bar"><i id="rvBar"></i></div>
       <div id="rvStage"></div>
     </div>
+  </section>
+
+  <!-- ===== Quiz type examen ===== -->
+  <section id="v-quiz" class="view hidden">
+    <div class="rv-top"><button class="tbtn" id="qzQuit" type="button">Terminer</button><span id="qzProg"></span><span id="qzTime" class="qz-time"></span></div>
+    <div class="rv-bar"><i id="qzBar"></i></div>
+    <div id="qzStage"></div>
   </section>
 
   <!-- ===== Tâches ===== -->
@@ -1486,6 +1535,15 @@
         </select>
         <div class="f-help">Les rappels s'affichent quand l'app est ouverte, ou peu après si Android l'autorise. Pour un rappel garanti même téléphone éteint, utilise « Google Agenda » sur la tâche.</div>
       </div>
+      <div class="card pad" style="margin-top:10px">
+        <label class="f" for="sRevRem">Rappel quotidien de révision</label>
+        <select id="sRevRem">
+          <option value="">Aucun</option>
+          <option value="07:30">7 h 30</option><option value="12:30">12 h 30</option><option value="17:00">17 h</option>
+          <option value="18:00">18 h</option><option value="19:00">19 h</option><option value="20:00">20 h</option><option value="21:00">21 h</option>
+        </select>
+        <div class="f-help">Une notification s'il reste des fiches à réviser ce jour-là (une seule par jour).</div>
+      </div>
     </div>
 
     <div class="set-group">
@@ -1560,7 +1618,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '35 · 4 oct. 2026';
+const APP_VERSION = '37 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -1580,7 +1638,7 @@ window.CONFIG = {
 const DEFAULTS = {
   key: '', lang: 'fr', whisper: 'whisper-large-v3',
   llms: 'openai/gpt-oss-120b, openai/gpt-oss-20b', ctx: '', kind: 'auto',
-  autoRemind: 'eve', theme: 'auto', bg: true, fs: 'm', keepAudio: true,
+  autoRemind: 'eve', revRemind: '', theme: 'auto', bg: true, fs: 'm', keepAudio: true,
   provider: 'auto', ckey: '', cmodels: 'gpt-oss-120b, zai-glm-4.7', mkey: '', mmodels: 'mistral-large-latest, mistral-medium-latest, mistral-small-latest', gkey: '', gmodels: 'gemini-3.8-flash, gemini-flash-latest, gemini-3.5-flash',
 };
 function loadSettings() {
@@ -1686,9 +1744,9 @@ const db = {
    - une fiche légère « head:<id> » : tout sauf les textes longs (transcriptions, cours rédigé, fiches, photos…) ;
    - la liste de ses mots « words:<id> » (sans accents ni majuscules), pour trouver vite les notes qui contiennent un mot.
    Elles sont réécrites dans la même transaction que la note (db.put) : toujours à jour. */
-const HEAD_V = 1;
+const HEAD_V = 2;   // 2 : boîte de chaque fiche (statistiques de révision)
 const HK = (id) => 'head:' + id, WK = (id) => 'words:' + id;
-const HEAVY = ['segments', 'clean', 'lecture', 'chat', 'audio', 'photos', 'cards', 'partial', 'sumPartial', 'cleanPartial', 'lecturePartial'];
+const HEAVY = ['segments', 'clean', 'lecture', 'chat', 'audio', 'photos', 'cards', 'quiz', 'partial', 'sumPartial', 'cleanPartial', 'lecturePartial'];
 function headOf(n) {
   const h = { __head: HEAD_V };
   for (const k of Object.keys(n)) if (!HEAVY.includes(k)) h[k] = n[k];
@@ -1698,6 +1756,7 @@ function headOf(n) {
   h.hasAudio = !!n.audio;
   h.photoIds = (n.photos || []).map((x) => x.id);
   h.cardDue = (n.cards || []).map((c) => c.due || 0);
+  h.cardBox = (n.cards || []).map((c) => c.box || 0);
   return h;
 }
 // Tout le texte cherchable d'une note complète (même ordre que l'ancienne recherche)
@@ -2980,6 +3039,8 @@ const ICONS = {
   book: I('<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5"/><path d="M9 7.5h7M9 11h5"/>'),
   mic: I('<rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/>'),
   cards: I('<rect x="3" y="6" width="14" height="14" rx="2.5"/><path d="M7 3h11.5A2.5 2.5 0 0 1 21 5.5V17"/>'),
+  chart: I('<path d="M4 20h16"/><path d="M7 16v-5M12 16V6M17 16v-8"/>'),
+  edit: I('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>'),
   play: I('<path d="M8 5.5v13l10.5-6.5z"/>'),
   pin: I('<path d="M9 3.5h6l-1.2 5.5 3.7 3.4V14H6.5v-1.6L10.2 9z"/><path d="M12 14v6.5"/>'),
   resume: I('<path d="M6 3.5h8l4 4V20a.5.5 0 0 1-.5.5h-11A.5.5 0 0 1 6 20z"/><path d="M14 3.5V8h4M9 12h6M9 16h4"/>'),
@@ -3247,7 +3308,7 @@ async function run(note, opts = {}) {
 
 /* =================== Vues =================== */
 let current = 'home', currentNote = null, allNotes = [];
-const TITLES = { job: 'Traitement', note: '', settings: 'Réglages', ask: 'Poser une question', rec: 'Enregistrer', review: 'Réviser', course: 'Matière' };
+const TITLES = { job: 'Traitement', note: '', settings: 'Réglages', ask: 'Poser une question', rec: 'Enregistrer', review: 'Réviser', quiz: 'Quiz', course: 'Matière' };
 const TABS = ['home', 'courses', 'tasks'];
 const navStack = []; let navLock = false;
 function show(v, keepScroll) {
@@ -3257,7 +3318,7 @@ function show(v, keepScroll) {
   }
   const changed = v !== current, first = !current;
   current = v;
-  for (const id of ['home', 'tasks', 'courses', 'course', 'review', 'job', 'note', 'settings', 'ask', 'rec']) {
+  for (const id of ['home', 'tasks', 'courses', 'course', 'review', 'quiz', 'job', 'note', 'settings', 'ask', 'rec']) {
     const el = $('v-' + id);
     el.classList.toggle('hidden', id !== v);
     if (id === v && changed) { el.classList.remove('enter'); void el.offsetWidth; el.classList.add('enter'); }
@@ -3282,6 +3343,7 @@ function show(v, keepScroll) {
   if (v === 'home') renderHome();
   if (v === 'tasks') renderTasks();
   if (v === 'review') renderReview();
+  if (v === 'quiz') drawQuiz();
   if (v === 'courses') renderCourses();
   if (v === 'course') renderCourse();
   $('askBar').classList.toggle('hidden', v !== 'ask');
@@ -3386,6 +3448,7 @@ async function renderHome() {
   renderList();
   renderBkRemind();
   renderHomeCourse();
+  renderHomeRev();
   renderResume();
 }
 
@@ -3640,21 +3703,35 @@ $('notesList').addEventListener('click', (e) => {
 });
 
 /* ---- Feuille du bas ---- */
-let sheetOpener = null;
+let sheetOpener = null, sheetHideT = null, sheetGen = 0;   // sheetGen change à chaque ouverture et fermeture
+// Focus différé dans une fenêtre : seulement si elle est encore ouverte, et sans voler le focus d'un champ déjà touché
+function sheetFocus(el, ms = 60) {
+  const g = sheetGen;
+  setTimeout(() => {
+    if (g !== sheetGen || !el || !el.isConnected) return;
+    const a = document.activeElement;
+    if (a && a !== el && $('sheet').contains(a) && a.matches('input, textarea, select')) return;
+    el.focus();
+  }, ms);
+}
 function openSheet(html, mount) {
-  if ($('sheet').classList.contains('hidden')) sheetOpener = document.activeElement;
+  clearTimeout(sheetHideT);   // une fenêtre rouverte juste après une fermeture ne doit pas être masquée par la fin de l'animation
+  if ($('sheet').classList.contains('hidden') || !$('sheet').classList.contains('open')) sheetOpener = sheetOpener || document.activeElement;
   $('sheetBody').innerHTML = html;
+  const g = ++sheetGen;
   const h = $('sheetBody').querySelector('h3');
   if (h) { h.id = 'sheetTitle'; $('sheet').setAttribute('aria-labelledby', 'sheetTitle'); } else $('sheet').removeAttribute('aria-labelledby');
   $('sheet').classList.remove('hidden'); $('sheetBg').classList.remove('hidden');
   requestAnimationFrame(() => requestAnimationFrame(() => { $('sheet').classList.add('open'); $('sheetBg').classList.add('open'); }));
   if (mount) mount($('sheetBody'));
   // le lecteur d'écran et le clavier entrent dans la boîte de dialogue
-  setTimeout(() => { if (!$('sheet').contains(document.activeElement)) { $('sheet').focus({ preventScroll: true }); } }, 30);
+  // (sauf si la fenêtre a été refermée entre-temps, par Échap par exemple : le focus est alors rendu au bouton d'origine)
+  setTimeout(() => { if (g === sheetGen && !$('sheet').contains(document.activeElement)) { $('sheet').focus({ preventScroll: true }); } }, 30);
 }
 function closeSheet() {
+  sheetGen++;
   $('sheet').classList.remove('open'); $('sheetBg').classList.remove('open');
-  setTimeout(() => { $('sheet').classList.add('hidden'); $('sheetBg').classList.add('hidden'); }, 260);
+  sheetHideT = setTimeout(() => { $('sheet').classList.add('hidden'); $('sheetBg').classList.add('hidden'); }, 260);
   const back = sheetOpener; sheetOpener = null;
   if (back && back.isConnected && back.focus && $('sheet').contains(document.activeElement)) { try { back.focus({ preventScroll: true }); } catch (e) {} }
 }
@@ -5058,7 +5135,7 @@ async function makeCards(n) {
     fresh.cardsBy = lastModel; fresh.cardsAt = t0;
     await db.put(fresh);
     if (currentNote && currentNote.id === n.id) Object.assign(currentNote, { cards: fresh.cards, cardsBy: fresh.cardsBy, cardsAt: t0 });
-    toast(`${all.length} fiches créées — à réviser dans l'onglet « Réviser »`);
+    toast(`${all.length} fiches créées — touche « Réviser » sous le résumé`);
     updateBadge();
   } catch (e) {
     toast(e instanceof ApiError ? e.message : 'Erreur : ' + e.message);
@@ -5066,6 +5143,7 @@ async function makeCards(n) {
 }
 function renderStudy() {
   const n = currentNote; if (!n) return;
+  renderQuizInfo();
   const cards = n.cards || [], due = cards.filter(isDue).length, mastered = cards.filter((c) => (c.box || 0) >= 4).length;
   const show = !!(n.segments || n.summary);
   $('noteStudy').classList.toggle('hidden', !show || $('noteSum').classList.contains('hidden'));
@@ -5085,14 +5163,23 @@ async function cardsMenu(n) {
   openSheet(`<h3>Fiches de révision</h3><p class="sub">${cards.length} fiches · créées par ${esc((n.cardsBy || 'l\'IA').replace(/^openai\//, ''))}</p>
     <div class="stack">
       <button class="btn primary block" id="cmGo">${cards.filter(isDue).length ? 'Réviser les fiches dues' : 'Revoir toutes les fiches'}</button>
-      <button class="btn block" id="cmList">Voir la liste des fiches</button>
+      <button class="btn block" id="cmList">Voir et modifier les fiches</button>
+      <button class="btn block" id="cmAdd" type="button">${ICONS.edit}Écrire une fiche</button>
+      <button class="btn block" id="cmAnki" type="button">${ICONS.share}Exporter vers Anki</button>
+      <button class="btn block" id="cmStats" type="button">${ICONS.chart}Statistiques de révision</button>
       <button class="btn ghost block" id="cmRedo">Recréer les fiches (la progression repart de zéro)</button>
     </div>`, (body) => {
     body.querySelector('#cmGo').onclick = () => { closeSheet(); startReview(n.id); };
-    body.querySelector('#cmRedo').onclick = () => { closeSheet(); makeCards(n); };
+    body.querySelector('#cmRedo').onclick = () => { if (!cards.some((c) => c.own) || confirm('Les fiches que tu as écrites seront aussi remplacées. Continuer ?')) { closeSheet(); makeCards(n); } };
+    body.querySelector('#cmAdd').onclick = () => cardEditSheet(n.id, null, (f) => cardsMenu(f));
+    body.querySelector('#cmAnki').onclick = () => exportAnki([n], n.title);
+    body.querySelector('#cmStats').onclick = revStatsSheet;
     body.querySelector('#cmList').onclick = () => {
-      body.innerHTML = `<h3>${cards.length} fiches</h3><div class="md" style="max-height:60vh;overflow:auto">${cards.map((c, i) => `<p><b>${i + 1}.</b> ${md(c.q, { i: 0, noEdit: true }).replace(/^<p>|<\/p>$/g, '')}<br><span style="color:var(--muted)">→ ${md(c.a, { i: 0, noEdit: true }).replace(/^<p>|<\/p>$/g, '')}</span></p>`).join('')}</div><button class="btn block" id="cmClose" style="margin-top:12px">Fermer</button>`;
+      body.innerHTML = `<h3>${cards.length} fiches</h3><div style="max-height:62vh;overflow:auto">${cards.map((c, i) => `<div class="cm-row"><div class="md"><p><b>${i + 1}.</b> ${md(c.q, { i: 0, noEdit: true }).replace(/^<p>|<\/p>$/g, '')}<br><span style="color:var(--muted)">→ ${md(c.a, { i: 0, noEdit: true }).replace(/^<p>|<\/p>$/g, '')}</span></p></div><button class="iconbtn" type="button" data-ed="${esc(c.id)}" aria-label="Modifier la fiche ${i + 1}">${ICONS.edit}</button></div>`).join('')}</div>
+        <div class="stack" style="margin-top:12px"><button class="btn block" id="cmAdd2" type="button">${ICONS.edit}Écrire une fiche</button><button class="btn block" id="cmClose">Fermer</button></div>`;
       renderMath(body); body.querySelector('#cmClose').onclick = closeSheet;
+      body.querySelector('#cmAdd2').onclick = () => cardEditSheet(n.id, null, (f) => cardsMenu(f));
+      body.querySelectorAll('[data-ed]').forEach((b) => b.onclick = () => cardEditSheet(n.id, b.dataset.ed, (f) => cardsMenu(f)));
     };
   });
 }
@@ -5137,11 +5224,16 @@ function drawCard(focus) {
       <div class="rv-a md${rv.shown ? '' : ' hidden'}">${md(c.a, { i: 0, noEdit: true })}</div>${rv.shown ? '' : '<div class="rv-hint">Réfléchis, puis touche la carte pour voir la réponse.</div>'}</div>
     ${rv.shown ? `<div class="rv-grade"><button class="btn" data-g="0" aria-label="À revoir, ${lbl(0)}">À revoir<small>${lbl(0)}</small></button><button class="btn" data-g="1" aria-label="Difficile, ${lbl(1)}">Difficile<small>${lbl(1)}</small></button><button class="btn" data-g="2" aria-label="Je savais, ${lbl(2)}">Je savais<small>${lbl(2)}</small></button></div>`
       : `<button class="btn primary block" id="rvShow" style="margin-top:12px">Afficher la réponse</button>`}
-    <div style="text-align:center;margin-top:14px"><button class="linkbtn" id="rvDel" style="color:var(--muted);font-weight:500">Supprimer cette fiche</button></div>`;
+    <div style="text-align:center;margin-top:14px;display:flex;gap:18px;justify-content:center"><button class="linkbtn" id="rvEdit" type="button" style="color:var(--muted);font-weight:500">Modifier</button><button class="linkbtn" id="rvDel" style="color:var(--muted);font-weight:500">Supprimer cette fiche</button></div>`;
   renderMath(st);
   moveFocus(rv.shown ? '.rv-a' : '.rv-q');
   const reveal = () => { if (!rv.shown) { rv.shown = true; drawCard(true); } };
   $('rvCard').onclick = reveal; if ($('rvShow')) $('rvShow').onclick = reveal;
+  $('rvEdit').onclick = () => cardEditSheet(c.noteId, c.id, (f, k) => {
+    if (!k) { rv.queue.splice(rv.i, 1); rv.total--; rv.shown = false; }
+    else Object.assign(rv.queue[rv.i], { q: k.q, a: k.a });
+    drawCard(true);
+  });
   st.querySelectorAll('[data-g]').forEach((b) => b.onclick = () => gradeCard(+b.dataset.g));
   $('rvDel').onclick = async () => {
     const n = await db.get(c.noteId); if (!n) return;
@@ -5162,7 +5254,357 @@ async function gradeCard(g) {
   }
   if (g === 0) { rv.again++; if (!c.requeued) { rv.queue.splice(Math.min(rv.queue.length, rv.i + 4), 0, { ...c, requeued: true }); } }
   else if (!c.requeued) rv.ok++;
+  logReview(g > 0).catch(() => {});
   rv.i++; rv.shown = false; drawCard(true);
+}
+
+/* ---- Statistiques de révision, révision du jour, export Anki, fiches écrites à la main ---- */
+const dayKey = (t) => { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+// Journal des révisions : nombre de fiches revues et réussies par jour (400 derniers jours)
+async function getRevLog() { return (await dbRun('pending', 'readonly', (st) => st.get('revlog')).catch(() => null)) || { days: {} }; }
+async function logReview(ok, now = Date.now()) {
+  const log = await getRevLog(), k = dayKey(now), d = log.days[k] || [0, 0];
+  d[0]++; if (ok) d[1]++; log.days[k] = d;
+  const keys = Object.keys(log.days).sort(); for (const old of keys.slice(0, Math.max(0, keys.length - 400))) delete log.days[old];
+  await dbRun('pending', 'readwrite', (st) => st.put(log, 'revlog'));
+}
+// Calculé sur les fiches légères (échéance et boîte de chaque fiche) : rapide même avec des centaines de notes
+function revStats(heads, log, now = Date.now()) {
+  const today = dayStart(now), mats = new Map(), next7 = Array(7).fill(0);
+  const st = { total: 0, fresh: 0, due: 0, mastered: 0, next7, mats: [] };
+  for (const h of heads) {
+    const dues = h.cardDue || [], boxes = h.cardBox || []; if (!dues.length) continue;
+    const name = h.course && h.course.name ? h.course.name : 'Autres notes';
+    const m = mats.get(name) || { name, total: 0, due: 0, mastered: 0, ids: [] }; m.ids.push(h.id); mats.set(name, m);
+    dues.forEach((t, i) => {
+      st.total++; m.total++;
+      if (!t) st.fresh++;
+      if ((boxes[i] || 0) >= 4) { st.mastered++; m.mastered++; }
+      if (!t || t <= now) { st.due++; m.due++; }
+      else { const k = Math.round((dayStart(t) - today) / DAY); if (k >= 0 && k < 7) next7[k]++; }
+    });
+  }
+  st.mats = [...mats.values()].sort((a, b) => b.due - a.due || b.total - a.total || a.name.localeCompare(b.name));
+  const days = (log && log.days) || {};
+  let streak = 0;
+  for (let d = (days[dayKey(now)] ? today : today - DAY); days[dayKey(d)] && days[dayKey(d)][0] > 0; d -= DAY) streak++;
+  let n30 = 0, ok30 = 0;
+  for (let i = 0; i < 30; i++) { const x = days[dayKey(today - i * DAY)]; if (x) { n30 += x[0]; ok30 += x[1]; } }
+  Object.assign(st, { streak, n30, rate30: n30 ? Math.round(100 * ok30 / n30) : null, todayDone: (days[dayKey(now)] || [0])[0] });
+  return st;
+}
+async function renderHomeRev() {
+  const box = $('homeRev'); if (!box) return;
+  const st = revStats(allNotes || [], null);
+  if (!st.due) { box.innerHTML = ''; return; }
+  const nm = st.mats.filter((m) => m.due).length;
+  box.innerHTML = `<div class="card home-rev"><span class="sec-ic">${ICONS.cards}</span><div class="grow"><b>${st.due} fiche${st.due > 1 ? 's' : ''} à réviser</b><small>${nm > 1 ? `${nm} matières · ` : ''}quelques minutes suffisent</small></div>
+    <button class="btn primary" id="hrGo" type="button">Réviser</button><button class="iconbtn" id="hrStats" type="button" aria-label="Statistiques de révision">${ICONS.chart}</button></div>`;
+  $('hrGo').onclick = () => startReview();
+  $('hrStats').onclick = revStatsSheet;
+}
+async function revStatsSheet() {
+  const heads = [...(await ensureHeads()).values()], st = revStats(heads, await getRevLog());
+  const wd = (i) => i === 0 ? 'Auj.' : i === 1 ? 'Dem.' : new Date(Date.now() + i * DAY).toLocaleDateString('fr-FR', { weekday: 'short' });
+  const max = Math.max(1, ...st.next7);
+  openSheet(`<h3>Statistiques de révision</h3>
+    ${st.total ? `<div class="rs-tiles">
+      <div><b>${st.due}</b><span>à réviser</span></div><div><b>${st.mastered}</b><span>maîtrisée${st.mastered > 1 ? 's' : ''}</span></div>
+      <div><b>${st.streak}</b><span>jour${st.streak > 1 ? 's' : ''} d'affilée</span></div><div><b>${st.rate30 == null ? '—' : st.rate30 + ' %'}</b><span>réussite (30 j)</span></div></div>
+    <p class="sub">${st.total} fiches dont ${st.fresh} jamais vue${st.fresh > 1 ? 's' : ''} · ${st.todayDone} revue${st.todayDone > 1 ? 's' : ''} aujourd'hui · ${st.n30} sur 30 jours.</p>
+    <div class="f">Prochains jours</div>
+    <div class="rs-bars" role="img" aria-label="Fiches à revoir les 7 prochains jours : ${st.next7.map((n, i) => `${wd(i)} ${n}`).join(', ')}">${st.next7.map((n, i) => `<div><i style="height:${Math.round(100 * n / max)}%"></i><b>${n || ''}</b><span>${wd(i)}</span></div>`).join('')}</div>
+    <div class="f">Par matière</div>
+    <div class="rs-mats">${st.mats.map((m) => `<div class="rs-mat"><div class="grow"><b>${esc(m.name)}</b><small>${m.total} fiches · ${m.mastered} maîtrisée${m.mastered > 1 ? 's' : ''}</small><span class="lvl"><i style="width:${Math.round(100 * m.mastered / m.total)}%"></i></span></div>${m.due ? `<button class="btn" data-rv="${esc(m.name)}" type="button">Réviser ${m.due}</button>` : ''}</div>`).join('')}</div>
+    <div class="stack" style="margin-top:14px">${st.due ? '<button class="btn primary block" id="rsGo" type="button">Réviser toutes les fiches dues</button>' : ''}<button class="btn block" id="rsAnki" type="button">${ICONS.share}Exporter toutes les fiches vers Anki</button></div>`
+    : '<p class="sub">Aucune fiche pour l\'instant. Ouvre une note puis « Fiches de révision → Créer ».</p>'}`, (body) => {
+    const go = body.querySelector('#rsGo'); if (go) go.onclick = () => { closeSheet(); startReview(); };
+    body.querySelectorAll('[data-rv]').forEach((b) => b.onclick = () => { const m = st.mats.find((x) => x.name === b.dataset.rv); closeSheet(); if (m) startReview(m.ids); });
+    const ak = body.querySelector('#rsAnki'); if (ak) ak.onclick = async () => exportAnki(await fullNotes((h) => (h.cardDue || []).length), 'toutes');
+  });
+}
+// Anki / AnkiDroid : fichier texte avec en-têtes (séparateur, HTML, paquet et tags par colonne) ; les formules passent en MathJax
+const ankiField = (s) => esc(String(s || ''))
+  .replace(/\$\$([\s\S]+?)\$\$/g, '\\[$1\\]').replace(/\$([^$\n]+?)\$/g, '\\($1\\)')
+  .replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>').replace(/\t/g, ' ').replace(/\r?\n/g, '<br>');
+const ankiTag = (t) => String(t).trim().replace(/[\s\t]+/g, '_');
+function ankiText(notes) {
+  const lines = ['#separator:tab', '#html:true', '#notetype:Basic', '#deck column:3', '#tags column:4'];
+  for (const n of notes) {
+    const deck = ('Notes Plaud::' + (n.course && n.course.name ? n.course.name : n.title || 'Notes')).replace(/[\t\r\n]+/g, ' ').replace(/"/g, '');
+    const tags = ['notes-plaud', ...(n.tags || [])].map(ankiTag).filter(Boolean).join(' ');
+    for (const c of n.cards || []) lines.push([ankiField(c.q), ankiField(c.a), deck, tags].join('\t'));
+  }
+  return lines.join('\n') + '\n';
+}
+function exportAnki(notes, label) {
+  const n = notes.reduce((a, x) => a + (x.cards || []).length, 0);
+  if (!n) { toast('Aucune fiche à exporter'); return; }
+  const slug = norm(label).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'fiches';
+  saveBlob(new Blob([ankiText(notes)], { type: 'text/plain;charset=utf-8' }), `anki-${slug}.txt`);
+  toast(`${n} fiches exportées — dans Anki : Fichier → Importer`);
+}
+// Écrire ou corriger une fiche (les fiches de l'IA restent modifiables ; la progression est gardée)
+function cardEditSheet(noteId, cardId, onDone) {
+  const run = async () => {
+    const n = await db.get(noteId); if (!n) return;
+    const c = cardId ? (n.cards || []).find((x) => x.id === cardId) : null;
+    openSheet(`<h3>${c ? 'Modifier la fiche' : 'Nouvelle fiche'}</h3><p class="sub">Formules en LaTeX entre $…$ ; **gras** accepté.</p>
+      <label class="f" for="ceQ">Question</label><textarea id="ceQ" maxlength="2000">${esc(c ? c.q : '')}</textarea>
+      <label class="f" for="ceA" style="margin-top:12px">Réponse</label><textarea id="ceA" maxlength="4000">${esc(c ? c.a : '')}</textarea>
+      <div class="stack" style="margin-top:14px"><button class="btn primary block" id="ceOk" type="button">Enregistrer</button>${c ? '<button class="btn danger block" id="ceDel" type="button">Supprimer la fiche</button>' : ''}</div>`, (body) => {
+      const q = body.querySelector('#ceQ'), a = body.querySelector('#ceA');
+      sheetFocus(q);
+      body.querySelector('#ceOk').onclick = async () => {
+        const qq = q.value.trim(), aa = a.value.trim();
+        if (!qq || !aa) { toast('Écris la question et la réponse'); (qq ? a : q).focus(); return; }
+        const f = await db.get(noteId); if (!f) return;
+        f.cards = f.cards || [];
+        const k = cardId ? f.cards.find((x) => x.id === cardId) : null;
+        if (k) Object.assign(k, { q: qq, a: aa, edited: Date.now() });
+        else f.cards.push({ id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), q: qq, a: aa, box: 0, due: 0, own: true });
+        await db.put(f);
+        if (currentNote && currentNote.id === noteId) { currentNote.cards = f.cards; renderStudy(); }
+        closeSheet(); toast(k ? 'Fiche modifiée' : 'Fiche ajoutée'); updateBadge();
+        if (onDone) onDone(f, k ? k : f.cards[f.cards.length - 1]);
+      };
+      const del = body.querySelector('#ceDel');
+      if (del) del.onclick = async () => {
+        if (!confirm('Supprimer cette fiche ?')) return;
+        const f = await db.get(noteId); if (!f) return;
+        f.cards = (f.cards || []).filter((x) => x.id !== cardId); await db.put(f);
+        if (currentNote && currentNote.id === noteId) { currentNote.cards = f.cards; renderStudy(); }
+        closeSheet(); toast('Fiche supprimée');
+        if (onDone) onDone(f, null);
+      };
+    });
+  };
+  return run();
+}
+// Rappel quotidien : une notification à l'heure choisie s'il reste des fiches à réviser (aussi vérifié par le service worker)
+async function syncRevRemind() { try { await dbRun('pending', 'readwrite', (st) => st.put({ at: settings.revRemind || '' }, 'rev-remind')); } catch (e) {} }
+async function checkRevRemind(now = Date.now()) {
+  const at = settings.revRemind; if (!at || !/^\d{2}:\d{2}$/.test(at)) return false;
+  const [hh, mm] = at.split(':').map(Number), t = new Date(now); t.setHours(hh, mm, 0, 0);
+  if (now < t.getTime()) return false;
+  const last = await dbRun('pending', 'readonly', (st) => st.get('rev-notified')).catch(() => null);
+  if (last === dayKey(now)) return false;
+  const due = revStats([...(await ensureHeads()).values()], null, now).due;
+  if (!due) return false;
+  if (!('Notification' in window) || Notification.permission !== 'granted' || document.visibilityState === 'visible') return false;
+  await dbRun('pending', 'readwrite', (st) => st.put(dayKey(now), 'rev-notified'));
+  await notify(`🧠 ${due} fiche${due > 1 ? 's' : ''} à réviser`, 'Quelques minutes suffisent pour tout garder en mémoire', ':review');
+  return true;
+}
+
+/* =================== Quiz type examen (QCM) =================== */
+/* L'IA prépare des questions à 4 choix ; le quiz est gardé (rejouable sans IA). Mode examen : chronométré, correction à la fin. */
+const qz = { active: false, items: [], i: 0, picks: [], target: null, timed: false, end: 0, tick: null, done: false };
+let quizzing = null;
+const QUIZ_N = 10;
+const P_QUIZ = (title, text, want, many) => `Tu prépares un quiz d'entraînement à l'examen pour un étudiant, sur « ${title} ».
+${ctxLine()}
+- Exactement ${want} questions à choix multiple, avec 4 propositions chacune et UNE seule bonne réponse.
+- Vise la compréhension et l'application, pas seulement le par-cœur : définitions, raisonnements, petits calculs, cas d'application, pièges signalés par l'enseignant, points annoncés pour l'examen. Quelques questions faciles, la plupart moyennes, 2 ou 3 difficiles.
+- Les mauvaises propositions sont plausibles (erreurs fréquentes, confusions classiques), de longueur et de style proches de la bonne. Jamais « toutes les réponses » ni « aucune ».
+- "why" : explication courte (1 à 3 phrases) de la bonne réponse, et de l'erreur que cache le piège le plus tentant.
+- "t" : ${many ? 'laisse ""' : 'l\'horodatage (mm:ss ou h:mm:ss) du passage du texte où la notion est expliquée, s\'il y en a un ; sinon ""'}.${many ? '\n- "n" : le numéro de la séance d\'où vient la question.' : ''}
+- Formules en LaTeX : $…$. N'invente rien qui ne soit pas dans le cours.
+Réponds UNIQUEMENT avec un tableau JSON, sans texte autour : [{"q": "…", "choices": ["…", "…", "…", "…"], "ok": 0, "why": "…", "t": ""${many ? ', "n": 1' : ''}}]
+
+Cours :
+"""
+${text}
+"""`;
+// « 12:34 » ou « 1:02:03 » → secondes
+const parseClock = (v) => { const m = /^\s*(?:(\d+):)?(\d{1,2}):(\d{2})\s*$/.exec(String(v || '')); return m ? (+(m[1] || 0)) * 3600 + (+m[2]) * 60 + (+m[3]) : null; };
+function parseQuiz(out, many) {
+  let arr = null;
+  const a = out.indexOf('['), b = out.lastIndexOf(']');
+  if (a >= 0 && b > a) { try { arr = JSON.parse(out.slice(a, b + 1)); } catch (e) {} }
+  if (!Array.isArray(arr)) return [];
+  const seen = new Set(), res = [];
+  for (const x of arr) {
+    if (!x || typeof x.q !== 'string' || !Array.isArray(x.choices)) continue;
+    const choices = x.choices.filter((c) => typeof c === 'string' || typeof c === 'number').map((c) => String(c).replace(/^\s*[A-Da-d][).:]\s+/, '').trim()).filter(Boolean);
+    if (choices.length < 2 || choices.length > 6 || new Set(choices.map(norm)).size !== choices.length) continue;
+    let ok = x.ok;
+    if (typeof ok === 'string') ok = /^[A-Fa-f]$/.test(ok.trim()) ? ok.trim().toUpperCase().charCodeAt(0) - 65 : /^\d+$/.test(ok.trim()) ? +ok : choices.findIndex((c) => norm(c) === norm(ok));
+    if (!Number.isInteger(ok) || ok < 0 || ok >= choices.length) continue;
+    const k = norm(x.q).slice(0, 80); if (!x.q.trim() || seen.has(k)) continue; seen.add(k);
+    const n = many && Number.isInteger(+x.n) && +x.n > 0 ? +x.n : null;
+    res.push({ q: x.q.trim(), choices, ok, why: typeof x.why === 'string' ? x.why.trim() : '', t: many ? null : parseClock(x.t), n });
+  }
+  return res;
+}
+// Texte envoyé à l'IA : le résumé, puis la transcription horodatée (raccourcie régulièrement si elle est trop longue)
+function quizSource(n, size) {
+  const head = [n.summary ? 'RÉSUMÉ\n' + n.summary : '', n.mine ? 'NOTES DE L\'ÉTUDIANT\n' + n.mine : ''].filter(Boolean).join('\n\n');
+  const segs = (hasClean(n) ? n.clean : (n.segments || [])).filter((x) => !x.sep && x.text);
+  const lines = []; let cur = null;
+  for (const x of segs) { if (!cur || (x.start || 0) - cur.t >= 40) { cur = { t: x.start || 0, text: '' }; lines.push(cur); } cur.text += ' ' + x.text.trim(); }
+  const budget = Math.max(2000, size - head.length - 200);
+  // trop long même en raccourcissant chaque passage : on garde un passage sur « step », répartis sur tout le cours
+  const step = Math.max(1, Math.ceil(lines.length * 60 / budget));
+  const kept = lines.filter((_, i) => i % step === 0 || i === lines.length - 1), total = kept.reduce((a, l) => a + l.text.length + 10, 0);
+  const ratio = Math.min(1, budget / Math.max(1, total));
+  const tr = kept.map((l) => `[${hms(l.t)}] ${ratio < 1 ? l.text.slice(0, Math.max(40, Math.floor(l.text.length * ratio))) : l.text.trim()}`).join('\n');
+  const body = tr ? head + '\n\nTRANSCRIPTION HORODATÉE\n' + tr : head + (n.lecture ? '\n\nCOURS RÉDIGÉ\n' + n.lecture : '');
+  return body.slice(0, size);
+}
+const quizSize = () => ({ gemini: 120000, mistral: 60000, cerebras: 22000, groq: 9000 })[provider()] || 9000;
+async function quizTarget(t) {   // { note } ou { mat: { key, name }, notes }
+  if (t.mat) return { ...t, store: 'quiz:mat:' + t.mat.key, title: t.mat.name };
+  return { ...t, title: t.note.title };
+}
+async function loadQuiz(t) {
+  if (t.mat) return (await dbRun('pending', 'readonly', (st) => st.get('quiz:mat:' + t.mat.key)).catch(() => null)) || null;
+  const n = await db.get(t.note.id); return (n && n.quiz) || null;
+}
+async function saveQuiz(t, quiz) {
+  if (t.mat) return dbRun('pending', 'readwrite', (st) => st.put(quiz, 'quiz:mat:' + t.mat.key));
+  const n = await db.get(t.note.id); if (!n) return; n.quiz = quiz; await db.put(n);
+  if (currentNote && currentNote.id === n.id) currentNote.quiz = quiz;
+}
+async function makeQuiz(t) {
+  if (quizzing) { toast('Un quiz est déjà en préparation'); return null; }
+  if (busy || enhancing || writing || asking || carding) { toast('Un traitement est en cours — réessaie dès qu\'il sera fini'); return null; }
+  if (!hasKey(provider())) { toast('Ajoute d\'abord une clé d\'IA dans les réglages'); return null; }
+  quizzing = t.mat ? t.mat.key : t.note.id;
+  provFailed = new Set(); provOverride = null;
+  const info = $('stQuizInfo'), old = info ? info.textContent : '';
+  if (info && !t.mat) info.textContent = 'Préparation du quiz…';
+  toast('Préparation du quiz…');
+  try {
+    let text, many = false;
+    if (t.mat) {
+      many = true; setCourseCtx(t.notes[0]);
+      const per = Math.floor(quizSize() / Math.max(1, t.notes.length));
+      text = t.notes.map((n, i) => `SÉANCE ${i + 1} — ${n.title} (${fmtDate(n.created)})\n${(n.summary || '').slice(0, Math.max(800, per - 100))}`).join('\n\n').slice(0, quizSize());
+    } else { setCourseCtx(t.note); text = quizSource(t.note, quizSize()); }
+    let out;
+    for (;;) {
+      try { out = await llm(P_QUIZ(t.mat ? t.mat.name : t.note.title, text, QUIZ_N, many), 6000, 'Quiz', true); break; }
+      catch (e) { const nx = fallBack(e); if (!nx) throw e; }
+    }
+    const items = parseQuiz(out, many);
+    if (items.length < 3) throw new ApiError('L\'IA n\'a pas renvoyé de questions exploitables. Réessaie.');
+    if (many) items.forEach((x) => { x.note = t.notes[(x.n || 1) - 1] ? t.notes[(x.n || 1) - 1].id : null; });
+    const prev = await loadQuiz(t);
+    const quiz = { at: Date.now(), by: lastModel, items, hist: (prev && prev.hist) || [] };
+    await saveQuiz(t, quiz);
+    return quiz;
+  } catch (e) {
+    toast(e instanceof ApiError ? e.message : 'Erreur : ' + e.message);
+    return null;
+  } finally { quizzing = null; provOverride = null; provFailed = new Set(); if (info && !t.mat) info.textContent = old; renderQuizInfo(); }
+}
+function renderQuizInfo() {
+  const n = currentNote, el = $('stQuizInfo'); if (!n || !el || quizzing === n.id) return;
+  const q = n.quiz, h = q && q.hist && q.hist.length ? q.hist[q.hist.length - 1] : null;
+  el.textContent = q ? `${q.items.length} questions${h ? ` · dernier score ${h.score}/${h.total}` : ''}` : 'Questions à choix multiple, correction expliquée';
+}
+async function quizMenu(t) {
+  const quiz = await loadQuiz(t), best = quiz && quiz.hist.length ? Math.max(...quiz.hist.map((h) => h.score)) : null;
+  openSheet(`<h3>Quiz type examen</h3><p class="sub">${esc(t.mat ? t.mat.name : t.note.title)}${quiz ? ` · ${quiz.items.length} questions${best != null ? ` · meilleur score ${best}/${quiz.items.length}` : ''}` : ''}</p>
+    <label class="chkline" style="margin:0 0 14px"><input type="checkbox" class="tck" id="qzTimed"><span><b>Mode examen</b><small style="display:block;color:var(--muted);font-weight:400;margin-top:2px">Chronométré (1 minute par question), correction à la fin.</small></span></label>
+    <div class="stack">${quiz ? '<button class="btn primary block" id="qzReplay" type="button">Refaire ce quiz</button>' : ''}
+    <button class="btn ${quiz ? '' : 'primary '}block" id="qzNew" type="button">${quiz ? 'Nouveau quiz (l\'IA prépare d\'autres questions)' : 'Préparer le quiz'}</button></div>`, (body) => {
+    const timed = () => body.querySelector('#qzTimed').checked;
+    const rp = body.querySelector('#qzReplay'); if (rp) rp.onclick = () => { const tm = timed(); closeSheet(); startQuiz(t, quiz, tm); };
+    body.querySelector('#qzNew').onclick = async () => { const tm = timed(); closeSheet(); const q = await makeQuiz(t); if (q) startQuiz(t, q, tm); };
+  });
+}
+function startQuiz(t, quiz, timed) {
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const items = quiz.items.map((x) => ({ ...x, order: shuffle(x.choices.map((_, i) => i)) }));
+  clearInterval(qz.tick);
+  Object.assign(qz, { active: true, items, i: 0, picks: Array(items.length).fill(null), target: t, timed: !!timed, end: timed ? Date.now() + items.length * 60000 : 0, done: false, saved: false });
+  if (timed) qz.tick = setInterval(quizTick, 1000);
+  show('quiz');
+}
+function quizTick() {
+  if (!qz.active || !qz.timed || qz.done) { clearInterval(qz.tick); return; }
+  const left = Math.max(0, qz.end - Date.now()), el = $('qzTime');
+  el.textContent = `${Math.floor(left / 60000)}:${String(Math.floor(left / 1000) % 60).padStart(2, '0')}`;
+  el.classList.toggle('low', left < 60000);
+  if (!left) { qz.i = qz.items.length; announce('Temps écoulé'); drawQuiz(true); }
+}
+const quizScore = () => qz.items.reduce((a, x, i) => a + (qz.picks[i] === x.ok ? 1 : 0), 0);
+function quizRef(x, i) {   // « Réécouter le passage » : horodatage d'une note, ou la séance d'une matière
+  const id = x.note || (qz.target && qz.target.note && qz.target.note.id);
+  if (!id) return '';
+  return x.t != null ? `<button class="ts" type="button" data-qt="${i}">▷ ${hms(x.t)}</button>` : qz.target.mat ? `<button class="linkbtn" type="button" data-qn="${i}">Voir la séance</button>` : '';
+}
+function wireQuizRefs(root) {
+  root.querySelectorAll('[data-qt]').forEach((b) => b.onclick = () => { const x = qz.items[+b.dataset.qt]; jumpTo(x.note || qz.target.note.id, x.t); });
+  root.querySelectorAll('[data-qn]').forEach((b) => b.onclick = () => openNote(qz.items[+b.dataset.qn].note));
+}
+async function finishQuiz() {
+  qz.done = true; clearInterval(qz.tick); $('qzTime').textContent = '';
+  if (qz.saved) return;
+  qz.saved = true;
+  const t = qz.target, quiz = await loadQuiz(t);
+  if (quiz) { quiz.hist = [...(quiz.hist || []), { at: Date.now(), score: quizScore(), total: qz.items.length, timed: qz.timed }].slice(-30); await saveQuiz(t, quiz); }
+}
+function drawQuiz(focus) {
+  const st = $('qzStage'); if (!qz.active) { navBack(); return; }
+  const moveFocus = (sel) => { const f = focus && st.querySelector(sel); if (f) { f.tabIndex = -1; try { f.focus({ preventScroll: true }); } catch (e) {} } };
+  const n = qz.items.length, done = qz.i >= n;
+  $('qzProg').textContent = done ? '' : `${qz.i + 1} / ${n}`;
+  $('qzBar').style.width = Math.round(100 * Math.min(qz.i, n) / n) + '%';
+  if (done) {
+    finishQuiz();
+    const sc = quizScore(), pct = Math.round(100 * sc / n), wrong = qz.items.map((x, i) => i).filter((i) => qz.picks[i] !== qz.items[i].ok);
+    st.innerHTML = `<div class="card qz-score"><div class="big">${sc}/${n}</div><p><b>${pct >= 80 ? 'Excellent !' : pct >= 50 ? 'Pas mal, encore un effort.' : 'À retravailler.'}</b></p><p class="muted">${pct} % de bonnes réponses${qz.timed ? ' · mode examen' : ''}</p>
+      <div class="stack">${wrong.length ? `<button class="btn primary block" id="qzCards" type="button">${ICONS.cards}Créer des fiches pour mes ${wrong.length} erreur${wrong.length > 1 ? 's' : ''}</button>` : ''}
+      <button class="btn block" id="qzAgain" type="button">Recommencer</button><button class="btn block" id="qzEnd" type="button">Retour</button></div></div>
+      <h2 class="group" role="heading" aria-level="2">Correction</h2>
+      <div class="qz-list">${qz.items.map((x, i) => { const p = qz.picks[i], ok = p === x.ok; return `<div class="card qz-item"><div class="md">${md(x.q, { i: 0, noEdit: true })}</div>
+        <div class="r">${ok ? '<b style="color:var(--green)">✓ Juste</b>' : `<b style="color:var(--err)">✗ ${p == null ? 'Sans réponse' : 'Ta réponse : ' + esc(x.choices[p])}</b>`}</div>
+        <div class="r"><b>Bonne réponse :</b> ${md(x.choices[x.ok], { i: 0, noEdit: true }).replace(/^<p>|<\/p>$/g, '')}</div>
+        ${x.why ? `<div class="r muted">${md(x.why, { i: 0, noEdit: true }).replace(/^<p>|<\/p>$/g, '')}</div>` : ''}<div class="r">${quizRef(x, i)}</div></div>`; }).join('')}</div>`;
+    renderMath(st); wireQuizRefs(st);
+    const qc = $('qzCards'); if (qc) qc.onclick = () => quizErrorCards(wrong);
+    $('qzAgain').onclick = async () => { const q = await loadQuiz(qz.target); if (q) startQuiz(qz.target, q, qz.timed); };
+    $('qzEnd').onclick = () => { qz.active = false; navBack(); };
+    moveFocus('.qz-score .big');
+    return;
+  }
+  const x = qz.items[qz.i], p = qz.picks[qz.i], shown = p != null && !qz.timed;
+  st.innerHTML = `<div class="card qz-card"><div class="rv-deck">${esc(qz.target.mat ? qz.target.mat.name : qz.target.note.title)}</div>
+    <div class="qz-q md" id="qzQ">${md(x.q, { i: 0, noEdit: true })}</div>
+    <div class="qz-chs" role="group" aria-labelledby="qzQ">${x.order.map((c, k) => `<button class="qz-ch${shown ? (c === x.ok ? ' ok' : c === p ? ' ko' : '') : ''}" type="button" data-c="${c}"${shown ? ' disabled' : ''}${qz.timed && p === c ? ' aria-pressed="true" style="border-color:var(--accent-ink)"' : ''}><span class="l" aria-hidden="true">${'ABCDEF'[k]}</span><span class="md">${md(x.choices[c], { i: 0, noEdit: true })}</span></button>`).join('')}</div>
+    ${shown ? `<div class="qz-why" id="qzWhy"><b class="${p === x.ok ? 'ok' : 'ko'}">${p === x.ok ? '✓ Bonne réponse.' : '✗ Raté.'}</b> ${x.why ? md(x.why, { i: 0, noEdit: true }).replace(/^<p>|<\/p>$/g, '') : ''} ${quizRef(x, qz.i)}</div>
+      <button class="btn primary block" id="qzNext" type="button">${qz.i + 1 < n ? 'Question suivante' : 'Voir le résultat'}</button>` : ''}</div>`;
+  renderMath(st); wireQuizRefs(st);
+  st.querySelectorAll('.qz-ch:not([disabled])').forEach((b) => b.onclick = () => {
+    qz.picks[qz.i] = +b.dataset.c;
+    if (qz.timed) { qz.i++; drawQuiz(true); return; }
+    announce(qz.picks[qz.i] === x.ok ? 'Bonne réponse' : 'Raté. La bonne réponse est : ' + x.choices[x.ok]);
+    drawQuiz(true);
+  });
+  const nx = $('qzNext'); if (nx) nx.onclick = () => { qz.i++; drawQuiz(true); };
+  moveFocus(shown ? '#qzWhy' : '#qzQ');
+}
+// Les questions ratées deviennent des fiches de révision (dans la note d'où elles viennent)
+async function quizErrorCards(idx) {
+  const byNote = new Map();
+  for (const i of idx) { const x = qz.items[i], id = x.note || (qz.target.note && qz.target.note.id); if (!id) continue; if (!byNote.has(id)) byNote.set(id, []); byNote.get(id).push(x); }
+  let added = 0;
+  for (const [id, xs] of byNote) {
+    const n = await db.get(id); if (!n) continue;
+    n.cards = n.cards || [];
+    const have = new Set(n.cards.map((c) => norm(c.q).slice(0, 80)));
+    for (const x of xs) {
+      if (have.has(norm(x.q).slice(0, 80))) continue;
+      n.cards.push({ id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), q: x.q, a: x.choices[x.ok] + (x.why ? '\n\n' + x.why : ''), box: 0, due: 0, from: 'quiz' }); added++;
+    }
+    await db.put(n);
+    if (currentNote && currentNote.id === id) currentNote.cards = n.cards;
+  }
+  toast(added ? `${added} fiche${added > 1 ? 's' : ''} ajoutée${added > 1 ? 's' : ''} à réviser` : 'Ces questions sont déjà dans tes fiches');
+  const b = $('qzCards'); if (b) { b.disabled = true; b.textContent = 'Fiches créées'; }
 }
 
 /* =================== Emploi du temps (calendrier .ics) =================== */
@@ -5716,6 +6158,8 @@ async function renderCourse() {
       <button class="btn" id="cAsk" ${notes.length ? '' : 'disabled'}>${ICONS.quiz}Poser une question</button>
       <button class="btn" id="cRev" ${cards.length ? '' : 'disabled'}>${ICONS.cards}Réviser les fiches</button>
       <button class="btn" id="cPdf" ${notes.length ? '' : 'disabled'}>${ICONS.download}PDF pour NotebookLM</button>
+      <button class="btn" id="cAnki" ${cards.length ? '' : 'disabled'}>${ICONS.share}Fiches vers Anki</button>
+      <button class="btn" id="cQuiz" ${notes.some((n) => n.summary) ? '' : 'disabled'}>${ICONS.quiz}Quiz d'examen</button>
     </div>`;
   if (synthing === m.key) h += `<div class="card synth-run"><b>Synthèse en cours…</b><div class="lin" style="margin:10px 0 6px"><i style="width:60%"></i></div><div class="enh-st" id="synStatus"></div></div>`;
   else if (synth && synth.md) h += `<details class="card synth" id="synthBox"><summary><span class="sec-ic hue" style="--h:${m.hue}">${ICONS.spark}</span><b>Synthèse de la matière</b><small>${synth.n} séance${synth.n > 1 ? 's' : ''} · ${fmtDate(synth.at)}</small></summary><div class="md">${md(synth.md, { i: 0, noEdit: true })}</div><div class="row"><button class="btn" id="cSynCopy">${ICONS.share}Copier</button></div></details>`;
@@ -5732,6 +6176,8 @@ async function renderCourse() {
   $('cAsk').onclick = () => { currentNote = null; openAsk('course', 'course', m.key); };
   $('cRev').onclick = () => startReview(notes.filter((n) => (n.cardDue || []).length).map((n) => n.id));
   $('cPdf').onclick = () => printCourse(m.key);
+  $('cQuiz').onclick = async () => quizMenu({ mat: { key: m.key, name: m.name }, notes: (await fullNotes((h) => !!h.summary && notes.some((n) => n.id === h.id))).sort((a, b) => a.created - b.created) });
+  $('cAnki').onclick = async () => exportAnki(await fullNotes((h) => (h.cardDue || []).length && notes.some((n) => n.id === h.id)), m.name);
   if ($('cSynCopy')) $('cSynCopy').onclick = async () => { try { await navigator.clipboard.writeText(`# ${m.name} — synthèse\n\n${synth.md}`); toast('Synthèse copiée'); } catch (e) { toast('Copie impossible'); } };
   $('cRename').onclick = () => {
     const name = prompt('Nom de la matière', m.name); if (name == null || !name.trim()) return;
@@ -6603,6 +7049,7 @@ async function navBack() {
     if (st.v === 'job' && !busy) continue;
     if (st.v === 'rec' && !rec.mr) continue;
     if (st.v === 'review' && !rv.active) continue;
+    if (st.v === 'quiz' && !qz.active) continue;
     if (TABS.includes(st.v)) { show(st.v); return; }
     navLock = true;
     try {
@@ -6687,7 +7134,7 @@ const NOTE_FIELDS = {
   photos: (v) => arr(v).map(obj).filter((x) => x && safeId(x.id)).map((x) => ({ id: x.id, t: x.t == null ? null : toNum(x.t), at: toNum(x.at), w: toNum(x.w), h: toNum(x.h),
     ...(x.text ? { text: toStr(x.text), textBy: toStr(x.textBy) } : {}), ...(x.textErr ? { textErr: toStr(x.textErr) } : {}) })),
   cards: (v) => arr(v).map(obj).filter((x) => x && safeId(x.id)).map((x) => ({ id: x.id, q: toStr(x.q), a: toStr(x.a), box: toNum(x.box), due: toNum(x.due),
-    ...(x.seen ? { seen: toNum(x.seen) } : {}), ...(x.last ? { last: toNum(x.last) } : {}), ...(x.lapses ? { lapses: toNum(x.lapses) } : {}) })),
+    ...(x.seen ? { seen: toNum(x.seen) } : {}), ...(x.last ? { last: toNum(x.last) } : {}), ...(x.lapses ? { lapses: toNum(x.lapses) } : {}), ...(x.own ? { own: true } : {}), ...(x.from === 'quiz' ? { from: 'quiz' } : {}) })),
   chat: (v) => arr(v).map(obj).filter(Boolean).map((x) => ({ q: toStr(x.q), a: toStr(x.a), at: toNum(x.at), by: toStr(x.by), ...(x.err ? { err: true } : {}),
     ...(Array.isArray(x.notes) ? { notes: x.notes.filter(safeId) } : {}) })),
   course: (v) => { const c = obj(v); if (!c) return undefined;
@@ -6696,6 +7143,10 @@ const NOTE_FIELDS = {
   mergedFrom: (v) => arr(v).map(obj).filter((x) => x && safeId(x.id)).map((x) => ({ id: x.id, title: toStr(x.title), fileName: toStr(x.fileName), created: toNum(x.created),
     duration: toNum(x.duration), off: toNum(x.off), parts: arr(x.parts).map(obj).filter((p) => p && safeId(p.id)).map((p) => ({ id: p.id, off: toNum(p.off) })) })),
   whisperUsed: (v) => arr(v).map(toStr).filter(Boolean),
+  quiz: (v) => { const q = obj(v); if (!q) return undefined;
+    const items = arr(q.items).map(obj).filter(Boolean).map((x) => ({ q: toStr(x.q), choices: arr(x.choices).map(toStr).slice(0, 6), ok: Math.trunc(toNum(x.ok)), why: toStr(x.why),
+      t: x.t == null ? null : toNum(x.t), n: x.n == null ? null : Math.trunc(toNum(x.n)), ...(safeId(x.note) ? { note: x.note } : {}) })).filter((x) => x.q && x.choices.length >= 2 && x.ok >= 0 && x.ok < x.choices.length);
+    return items.length ? { at: toNum(q.at), by: toStr(q.by), items, hist: arr(q.hist).map(obj).filter(Boolean).map((h) => ({ at: toNum(h.at), score: toNum(h.score), total: toNum(h.total), timed: !!h.timed })).slice(-30) } : undefined; },
 };
 NOTE_FIELDS.clean = NOTE_FIELDS.segments;
 const NOTE_NUMS = ['created', 'addedAt', 'size', 'duration', 'cleanAt', 'lectureAt', 'cardsAt', 'mineAt'];
@@ -6720,7 +7171,7 @@ function sanitizeNote(n) {
 }
 // Réglages d'une sauvegarde : seulement les réglages connus, avec des valeurs possibles
 const SETTING_CHECK = {
-  lang: (v) => v === 'auto' || !!LANGS[v], whisper: (v) => WHISPERS.includes(v), kind: (v) => !!KINDS[v], autoRemind: (v) => ['eve', 'morning', 'none'].includes(v),
+  lang: (v) => v === 'auto' || !!LANGS[v], whisper: (v) => WHISPERS.includes(v), kind: (v) => !!KINDS[v], autoRemind: (v) => ['eve', 'morning', 'none'].includes(v), revRemind: (v) => v === '' || /^([01]\d|2[0-3]):[0-5]\d$/.test(v),
   theme: (v) => THEMES.some((t) => t.id === v), fs: (v) => ['s', 'm', 'l', 'xl'].includes(v), provider: (v) => v === 'auto' || CHAIN.includes(v),
   bg: (v) => typeof v === 'boolean', keepAudio: (v) => typeof v === 'boolean', pauto: (v) => typeof v === 'boolean',
   pregion: (v) => v === 'eu' || v === 'us', psince: (v) => Number.isFinite(v), courseRemind: (v) => [0, 5, 10, 15, 30].includes(v),
@@ -6844,6 +7295,7 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if
 function showSettings() {
   $('sKind').value = settings.kind || 'auto';
   $('sRemind').value = settings.autoRemind || 'eve';
+  $('sRevRem').value = settings.revRemind || '';
   $('sBg').checked = settings.bg !== false;
   $('sKeepAudio').checked = settings.keepAudio !== false;
   $('sIcsUrl').value = settings.icsUrl || ''; $('sCourseRem').value = String(settings.courseRemind || 0); renderAgState();
@@ -6968,7 +7420,7 @@ $('sSave').onclick = () => {
     llms: $('sLlm').value.trim() || DEFAULTS.llms, ctx: $('sCtx').value,
     provider: $('sProv').value, gkey: $('sGKey').value.trim(), gmodels: $('sGModel').value.trim() || DEFAULTS.gmodels,
     ckey: $('sCKey').value.trim(), cmodels: $('sCModel').value.trim() || DEFAULTS.cmodels,
-    mkey: $('sMKey').value.trim(), mmodels: $('sMModel').value.trim() || DEFAULTS.mmodels, kind: $('sKind').value, autoRemind: $('sRemind').value, bg: $('sBg').checked, keepAudio: $('sKeepAudio').checked, icsUrl: $('sIcsUrl').value.trim(), courseRemind: +$('sCourseRem').value || 0 };
+    mkey: $('sMKey').value.trim(), mmodels: $('sMModel').value.trim() || DEFAULTS.mmodels, kind: $('sKind').value, autoRemind: $('sRemind').value, revRemind: $('sRevRem').value, bg: $('sBg').checked, keepAudio: $('sKeepAudio').checked, icsUrl: $('sIcsUrl').value.trim(), courseRemind: +$('sCourseRem').value || 0 };
   const prev = loadSettings();
   settings.theme = prev.theme || 'auto';
   settings.fs = prev.fs || 'm';
@@ -6977,6 +7429,8 @@ $('sSave').onclick = () => {
     pregion: nt === prev.ptoken ? prev.pregion : undefined,
     psince: prev.psince || (nt && nr ? Date.now() : undefined) });   // l'import auto ne concerne que les enregistrements à venir
   toast(saveSettings(settings) ? 'Réglages enregistrés' : 'Impossible d\'enregistrer (navigation privée ?)');
+  syncRevRemind();
+  if (settings.revRemind && 'Notification' in window && Notification.permission === 'default') askNotif();
   show('home');
   if (plaudOn()) setTimeout(() => plaudAutoCheck(true), 300);
   agendaSettingsChanged(prev);
@@ -7077,6 +7531,8 @@ $('pinBtn').onclick = togglePin;
 $('askBtn').onclick = () => openAsk('note', 'note');
 $('stAsk').onclick = () => openAsk('note', 'note');
 $('stCards').onclick = () => { if (currentNote) cardsMenu(currentNote); };
+$('stQuiz').onclick = () => { if (currentNote) quizMenu({ note: currentNote }); };
+$('qzQuit').onclick = () => { if (!qz.done && qz.picks.some((p) => p != null) && !confirm('Arrêter le quiz ? Ton score ne sera pas enregistré.')) return; clearInterval(qz.tick); qz.active = false; navBack(); };
 $('askSend').onclick = sendAsk;
 $('askInput').oninput = autoGrow;
 $('askInput').onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); sendAsk(); } };
@@ -7203,7 +7659,7 @@ document.querySelectorAll('#trMode button').forEach((b) => b.onclick = () => { t
 $('runBanner').onclick = () => show('job');
 $('notifBtn').onclick = askNotif;
 $('notifHintBtn').onclick = askNotif;
-if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.open) { if (e.data.open === ':tasks') show('tasks'); else if (e.data.open === ':courses') show('courses'); else openNote(e.data.open); } });
+if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.open) { if (e.data.open === ':tasks') show('tasks'); else if (e.data.open === ':courses') show('courses'); else if (e.data.open === ':review') startReview(); else openNote(e.data.open); } });
 // Reprend automatiquement un traitement interrompu (app fermée ou mise en pause par Android)
 async function resumeInterrupted() {
   if (busy || enhancing || writing) return;
@@ -7238,7 +7694,7 @@ window.addEventListener('beforeunload', (e) => { if (busy || enhancing || writin
   if (sharedOk) await startFile(shared);
   else show('home');
   renderNotif();
-  if (!shared && params.has('note')) { const id = params.get('note'); history.replaceState(history.state, '', location.pathname); if (id === ':tasks') show('tasks'); else if (id === ':courses') show('courses'); else openNote(id); }
+  if (!shared && params.has('note')) { const id = params.get('note'); history.replaceState(history.state, '', location.pathname); if (id === ':tasks') show('tasks'); else if (id === ':courses') show('courses'); else if (id === ':review') startReview(); else openNote(id); }
   await recoverRec();
   const act = params.get('action');
   if (act) { history.replaceState(history.state, '', location.pathname); if (!shared) setTimeout(() => runAction(act), 300); }
@@ -7251,7 +7707,8 @@ window.addEventListener('beforeunload', (e) => { if (busy || enhancing || writin
   }, 4000);
   scheduleCourseReminders();
   if (settings.icsUrl && Date.now() - (AG.at || 0) > 12 * 3600000) setTimeout(() => syncAgenda(false), 2500);
-  setInterval(tickCourses, 30000);
+  setInterval(() => { tickCourses(); checkRevRemind().catch(() => {}); }, 30000);
+  syncRevRemind();
   setTimeout(() => plaudAutoCheck(true), 1500);
   if (!shared && (params.has('shared') || pending)) {
     const i = (pending && pending.info) || {};

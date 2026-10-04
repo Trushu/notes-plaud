@@ -96,6 +96,12 @@ test.describe('Audit axe-core : autres écrans et fenêtres', () => {
     await page.goto('./');
     await expect(page.locator('#onboard')).toBeVisible();
     await auditThemes(page, 'premier lancement', out);
+    await page.locator('#onboardBtn').click();
+    await expect(page.locator('#wzKey')).toBeVisible();
+    await page.locator('#wzKey').fill('x'); await page.locator('#wzGo').click();
+    await expect(page.locator('#wzRes')).toContainText('refusée');
+    await auditThemes(page, 'premier lancement guidé', out);
+    await page.keyboard.press('Escape');
 
     await useSettings(page, { key: 'gsk_test', gkey: 'AIza_test', prelay: 'https://relais.test', ptoken: 'a.b.c', pauto: false });
     let release;

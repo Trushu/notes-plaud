@@ -8,6 +8,8 @@ Tout est gratuit : l'hébergement sur GitHub Pages et l'API Groq. Tu n'as besoin
 
 ## Étape 1 : créer ta clé Groq (2 min)
 
+> **Le plus simple :** installe d'abord l'app (étapes 2 et 3). À la première ouverture, touche **Commencer (2 minutes)** : un assistant te guide pour créer et coller la clé Groq, puis la clé Gemini (facultative), et **vérifie chaque clé** tout de suite. Les explications ci-dessous restent valables si tu préfères le faire à la main.
+
 1. Va sur **https://console.groq.com**, puis crée un compte (connexion Google possible).
 2. Va dans **API Keys**, puis **Create API Key**. Donne-lui un nom, par exemple « Notes Plaud ».
 3. Copie la clé (elle commence par `gsk_…`). Garde-la de côté : elle ne s'affiche qu'une seule fois.
@@ -51,6 +53,8 @@ Si Gemini est saturé, l'app peut passer toute seule à d'autres IA gratuites, d
 - **Mistral** : clé gratuite sur https://console.mistral.ai/api-keys (offre « Experiment »). Très bon en français ; sur l'offre gratuite, Mistral peut utiliser les textes envoyés pour entraîner ses modèles.
 
 Colle-les dans Réglages → Résumé. Tu peux aussi choisir l'une d'elles comme IA principale.
+
+Dans les Réglages, le bouton **Tester** à côté de chaque clé vérifie aussitôt qu'elle marche. Il affiche « Clé valide ✓ », « Clé refusée » (avec un indice, par exemple : une clé Groq commence par `gsk_`) ou « limite gratuite atteinte ». Si un traitement échoue à cause d'une clé, du stockage ou d'une limite, l'écran d'erreur propose un bouton qui mène directement au bon réglage.
 
 Quand une IA atteint sa limite gratuite (quota du jour, limite par minute), l'app la **met au repos** : pendant 15 minutes, ou quelques heures pour un quota du jour. Les traitements suivants commencent alors directement par l'IA suivante, au lieu de retenter à chaque fois. Réglages → Résumé indique quelle IA est au repos et jusqu'à quand ; **Réessayer quand même** la réactive.
 

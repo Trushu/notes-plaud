@@ -52,3 +52,14 @@ test.describe('Consignes du résumé', () => {
     assert.equal(app.kindOf('Questions posées en classe'), 'quiz');
   });
 });
+
+test.describe('Erreurs avec action (U3)', () => {
+  const { app } = loadApp({ now: NOW, settings: { key: 'gsk' } });
+  test('le bon bouton selon le message', () => {
+    assert.equal(app.errorAction('Clé API Groq refusée. Vérifie-la dans les réglages.').label, 'Vérifier ma clé');
+    assert.equal(app.errorAction('Clé API Gemini refusée. Vérifie-la dans les réglages (icône en haut à droite).').label, 'Vérifier ma clé');
+    assert.equal(app.errorAction('Plus assez de place sur le téléphone pour garder ce fichier.').label, 'Libérer de la place');
+    assert.equal(app.errorAction('limite gratuite de Groq atteinte').label, 'Ajouter une IA de secours');
+    assert.equal(app.errorAction('Erreur inattendue : boum'), null);
+  });
+});

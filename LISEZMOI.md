@@ -183,6 +183,19 @@ Sur une note, touche l'icône **bulle ?** en haut (ou **Demander** sous le résu
 - **Anki / AnkiDroid :** **Exporter vers Anki** (menu des fiches d'une note), **Fiches vers Anki** (page d'une matière) ou **Exporter toutes les fiches** (statistiques) télécharge un fichier texte. Dans Anki : **Fichier → Importer** ; dans AnkiDroid : **⋮ → Importer**. Chaque matière devient un paquet « Notes Plaud::Matière », les tags suivent, les formules s'affichent. Réimporter le même fichier met les fiches à jour sans doublon.
 - **Rappel quotidien :** Réglages → Notifications → **Rappel quotidien de révision** : une notification à l'heure choisie s'il reste des fiches à réviser (une par jour au plus).
 
+### Préparer un examen : le planning de révision
+
+- **Date de l'examen :** l'app la trouve toute seule dans l'emploi du temps (un événement « Examen », « Partiel »… de la matière). Sinon, sur la page de la matière : **Pas de date d'examen → Ajouter**. Un examen peut aussi être déplacé ou retiré.
+- **Planning jour par jour** jusqu'à la veille de l'examen :
+  - la synthèse de la matière le premier jour, si elle n'est pas faite ;
+  - la relecture de chaque séance, répartie sur les premiers jours ;
+  - une deuxième lecture des séances dont les fiches sont les plus ratées ;
+  - un quiz d'entraînement ;
+  - un **examen blanc** (quiz chronométré) la veille ;
+  - les fiches du jour, tous les jours.
+- Touche une ligne pour la faire (ouvrir la séance, lancer le quiz…). **Coche-la** quand c'est fait : la coche est gardée.
+- **Compte à rebours :** l'accueil affiche l'examen le plus proche (dans les 30 jours) et ce qu'il reste à faire aujourd'hui. L'onglet **Cours** liste les **examens à venir**.
+
 ### S'entraîner avec un quiz type examen
 
 - Sous le résumé d'une note, **Quiz type examen → Lancer**. Sur la page d'une **matière**, **Quiz d'examen** porte sur toutes ses séances. L'IA prépare une dizaine de **questions à 4 choix**, avec des pièges plausibles et des questions de compréhension et d'application.

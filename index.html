@@ -815,6 +815,21 @@
   .home-crs b { display: block; font: 600 17px/1.25 var(--serif); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .home-crs span.d { display: block; color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .home-crs .btn { min-height: 40px; padding: 0 12px; flex: none; }
+  .home-exam, .crs-exam { display: flex; align-items: center; gap: 12px; padding: 14px 14px 14px 16px; margin-bottom: 14px; }
+  .home-exam .sec-ic, .crs-exam .sec-ic { background: var(--err-soft); color: var(--err); flex: none; }
+  .home-exam .grow, .crs-exam .grow { flex: 1; min-width: 0; }
+  .home-exam b, .crs-exam b { display: block; font: 600 16.5px/1.25 var(--serif); }
+  .home-exam small, .crs-exam small { display: block; color: var(--muted); font-size: 13px; }
+  .home-exam .btn, .crs-exam .btn { min-height: 40px; padding: 0 14px; flex: none; }
+  .ex-row { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 14px; margin-bottom: 8px; border-left: 4px solid hsl(var(--h, 20) 60% 45%); font: inherit; color: inherit; cursor: pointer; }
+  .ex-row .ev-time { font-weight: 700; min-width: 4.5em; } .ex-row .ev-main b { display: block; } .ex-row .ev-main small { color: var(--muted); }
+  .pl-days { max-height: 58vh; overflow: auto; display: flex; flex-direction: column; gap: 10px; }
+  .pl-day { padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; }
+  .pl-day.today { border-color: var(--accent-ink); }
+  .pl-day > b { display: block; font-weight: 700; margin-bottom: 4px; text-transform: capitalize; }
+  .pl-it { display: flex; align-items: center; gap: 10px; padding: 5px 0; }
+  .pl-it .linkbtn { text-align: left; font-weight: 500; color: var(--ink); text-decoration: none; }
+  .pl-it .tck:checked + .linkbtn { color: var(--muted); text-decoration: line-through; }
   .home-rev { display: flex; align-items: center; gap: 12px; padding: 14px 14px 14px 16px; margin-bottom: 14px; }
   .home-rev .sec-ic { background: var(--violet-soft); color: var(--violet); flex: none; }
   .home-rev .grow { flex: 1; min-width: 0; }
@@ -1067,6 +1082,7 @@
         <div class="row" style="margin-top:10px"><button class="btn primary" id="bkRemindGo" style="min-height:38px">Sauvegarder</button><button class="btn ghost" id="bkRemindX" style="min-height:38px">Plus tard</button></div></div>
     </div>
     <div id="homeCrs"></div>
+    <div id="homeExam"></div>
     <div id="homeRev"></div>
     <button class="card run-banner rec-banner hidden" id="recBanner">
       <span class="rec-dot"></span>
@@ -1618,7 +1634,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '37 · 4 oct. 2026';
+const APP_VERSION = '38 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -3448,6 +3464,7 @@ async function renderHome() {
   renderList();
   renderBkRemind();
   renderHomeCourse();
+  renderHomeExam();
   renderHomeRev();
   renderResume();
 }
@@ -5594,6 +5611,97 @@ async function quizErrorCards(idx) {
   const b = $('qzCards'); if (b) { b.disabled = true; b.textContent = 'Fiches créées'; }
 }
 
+/* =================== Planning de révision avant les examens =================== */
+/* Date d'examen : celle du calendrier (événement « Examen », « partiel »…) ou saisie à la main sur la page de la matière.
+   Le planning répartit, jusqu'à la veille, la relecture des séances, la synthèse, les quiz et les fiches du jour. */
+const isoDayStr = (t) => dayKey(t);
+const fromIso = (s) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]).getTime() : null; };
+function examOf(m, now = Date.now()) {
+  const pr = crsPrefs()[m.key] || {};
+  if (pr.exam) { const t = fromIso(pr.exam); return t != null && t + DAY > now ? { at: t, manual: true } : null; }
+  const e = (m.events || []).filter((x) => x.kind === 'exam' && x.end > now).sort((a, b) => a.start - b.start)[0];
+  return e ? { at: e.start, manual: false, ev: e } : null;
+}
+function upcomingExams(now = Date.now()) {
+  return matieres().filter((m) => !m.hidden).map((m) => ({ m, ex: examOf(m, now) })).filter((x) => x.ex).sort((a, b) => a.ex.at - b.ex.at);
+}
+// Plan jour par jour (fonction pure : testée) ; notes = séances de la matière (fiches légères), dans l'ordre
+function buildPlan(notes, examAt, now = Date.now(), opts = {}) {
+  const today = dayStart(now), D = Math.round((dayStart(examAt) - today) / DAY);
+  if (D <= 0) return [];
+  const days = Array.from({ length: D }, (_, i) => ({ day: today + i * DAY, items: [] }));
+  const sess = notes.filter((n) => n.summary || n.hasSegs);
+  if (!opts.hasSynth && sess.length > 1) days[0].items.push({ k: 'synth' });
+  const readDays = Math.max(1, Math.min(D, Math.floor(D * 0.6) || 1));
+  sess.forEach((n, i) => days[Math.floor(i * readDays / Math.max(1, sess.length))].items.push({ k: 'read', id: n.id, title: n.title }));
+  if (D >= 3) days[Math.min(D - 2, Math.max(readDays, Math.floor(D * 0.75)))].items.push({ k: 'quiz' });
+  // seconde lecture des séances les moins bien maîtrisées (fiches ratées), s'il reste des jours
+  if (D >= 6 && sess.length) {
+    const weak = [...sess].sort((a, b) => (b.weak || 0) - (a.weak || 0)).slice(0, Math.min(3, sess.length)).filter((n) => (n.weak || 0) > 0);
+    weak.forEach((n, i) => days[Math.min(D - 2, readDays + i)].items.push({ k: 'read', id: n.id, title: n.title, again: true }));
+  }
+  days[D - 1].items.push({ k: 'quiz', exam: true });
+  for (const d of days) d.items.push({ k: 'cards' });
+  return days;
+}
+const planKey = (day, it) => `${dayKey(day)}|${it.k}|${it.id || ''}${it.exam ? '|x' : ''}${it.again ? '|2' : ''}`;
+const planDone = () => { try { return JSON.parse(lsGet('np-plan', '{}')); } catch (e) { return {}; } };
+async function planFor(m, now = Date.now()) {
+  const ex = examOf(m, now); if (!ex) return null;
+  const heads = [...(await ensureHeads()).values()].filter((h) => h.course && h.course.key === m.key).sort((a, b) => a.created - b.created);
+  // séance « faible » : fiches revenues au début (boîte 1) ou jamais sues
+  for (const h of heads) h.weak = (h.cardBox || []).filter((b, i) => b <= 1 && (h.cardDue || [])[i]).length;
+  return { ex, heads, days: buildPlan(heads, ex.at, now, { hasSynth: !!(await getSynth(m.key)) }) };
+}
+const relDays = (t, now = Date.now()) => { const d = Math.round((dayStart(t) - dayStart(now)) / DAY); return d <= 0 ? 'aujourd\'hui' : d === 1 ? 'demain' : `dans ${d} jours`; };
+const PLAN_LBL = { synth: 'Faire la synthèse de la matière', quiz: 'Quiz d\'entraînement', cards: 'Réviser les fiches du jour' };
+async function planSheet(key) {
+  const m = getMat(key); if (!m) return;
+  const p = await planFor(m); if (!p) { examDateSheet(key); return; }
+  const done = planDone()[key] || {};
+  const html = p.days.map((d, i) => `<div class="pl-day${i === 0 ? ' today' : ''}"><b>${i === 0 ? 'Aujourd\'hui' : i === 1 ? 'Demain' : new Date(d.day).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' })}</b>
+    ${d.items.map((it) => { const k = planKey(d.day, it); const lbl = it.k === 'read' ? `${it.again ? 'Relire encore' : 'Relire'} « ${esc(it.title)} »` : it.exam ? 'Examen blanc : quiz chronométré' : PLAN_LBL[it.k];
+      return `<div class="pl-it"><input type="checkbox" class="tck" data-pk="${esc(k)}" aria-label="Fait : ${lbl.replace(/"/g, '')}"${done[k] ? ' checked' : ''}><button class="linkbtn" type="button" data-pa="${esc(it.k)}" data-id="${esc(it.id || '')}" data-x="${it.exam ? 1 : ''}">${lbl}</button></div>`; }).join('')}</div>`).join('');
+  openSheet(`<h3>Planning — ${esc(m.name)}</h3><p class="sub">Examen ${esc(new Date(p.ex.at).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }))} · ${relDays(p.ex.at)}${p.ex.manual ? '' : ' (d\'après l\'emploi du temps)'}. Coche au fur et à mesure ; touche une ligne pour la faire.</p>
+    <div class="pl-days">${html}</div>
+    <div class="stack" style="margin-top:12px"><button class="btn block" id="plDate" type="button">${ICONS.cal}Changer la date de l'examen</button></div>`, (body) => {
+    body.querySelectorAll('[data-pk]').forEach((c) => c.onchange = () => { const all = planDone(); all[key] = { ...(all[key] || {}), [c.dataset.pk]: c.checked }; if (!c.checked) delete all[key][c.dataset.pk]; lsSet('np-plan', JSON.stringify(all)); renderHomeExam(); });
+    body.querySelectorAll('[data-pa]').forEach((b) => b.onclick = async () => {
+      closeSheet();
+      const a = b.dataset.pa;
+      if (a === 'read') openNote(b.dataset.id);
+      else if (a === 'synth') { courseCur = key; show('course'); courseSynth(key); }
+      else if (a === 'quiz') { courseCur = key; show('course'); const notes = (await fullNotes((h) => !!h.summary && h.course && h.course.key === key)).sort((x, y) => x.created - y.created); if (notes.length) quizMenu({ mat: { key, name: m.name }, notes }); }
+      else if (a === 'cards') startReview(p.heads.filter((h) => (h.cardDue || []).length).map((h) => h.id));
+    });
+    body.querySelector('#plDate').onclick = () => examDateSheet(key);
+  });
+}
+function examDateSheet(key) {
+  const m = getMat(key); if (!m) return;
+  const pr = crsPrefs(), cur = (pr[key] || {}).exam || '', ex = examOf(m);
+  openSheet(`<h3>Date de l'examen</h3><p class="sub">${esc(m.name)}${ex && !ex.manual ? ' · l\'emploi du temps indique le ' + esc(new Date(ex.at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })) : ''}</p>
+    <input type="date" id="exIn" aria-label="Date de l'examen" value="${esc(cur || (ex ? isoDayStr(ex.at) : ''))}" min="${isoDayStr(Date.now())}">
+    <div class="stack" style="margin-top:14px"><button class="btn primary block" id="exOk" type="button">Enregistrer et voir le planning</button>${cur ? '<button class="btn ghost block" id="exDel" type="button">Retirer la date</button>' : ''}</div>`, (body) => {
+    body.querySelector('#exOk').onclick = () => {
+      const v = body.querySelector('#exIn').value; if (!fromIso(v)) { toast('Choisis une date'); return; }
+      const all = crsPrefs(); all[key] = { ...(all[key] || {}), exam: v }; lsSet('np-crs', JSON.stringify(all)); MATS = null;
+      closeSheet(); if (current === 'course') renderCourse(); renderHomeExam(); setTimeout(() => planSheet(key), 300);
+    };
+    const del = body.querySelector('#exDel');
+    if (del) del.onclick = () => { const all = crsPrefs(); if (all[key]) delete all[key].exam; lsSet('np-crs', JSON.stringify(all)); MATS = null; closeSheet(); if (current === 'course') renderCourse(); renderHomeExam(); };
+  });
+}
+async function renderHomeExam() {
+  const box = $('homeExam'); if (!box) return;
+  const ex = upcomingExams().filter((x) => x.ex.at - Date.now() < 30 * DAY)[0];
+  if (!ex) { box.innerHTML = ''; return; }
+  const p = await planFor(ex.m), today = p && p.days[0], done = planDone()[ex.m.key] || {};
+  const todo = today ? today.items.filter((it) => !done[planKey(today.day, it)]) : [];
+  box.innerHTML = `<div class="card home-exam" style="--h:${ex.m.hue}"><span class="sec-ic">${ICONS.flag}</span><div class="grow"><b>Examen : ${esc(ex.m.name)}, ${relDays(ex.ex.at)}</b><small>${todo.length ? 'Aujourd\'hui : ' + todo.slice(0, 2).map((it) => it.k === 'read' ? 'relire « ' + esc(it.title) + ' »' : (it.exam ? 'examen blanc' : PLAN_LBL[it.k].toLowerCase())).join(', ') + (todo.length > 2 ? '…' : '') : 'Programme du jour terminé'}</small></div><button class="btn" id="heGo" type="button">Planning</button></div>`;
+  $('heGo').onclick = () => planSheet(ex.m.key);
+}
+
 /* =================== Emploi du temps (calendrier .ics) =================== */
 /* Le calendrier de l'université (Moodle, ADE, Google Agenda…) est gardé dans le téléphone.
    Chaque enregistrement fait pendant un cours est rangé tout seul dans sa matière, et l'IA sait de quel cours il s'agit. */
@@ -6024,6 +6132,8 @@ async function renderCourses() {
   }
   const dues = evs.filter((e) => e.kind === 'due' && e.start > now && e.start < now + 30 * DAY && (e.start < w0 || e.start >= w1));
   if (dues.length) html += `<div class="group" role="heading" aria-level="2">Échéances à venir</div>` + dues.map((e) => evRow(e, notes, { date: true })).join('');
+  const exams = upcomingExams(now);
+  if (exams.length) html += `<div class="group" role="heading" aria-level="2">Examens à venir</div>` + exams.map((x) => `<button class="card ex-row" type="button" data-plan="${esc(x.m.key)}" style="--h:${x.m.hue}"><span class="ev-time">${esc(new Date(x.ex.at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }))}</span><span class="ev-main"><b>${esc(x.m.name)}</b><small>${relDays(x.ex.at, now)} · voir le planning</small></span></button>`).join('');
   html += `<div class="group" role="heading" aria-level="2">Matières</div><div class="mats">` + mats.map((m) => {
     const sess = m.events.filter((e) => e.kind !== 'due'), past = sess.filter((e) => e.start <= now), rec = past.filter((e) => noteOfEvent(e, notes)).length;
     const nx = sess.find((e) => e.start > now);
@@ -6033,6 +6143,7 @@ async function renderCourses() {
   html += `<p class="ag-foot">${AG.src === 'url' ? 'Synchronisé' : 'Importé'} ${fmtDate(AG.at)}${hid ? ` · ${hid} matière${hid > 1 ? 's' : ''} masquée${hid > 1 ? 's' : ''}` : ''} · <button class="linkbtn" id="agRefresh">${settings.icsUrl ? 'Actualiser' : 'Réglages'}</button></p>`;
   body.innerHTML = html;
   wireCourseLinks(body);
+  body.querySelectorAll('[data-plan]').forEach((b) => b.onclick = () => planSheet(b.dataset.plan));
   $('wkPrev').onclick = () => { wkOff--; renderCourses(); };
   $('wkNext').onclick = () => { wkOff++; renderCourses(); };
   $('agRefresh').onclick = () => { if (settings.icsUrl) syncAgenda(true); else { showSettings(); setTimeout(() => $('agSet').scrollIntoView({ block: 'start' }), 350); } };
@@ -6140,6 +6251,7 @@ async function renderCourse() {
       <div class="card tile"><b>${up[0] ? esc(dayShort(up[0].start)) : '—'}</b><small>${up[0] ? 'prochaine séance, ' + hhmm(up[0].start) : 'plus de séance prévue'}</small></div>
       <div class="card tile"><b>${cards.length ? dueCards : '—'}</b><small>${cards.length ? 'fiches à réviser' : 'pas encore de fiches'}</small></div>
     </div>
+    ${(() => { const ex = examOf(m); return `<div class="card crs-exam"><span class="sec-ic">${ICONS.flag}</span><div class="grow"><b>${ex ? 'Examen ' + esc(new Date(ex.at).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long' })) + ' · ' + relDays(ex.at) : 'Pas de date d\'examen'}</b><small>${ex ? 'Planning de révision jour par jour' : 'Ajoute-la pour obtenir un planning de révision'}</small></div><button class="btn${ex ? ' primary' : ''}" id="cPlan" type="button">${ex ? 'Planning' : 'Ajouter'}</button></div>`; })()}
     <div class="crs-acts">
       <button class="btn" id="cSynth" ${notes.some((n) => n.summary) ? '' : 'disabled'}>${ICONS.spark}${synth ? 'Refaire la synthèse' : 'Synthèse de la matière'}</button>
       <button class="btn" id="cAsk" ${notes.length ? '' : 'disabled'}>${ICONS.quiz}Poser une question</button>
@@ -6163,6 +6275,7 @@ async function renderCourse() {
   $('cAsk').onclick = () => { currentNote = null; openAsk('course', 'course', m.key); };
   $('cRev').onclick = () => startReview(notes.filter((n) => (n.cardDue || []).length).map((n) => n.id));
   $('cPdf').onclick = () => printCourse(m.key);
+  $('cPlan').onclick = () => (examOf(m) ? planSheet(m.key) : examDateSheet(m.key));
   $('cQuiz').onclick = async () => quizMenu({ mat: { key: m.key, name: m.name }, notes: (await fullNotes((h) => !!h.summary && notes.some((n) => n.id === h.id))).sort((a, b) => a.created - b.created) });
   $('cAnki').onclick = async () => exportAnki(await fullNotes((h) => (h.cardDue || []).length && notes.some((n) => n.id === h.id)), m.name);
   if ($('cSynCopy')) $('cSynCopy').onclick = async () => { try { await navigator.clipboard.writeText(`# ${m.name} — synthèse\n\n${synth.md}`); toast('Synthèse copiée'); } catch (e) { toast('Copie impossible'); } };

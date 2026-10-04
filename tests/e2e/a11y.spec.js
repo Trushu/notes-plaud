@@ -138,6 +138,12 @@ test.describe('Audit axe-core : autres écrans et fenêtres', () => {
     await expect(page.locator('#sheet .rs-tiles')).toBeVisible();
     await auditThemes(page, 'statistiques de révision', out);
     await page.keyboard.press('Escape');
+    await page.evaluate(() => { lsSet('np-crs', JSON.stringify({ INFO: { exam: dayKey(Date.now() + 6 * 86400000) } })); MATS = null; return renderHome(); });
+    await expect(page.locator('#homeExam')).toContainText('dans 6 jours');
+    await page.locator('#heGo').click();
+    await expect(page.locator('#sheet .pl-day').first()).toBeVisible();
+    await auditThemes(page, 'planning d\'examen', out);
+    await page.keyboard.press('Escape');
 
     await page.locator('#notesList .item[data-id="nA"]').click();
     await page.locator('#stCards').click();

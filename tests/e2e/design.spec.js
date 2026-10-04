@@ -46,3 +46,20 @@ test('accueil : au plus deux cartes d\'information à la fois, la plus important
   await page.evaluate(async () => { const n = await db.get('f'); n.status = 'ok'; await db.put(n); await renderHome(); });
   await expect(page.locator('#bkRemind')).toBeVisible();
 });
+
+test('barre de tags : pastilles lisibles (défilement, pas d\'écrasement) ; icône du sommaire à sa taille', async ({ page, mocks }) => {
+  await useSettings(page, { key: 'gsk_test' });
+  await page.goto('./');
+  const tags = ['mathématiques', 'logique', 'algorithmique', 'récursivité', 'réseaux', 'théorie', 'algèbre', 'calcul', 'logiciel', 'mécanique', 'modèles', 'notation', 'preuves', 'suites', 'tests', 'tris'];
+  await seedNotes(page, tags.map((t, i) => note({ id: 'n' + i, title: 'Note ' + i, tags: [t], lecture: '## Partie A\nx\n## Partie B\ny\n## Partie C\nz' })));
+  // aucune pastille n'est coupée : sa largeur visible contient tout son texte
+  const cut = await page.evaluate(() => [...document.querySelectorAll('#tagBar > *')].filter((e) => e.scrollWidth > e.clientWidth + 1).map((e) => e.textContent.trim()));
+  expect(cut).toEqual([]);
+  expect(await page.evaluate(() => { const b = document.getElementById('tagBar'); return b.scrollWidth > b.clientWidth; })).toBe(true);   // la barre défile
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);   // sans élargir la page
+  await page.locator('#notesList .item[data-id="n0"]').click();
+  await page.getByRole('tab', { name: 'Cours' }).click();
+  const box = await page.locator('.toc summary svg').boundingBox();
+  expect(box && box.width).toBeLessThanOrEqual(24);
+  expect(box && box.height).toBeLessThanOrEqual(24);
+});

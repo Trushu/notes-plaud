@@ -34,7 +34,7 @@ async function prepare(page) {
   const now = Date.now(), st = (t) => new Date(t).toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
   await page.goto('./');
   await seedNotes(page, [
-    note({ id: 'nA', title: 'Algorithmique : les graphes', tags: ['algo', 'graphes'], pinned: true, summary: `# T\n## Résumé\nLe cours présente les **graphes** et la formule $x^2$.\n## Points clés\n- Un sommet\n## À retravailler à la maison\n- [ ] Refaire l'exercice 3 ⏫ 📅 2020-01-01\n- [x] Lire le chapitre\n## Questions pour réviser\n- Qu'est-ce qu'un graphe ? → Des sommets et des arêtes`,
+    note({ id: 'nA', title: 'Algorithmique : les graphes', brief: 'Les graphes, en une phrase.', tags: ['algo', 'graphes'], pinned: true, summary: `# T\n## Résumé\nLe cours présente les **graphes** et la formule $x^2$.\n## Points clés\n- Un sommet\n## À retravailler à la maison\n- [ ] Refaire l'exercice 3 ⏫ 📅 2020-01-01\n- [x] Lire le chapitre\n## Questions pour réviser\n- Qu'est-ce qu'un graphe ? → Des sommets et des arêtes`,
       segments: [{ start: 0, end: 5, text: 'Bonjour à tous.' }, { start: 5, end: 9, text: 'On parle de graphes.' }], lecture: '## Partie 1\nTexte\n## Partie 2\nTexte\n## Partie 3\nTexte',
       chapters: [{ t: 0, title: 'Début' }, { t: 5, title: 'Graphes' }], marks: [5], mine: 'Mes **notes**', cards: [{ id: 'c1', q: 'Q ?', a: 'R', box: 0, due: 0 }],
       chat: [{ q: 'De quoi parle le cours ?', a: 'Des graphes [0:05].', at: now, by: 'gemini', notes: ['nA'] }], course: { key: 'INFO', name: 'Algorithmique', kind: 'cours', start: now - 3600000, end: now, uid: 'c1' } }),

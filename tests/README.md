@@ -72,6 +72,7 @@ dans un téléphone émulé. **Aucun appel ne sort de la machine** : Groq, Gemin
 | `organisation.spec.js` | archiver des notes (une ou plusieurs), filtre « Archivées », recherche ; vue semestre d'une matière |
 | `fiabilite.spec.js` | file d'attente (retirer, tout réessayer), rapport de diagnostic sans clé, tout effacer (double confirmation) |
 | `design.spec.js` | tablette (deux colonnes), police de lecture et thème « Contraste élevé » gardés, accueil limité à deux cartes |
+| `contenu.spec.js` | « En bref » (consigne, affichage, aperçu de l'accueil) ; liens entre séances d'une même matière |
 | `a11y.spec.js` | accessibilité : audit [axe-core](https://github.com/dequelabs/axe-core) (règles WCAG 2.2 niveau AA) de tous les écrans et fenêtres dans les 9 thèmes, téléphone en mode clair et sombre ; contour des champs et cases à cocher (contraste 3:1) ; clavier et lecteur d'écran (focus, fenêtres, onglets, filtres, annonces) |
 | `bugs.spec.js`, `bugs-rec.spec.js` | un test par bug corrigé : partage reçu, file d'attente, hors connexion, délais réseau, reprise du résumé, stockage plein ou illisible, mise à jour pendant un enregistrement (micro simulé) |
 

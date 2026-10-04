@@ -164,6 +164,9 @@ Les 9 thèmes respectent les contrastes recommandés pour l'accessibilité (WCAG
 
 ### Lire, écouter, annoter une note
 
+- **En bref :** en tête de chaque nouveau résumé, une phrase dit l'essentiel. C'est aussi l'aperçu affiché sur l'accueil.
+- **Vu aussi dans d'autres séances :** sous le résumé d'un cours, les notions définies dans la séance qui reviennent dans d'autres séances de la même matière, avec un lien vers chacune. Le passage y est surligné.
+
 - **Glisser** vers la gauche ou la droite passe d'un onglet à l'autre (Résumé → Transcription → Cours).
 - **Reprendre la lecture :** chaque note se rouvre à l'onglet et à l'endroit où tu t'étais arrêté (bouton « En haut » dans le message) ; l'accueil propose **Reprendre « … »** pour la dernière note entamée.
 - **Chapitres :** les enregistrements de plus de 8 minutes sont découpés automatiquement en chapitres titrés (avec Groq seul, touche **Créer** dans l'onglet Transcription). Liste cliquable en haut de la transcription, titres insérés au fil du texte, repères sur la barre du lecteur et nom du chapitre en cours.

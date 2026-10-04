@@ -31,7 +31,7 @@ Les contraintes ne changent pas : pas d'étape de build, interface en français,
 - [x] **R8. Glossaire par matière.** Les définitions et formules de toutes les séances sont rassemblées par ordre alphabétique, avec un lien vers la séance d'origine. Il est cherchable et exportable. *Bénéfice : la fiche de vocabulaire de la matière, prête pour l'examen.* · Effort M · **P2** — [PR #14](https://github.com/Trushu/notes-plaud/pull/14)
 - [x] **R9. Carte mentale d'une note.** Le plan du résumé est dessiné en carte mentale, avec des branches dépliables. On peut l'exporter en image. *Bénéfice : vue d'ensemble visuelle du cours (comme NotebookLM).* · Effort M · **P2** — [PR #14](https://github.com/Trushu/notes-plaud/pull/14)
 - [x] **R10. Révision audio des fiches.** Les questions sont lues à voix haute, puis la réponse après un délai, mains libres. *Bénéfice : réviser en marchant ou dans les transports.* · Effort S · **P2** — [PR #14](https://github.com/Trushu/notes-plaud/pull/14)
-- [ ] **R11. Liens entre séances.** Sous le glossaire et dans une note : « Notion vue aussi le 12 octobre ». *Bénéfice : relier les chapitres d'une matière.* · Effort L · P3
+- [x] **R11. Liens entre séances.** Sous le glossaire et dans une note : « Notion vue aussi le 12 octobre ». *Bénéfice : relier les chapitres d'une matière.* · Effort L · P3 — [PR #18](https://github.com/Trushu/notes-plaud/pull/18)
 
 ## Qualité de l'IA
 
@@ -39,7 +39,7 @@ Les contraintes ne changent pas : pas d'étape de build, interface en français,
 - [x] **I2. Choix automatique du fournisseur.** Une IA qui a renvoyé « limite atteinte » est écartée pendant le délai indiqué : l'app passe directement à la suivante au lieu de réessayer. *Bénéfice : des résumés plus rapides et moins d'échecs avec les offres gratuites.* · Effort S · **P1** — [PR #10](https://github.com/Trushu/notes-plaud/pull/10)
 - [x] **I3. Questions posées en classe.** Le résumé d'un cours ajoute une rubrique « Questions posées en classe » : les questions des étudiants et la réponse de l'enseignant, repérées dans la transcription. *Bénéfice : retrouver les éclaircissements, distinguer qui parle.* · Effort S · **P2** — [PR #10](https://github.com/Trushu/notes-plaud/pull/10)
 - [x] **I4. Prompts plus précis.** Résumé, cours rédigé et fiches demandent des formules en LaTeX cohérentes, des exemples chiffrés repris tels quels et des fiches qui ne se répètent pas. Les fiches portent aussi un niveau de difficulté. *Bénéfice : des documents de révision plus fiables.* · Effort S · **P2** — [PR #10](https://github.com/Trushu/notes-plaud/pull/10)
-- [ ] **I5. Résumé express.** Trois lignes « En bref » en tête de chaque note et dans l'aperçu de l'accueil. *Bénéfice : savoir en 5 secondes de quoi parlait la séance.* · Effort S · P3
+- [x] **I5. Résumé express.** Trois lignes « En bref » en tête de chaque note et dans l'aperçu de l'accueil. *Bénéfice : savoir en 5 secondes de quoi parlait la séance.* · Effort S · P3 — [PR #18](https://github.com/Trushu/notes-plaud/pull/18)
 
 ## Expérience utilisateur
 
@@ -47,7 +47,7 @@ Les contraintes ne changent pas : pas d'étape de build, interface en français,
 - [x] **U2. Premier lancement guidé.** Un assistant en trois étapes : clé Groq testée, clé Gemini facultative, puis emploi du temps et import Plaud facultatifs. Chaque étape a un lien direct et des explications pour débutant. *Bénéfice : être prêt en deux minutes, sans lire le mode d'emploi.* · Effort M · **P1** — [PR #11](https://github.com/Trushu/notes-plaud/pull/11)
 - [x] **U3. Messages d'erreur avec action.** Chaque erreur fréquente (clé refusée, limite, fichier trop gros, format inconnu, stockage plein) affiche un bouton qui mène au bon endroit : Réglages, Réessayer plus tard… *Bénéfice : savoir quoi faire.* · Effort S · **P2** — [PR #11](https://github.com/Trushu/notes-plaud/pull/11)
 - [x] **U4. Mode tablette et ordinateur.** Sur grand écran, la liste des notes reste à gauche et la note s'ouvre à droite, et les fiches sont plus larges. *Bénéfice : réviser confortablement sur tablette ou PC.* · Effort M · **P2** — [PR #17](https://github.com/Trushu/notes-plaud/pull/17)
-- [ ] **U5. États vides utiles.** Accueil, tâches, cours et recherche sans résultat proposent l'action suivante : « Importer ton emploi du temps », « Essaie sans guillemets »… *Bénéfice : ne jamais rester bloqué devant un écran vide.* · Effort S · P3
+- [x] **U5. États vides utiles.** Accueil, tâches, cours et recherche sans résultat proposent l'action suivante : « Importer ton emploi du temps », « Essaie sans guillemets »… *Bénéfice : ne jamais rester bloqué devant un écran vide.* · Effort S · P3 — [PR #18](https://github.com/Trushu/notes-plaud/pull/18)
 - [x] **U6. Retour haptique.** Une légère vibration accompagne « Marquer », le début et la fin d'un enregistrement et une tâche cochée. *Bénéfice : une confirmation sans regarder l'écran, en plein cours.* · Effort S · P3 — [PR #16](https://github.com/Trushu/notes-plaud/pull/16)
 
 ## Organisation

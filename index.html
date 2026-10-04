@@ -857,6 +857,10 @@
   .q-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
   .q-row .grow { flex: 1; min-width: 0; } .q-row b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .q-row small { color: var(--muted); font-size: 12.5px; }
   .q-row .btn { min-height: 38px; padding: 0 12px; flex: none; }
+  .brief { margin: 0 0 12px; padding: 12px 16px; border-radius: var(--r); background: var(--accent-soft); color: var(--ink); font-size: calc(15.5px * var(--rd)); line-height: 1.5; }
+  .brief b { color: var(--accent-ink); margin-right: 6px; text-transform: uppercase; font-size: 12px; letter-spacing: .06em; }
+  .links { margin-bottom: 12px; } .links .sec-ic { background: var(--teal-soft); color: var(--teal); flex: none; }
+  .lk-list { margin: 8px 0 0; padding-left: 20px; } .lk-list li { margin: 5px 0; } .lk-list .linkbtn { font-weight: 500; }
   .home-rev { display: flex; align-items: center; gap: 12px; padding: 14px 14px 14px 16px; margin-bottom: 14px; }
   .home-rev .sec-ic { background: var(--violet-soft); color: var(--violet); flex: none; }
   .home-rev .grow { flex: 1; min-width: 0; }
@@ -1251,6 +1255,7 @@
       </div>
     </div>
     <div class="secs" id="noteSum"></div>
+    <div class="card links hidden" id="noteLinks"></div>
     <div class="card study hidden" id="noteStudy">
       <div class="study-row"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a7.5 7.5 0 0 1-11.1 6.6L4 19.5l1.4-4.3A7.5 7.5 0 1 1 20 11.5z"/></svg></span><div><b>Poser une question</b><small>Réponses avec renvois aux passages</small></div><button class="btn" id="stAsk" type="button">Demander</button></div>
       <div class="study-row"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="14" rx="2.5"/><path d="M7 3h11.5A2.5 2.5 0 0 1 21 5.5V17"/></svg></span><div><b>Fiches de révision</b><small id="stCardsInfo"></small></div><button class="btn" id="stCards" type="button"></button></div>
@@ -1724,7 +1729,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '46 · 4 oct. 2026';
+const APP_VERSION = '47 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -2969,7 +2974,8 @@ Tâches — TRÈS IMPORTANT, les lignes « - [ ] » alimentent directement la li
 - n'invente aucune tâche : s'il n'y en a pas, écris « Aucune ».
 Exemple de ligne : « - [ ] Rendre le DM 2 sur les récurrences ⏫ 📅 2026-10-05 »
 
-- À la toute fin, ajoute exactement ces deux lignes :
+- À la toute fin, ajoute exactement ces trois lignes :
+En bref : une seule phrase de 30 mots maximum qui dit l'essentiel à retenir
 Type : ${kind === 'auto' ? 'cours, réunion ou note' : KIND_OUT[kind]}
 Tags : 2 à 4 mots-clés courts en minuscules, séparés par des virgules (la matière ou le sujet principal en premier)
 
@@ -3137,15 +3143,17 @@ function autoRemind(md) {
 
 // Lignes « Type : … » et « Tags : … » ajoutées par l'IA à la fin du résumé
 function splitMeta(body) {
-  let kind = null, tags = [];
+  let kind = null, tags = [], brief = null;
   const lines = body.split('\n').filter((l) => {
-    let m = /^\s*\**\s*type\s*\**\s*:\s*\**\s*(.+?)\**\s*$/i.exec(l);
+    let m = /^\s*\**\s*en bref\s*\**\s*:\s*\**\s*(.+?)\**\s*$/i.exec(l);
+    if (m) { brief = m[1].replace(/\s+/g, ' ').trim().slice(0, 300); return false; }
+    m = /^\s*\**\s*type\s*\**\s*:\s*\**\s*(.+?)\**\s*$/i.exec(l);
     if (m) { const v = norm(m[1]); kind = /cours/.test(v) ? 'cours' : /reunion/.test(v) ? 'reunion' : /note|perso/.test(v) ? 'perso' : null; return false; }
     m = /^\s*\**\s*tags?\s*\**\s*:\s*\**\s*(.+?)\**\s*$/i.exec(l);
     if (m) { tags = m[1].split(/[,;]/).map(cleanTag).filter(Boolean).slice(0, 4); return false; }
     return true;
   });
-  return { body: lines.join('\n').replace(/\n+$/, '').trim(), kind, tags };
+  return { body: lines.join('\n').replace(/\n+$/, '').trim(), kind, tags, brief };
 }
 const cleanTag = (t) => String(t || '').replace(/^[\s#]+|[\s.]+$/g, '').replace(/\s+/g, ' ').toLowerCase().slice(0, 30);
 function splitTitle(summary, fallback) {
@@ -3164,6 +3172,7 @@ const ICONS = {
   mic: I('<rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3.5"/>'),
   cards: I('<rect x="3" y="6" width="14" height="14" rx="2.5"/><path d="M7 3h11.5A2.5 2.5 0 0 1 21 5.5V17"/>'),
   chart: I('<path d="M4 20h16"/><path d="M7 16v-5M12 16V6M17 16v-8"/>'),
+  link: I('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'),
   archive: I('<rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v9.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V9M10 13h4"/>'),
   edit: I('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>'),
   play: I('<path d="M8 5.5v13l10.5-6.5z"/>'),
@@ -3391,7 +3400,7 @@ async function run(note, opts = {}) {
     meta.body = autoRemind(meta.body);
     const own = (note.tags || []).filter((x) => !note.course || x !== crsTag(note.course.name));
     const tags = [...new Set([...(note.tags || []), ...(own.length ? [] : meta.tags)])];
-    Object.assign(note, { title: t.title, summary: meta.body, status: 'ok', summaryBy: lastModel, kind: meta.kind || (opts.kind !== 'auto' && opts.kind) || note.kind || null, tags });
+    Object.assign(note, { title: t.title, summary: meta.body, status: 'ok', summaryBy: lastModel, kind: meta.kind || (opts.kind !== 'auto' && opts.kind) || note.kind || null, tags, brief: meta.brief || null });
     if (!note.chapters && (note.duration || 0) >= 480 && provider() !== 'groq') {   // chapitres (avec Groq, sur demande : sa limite par minute est déjà entamée)
       try { step('st-sum', 'active', 'Chapitres…'); const ch = await makeChapters(note); if (ch) Object.assign(note, ch); } catch (e) { if (e instanceof Cancelled) throw e; }
     }
@@ -3548,6 +3557,7 @@ function shortTime(t) {
     : new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 }
 function excerpt(n) {
+  if (n.brief && n.summary) return n.brief;
   if (!n.summary) return n.id === runningId ? 'Transcription et résumé en cours…' : n.error || (n.status === 'transcription' ? 'Traitement interrompu.' : '');
   const m = /##\s*[^\n]*r[ée]sum[ée][^\n]*\n+([\s\S]*?)(?=\n##|$)/i.exec(n.summary);
   return (m ? m[1] : n.summary).replace(/^#+.*$/gm, '').replace(/[*_`>#]|\[[ xX]\]/g, '').replace(/^\s*[-•]\s+/gm, '').replace(/\s+/g, ' ').trim();
@@ -4085,6 +4095,7 @@ function renderSummary(n) {
   const parts = n.summary.split(/^##\s+/m);
   let html = '';
   const pre = parts.shift().trim();
+  if (n.brief) html += `<p class="brief"><b>En bref</b> ${inlineMd(n.brief)}</p>`;
   if (pre) html += `<section class="sec k-resume"><div class="md">${md(pre, ctr)}</div></section>`;
   for (const p of parts) {
     const nl = p.indexOf('\n');
@@ -4474,6 +4485,7 @@ function setTab(t) {
   $('noteExtras').classList.toggle('hidden', t !== 'sum');
   if (tts.on) ttsStop();
   $('noteStudy').classList.toggle('hidden', t !== 'sum' || !currentNote || !(currentNote.segments || currentNote.summary));
+  if (t !== 'sum') $('noteLinks').classList.add('hidden'); else renderLinks();
   $('noteTrWrap').classList.toggle('hidden', t !== 'tr');
   $('noteLectWrap').classList.toggle('hidden', t !== 'lecture');
   if (t === 'lecture') renderLecture();
@@ -4858,7 +4870,7 @@ async function renderTasks() {
   }
   let html = '', left = tui.limit;   // au-delà, « Afficher plus » (des centaines de tâches à dessiner d'un coup, c'est lent)
   const items = (arr) => { const k = Math.max(0, Math.min(arr.length, left)); left -= k; return arr.slice(0, k).map(taskItem).join(''); };
-  if (!list.length) html = `<div class="empty-s">${tui.stat || tui.tag || tui.mode === 'cal' ? 'Aucune tâche ici.' : 'Rien à faire, tout est coché !'}</div>`;
+  if (!list.length) html = `<div class="empty-s">${tui.stat || tui.tag || tui.mode === 'cal' ? 'Aucune tâche ici.' : all.length ? 'Rien à faire, tout est coché !' : 'Pas encore de tâche. Elles viennent toutes seules des résumés (exercices, lectures, devoirs annoncés) ; le bouton + en ajoute une à la main.'}</div>`;
   else if (tui.mode === 'due') {
     const groups = new Map(); for (const t of list) { const g = dueGroup(t); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(t); }
     for (const g of DUE_ORDER) if (groups.has(g) && left > 0) html += `<div class="group" role="heading" aria-level="2">${g} · ${groups.get(g).length}</div>` + items(groups.get(g));
@@ -5344,9 +5356,35 @@ async function makeCards(n) {
     toast(e instanceof ApiError ? e.message : 'Erreur : ' + e.message);
   } finally { carding = null; provOverride = null; provFailed = new Set(); renderStudy(); }
 }
+// Liens entre séances : les notions définies dans cette note qui reviennent dans d'autres séances de la même matière
+async function relatedFor(n) {
+  if (!n || !n.course || !n.course.key) return [];
+  const terms = defTerms(n.summary); if (!terms.length) return [];
+  const heads = [...(await ensureHeads()).values()].filter((h) => h.id !== n.id && h.course && h.course.key === n.course.key);
+  if (!heads.length) return [];
+  const words = await ensureWords();
+  const out = [];
+  for (const t of terms) {
+    const ws = norm(t).split(WORD_SPLIT).filter((w) => w.length > 2);
+    if (!ws.length) continue;
+    const hits = heads.filter((h) => { const w = words.get(h.id) || ''; return ws.every((x) => w.includes(' ' + x)); }).sort((a, b) => a.created - b.created);
+    if (hits.length) out.push({ term: t, notes: hits.slice(0, 4) });
+  }
+  return out.slice(0, 8);
+}
+async function renderLinks() {
+  const n = currentNote, box = $('noteLinks'); if (!n || !box) return;
+  const id = n.id, rel = await relatedFor(n).catch(() => []);
+  if (!currentNote || currentNote.id !== id) return;
+  box.classList.toggle('hidden', !rel.length || $('noteSum').classList.contains('hidden'));
+  box.innerHTML = rel.length ? `<div class="x-h"><span class="sec-ic">${ICONS.link}</span><div><b role="heading" aria-level="2">Vu aussi dans d'autres séances</b><small>Les notions de ce cours qui reviennent ailleurs dans la matière</small></div></div>
+    <ul class="lk-list">${rel.map((r) => `<li><b>${esc(r.term)}</b> : ${r.notes.map((h) => `<button class="linkbtn" type="button" data-lk="${esc(h.id)}" data-q="${esc(r.term)}">${esc(h.title)} (${esc(new Date(h.created).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }))})</button>`).join(', ')}</li>`).join('')}</ul>` : '';
+  box.querySelectorAll('[data-lk]').forEach((b) => b.onclick = () => openNote(b.dataset.lk, { q: b.dataset.q }));
+}
 function renderStudy() {
   const n = currentNote; if (!n) return;
   renderQuizInfo();
+  renderLinks();
   const cards = n.cards || [], due = cards.filter(isDue).length, mastered = cards.filter((c) => (c.box || 0) >= 4).length;
   const show = !!(n.segments || n.summary);
   $('noteStudy').classList.toggle('hidden', !show || $('noteSum').classList.contains('hidden'));

@@ -40,6 +40,7 @@ Commandes séparées :
 | `quiz.test.js` | quiz type examen : lecture des questions de l'IA (`parseQuiz`), texte horodaté envoyé (`quizSource`) |
 | `planning.test.js` | planning de révision avant un examen (`buildPlan`) |
 | `ia.test.js` | vocabulaire de la matière (`defTerms`), IA au repos après une limite (`coolFor`, `primary`), consignes du résumé |
+| `revisions2.test.js` | glossaire (`defEntries`, `glossaryOf`), carte mentale (`mindData`, `mindSvg`), formules lues à voix haute |
 | `security.test.js` | nettoyage des sauvegardes (`sanitizeNote`, `settingOk`), relais en https, options de KaTeX |
 | `relay.test.js` | relais Cloudflare : contrôle d'origine, chemins autorisés, redirections, en-têtes (chargé comme module ES) |
 
@@ -67,6 +68,7 @@ dans un téléphone émulé. **Aucun appel ne sort de la machine** : Groq, Gemin
 | `ia.spec.js` | vocabulaire saisi et appris donné à Whisper et à l'IA ; IA au repos après un quota épuisé |
 | `demarrage.spec.js` | premier lancement guidé (clés vérifiées, hors connexion, étape passée), bouton « Tester », erreur avec bouton vers le bon réglage |
 | `recherche.spec.js` | recherche avancée (expressions, exclusions, tag, matière, dates, type, contenu), fiches et questions cherchables, index recalculé une fois |
+| `revisions2.spec.js` | glossaire de la matière, carte mentale (repli, image), révision audio mains libres |
 | `a11y.spec.js` | accessibilité : audit [axe-core](https://github.com/dequelabs/axe-core) (règles WCAG 2.2 niveau AA) de tous les écrans et fenêtres dans les 8 thèmes, téléphone en mode clair et sombre ; contour des champs et cases à cocher (contraste 3:1) ; clavier et lecteur d'écran (focus, fenêtres, onglets, filtres, annonces) |
 | `bugs.spec.js`, `bugs-rec.spec.js` | un test par bug corrigé : partage reçu, file d'attente, hors connexion, délais réseau, reprise du résumé, stockage plein ou illisible, mise à jour pendant un enregistrement (micro simulé) |
 

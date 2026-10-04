@@ -836,6 +836,11 @@
   .wz ol { margin: 6px 0 14px; padding-left: 22px; } .wz li { margin: 4px 0; }
   #searchWrap input { padding-right: 46px; }
   .sh-help { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 38px; height: 38px; font: 700 16px/1 var(--sans); color: var(--muted); }
+  .gl-list { max-height: 52vh; overflow: auto; margin-top: 10px; }
+  .gl-it { padding: 8px 0; border-bottom: 1px solid var(--line); } .gl-it .md p { margin: 0 0 2px; } .gl-it .linkbtn { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+  .mm-box { max-height: 60vh; overflow: auto; border: 1px solid var(--line); border-radius: 14px; -webkit-overflow-scrolling: touch; }
+  .mm-box svg { display: block; } .mm-sec { cursor: pointer; } .mm-sec:focus-visible rect { stroke-width: 4; }
+  .rv-top #rvListen { margin-left: auto; }
   .home-rev { display: flex; align-items: center; gap: 12px; padding: 14px 14px 14px 16px; margin-bottom: 14px; }
   .home-rev .sec-ic { background: var(--violet-soft); color: var(--violet); flex: none; }
   .home-rev .grow { flex: 1; min-width: 0; }
@@ -1196,6 +1201,7 @@
       <div class="study-row"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a7.5 7.5 0 0 1-11.1 6.6L4 19.5l1.4-4.3A7.5 7.5 0 1 1 20 11.5z"/></svg></span><div><b>Poser une question</b><small>Réponses avec renvois aux passages</small></div><button class="btn" id="stAsk" type="button">Demander</button></div>
       <div class="study-row"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="14" rx="2.5"/><path d="M7 3h11.5A2.5 2.5 0 0 1 21 5.5V17"/></svg></span><div><b>Fiches de révision</b><small id="stCardsInfo"></small></div><button class="btn" id="stCards" type="button"></button></div>
       <div class="study-row"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.3-2.5 3.9M12 17h.01"/></svg></span><div><b>Quiz type examen</b><small id="stQuizInfo">Questions à choix multiple, correction expliquée</small></div><button class="btn" id="stQuiz" type="button">Lancer</button></div>
+      <div class="study-row"><span class="sec-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="19" cy="19" r="2.5"/><circle cx="19" cy="12" r="2.5"/><path d="M7.5 12h9M7 11l9.5-5M7 13l9.5 5"/></svg></span><div><b>Carte mentale</b><small>Le plan du cours en un coup d'œil</small></div><button class="btn" id="stMind" type="button">Voir</button></div>
     </div>
     <div id="noteExtras">
       <div class="card xcard photos" id="phBox">
@@ -1316,7 +1322,7 @@
   <!-- ===== Réviser ===== -->
   <section id="v-review" class="view hidden">
     <div id="rvSession" class="hidden">
-      <div class="rv-top"><button class="tbtn" id="rvQuit" type="button">Terminer</button><span id="rvProg"></span></div>
+      <div class="rv-top"><button class="tbtn" id="rvQuit" type="button">Terminer</button><span id="rvProg"></span><button class="tbtn" id="rvListen" type="button" aria-pressed="false">🔊 Écouter</button></div>
       <div class="rv-bar"><i id="rvBar"></i></div>
       <div id="rvStage"></div>
     </div>
@@ -1655,11 +1661,12 @@
 
 <script>
 'use strict';
-const APP_VERSION = '42 · 4 oct. 2026';
+const APP_VERSION = '43 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
 window.CONFIG = {
+  rvThink: 6000,   // révision audio : temps pour réfléchir avant la réponse (ms)
   tpmBudget: 7000,          // l'offre gratuite de Groq : 8 000 tokens/min par modèle, on garde une marge
   maxAudioChunk: 20 * 1024 * 1024, // limite Groq gratuite : 25 Mo par fichier
   singleShotChars: 12000,   // Groq : en dessous, résumé en une seule requête
@@ -5369,6 +5376,7 @@ function drawCard(focus) {
   };
 }
 async function gradeCard(g) {
+  if (rvAudio.on) rvAudioStop();   // noter une fiche reprend la main sur l'écoute
   const c = rv.queue[rv.i], now = Date.now();
   const n = await db.get(c.noteId);
   const card = n && (n.cards || []).find((x) => x.id === c.id);
@@ -5523,6 +5531,151 @@ async function checkRevRemind(now = Date.now()) {
   await notify(`🧠 ${due} fiche${due > 1 ? 's' : ''} à réviser`, 'Quelques minutes suffisent pour tout garder en mémoire', ':review');
   return true;
 }
+
+/* =================== Glossaire de la matière, carte mentale, révision audio =================== */
+// Entrées « **Terme** : définition » de la rubrique « Définitions et formules » d'un résumé ; formules seules à part
+function defEntries(summary) {
+  const out = []; let inDefs = false;
+  for (const line of String(summary || '').split('\n')) {
+    if (/^#{1,3}\s/.test(line)) { inDefs = /d[ée]finition|vocabulaire|glossaire|formule/i.test(line); continue; }
+    if (!inDefs || !line.trim() || /^\s*[-*•]?\s*(aucune?|rien)\b/i.test(line)) continue;
+    const m = /^\s*(?:[-*•]\s+)?\*\*([^*\n]{1,80})\*\*\s*(?::|—|–|-)\s*(.+)$/.exec(line);
+    if (m) { out.push({ term: m[1].replace(/\s*:\s*$/, '').trim(), def: m[2].trim() }); continue; }
+    const f = /^\s*(?:[-*•]\s+)?(\$\$?[^$]+\$\$?)\s*(?:(?::|—|–|-)\s*(.*))?$/.exec(line);
+    if (f) out.push({ formula: f[1].trim(), def: (f[2] || '').trim() });
+  }
+  return out;
+}
+// Glossaire d'une matière : toutes ses séances, par ordre alphabétique (une même notion vue deux fois garde ses deux définitions)
+function glossaryOf(heads) {
+  const terms = [], formulas = [];
+  for (const h of [...heads].sort((a, b) => a.created - b.created)) {
+    for (const e of defEntries(h.summary)) (e.term ? terms : formulas).push({ ...e, id: h.id, title: h.title, at: h.created });
+  }
+  terms.sort((a, b) => a.term.localeCompare(b.term, 'fr', { sensitivity: 'base' }));
+  return { terms, formulas };
+}
+const glossaryMd = (name, g) => `# Glossaire — ${name}\n\n` + g.terms.map((e) => `- **${e.term}** : ${e.def} _(${e.title})_`).join('\n') + (g.formulas.length ? '\n\n## Formules\n\n' + g.formulas.map((e) => `- ${e.formula}${e.def ? ' : ' + e.def : ''} _(${e.title})_`).join('\n') : '') + '\n';
+async function glossarySheet(key) {
+  const m = getMat(key); if (!m) return;
+  const heads = [...(await ensureHeads()).values()].filter((h) => h.course && h.course.key === key && h.summary);
+  const g = glossaryOf(heads);
+  const row = (e) => `<div class="gl-it" data-q="${esc(norm(`${e.term || ''} ${e.formula || ''} ${e.def}`))}"><div class="md"><p>${e.term ? `<b>${esc(e.term)}</b> : ` : md(e.formula, { i: 0, noEdit: true }).replace(/^<p>|<\/p>$/g, '') + (e.def ? ' : ' : '')}${inlineMd(e.def)}</p></div><button class="linkbtn" type="button" data-open="${esc(e.id)}">${esc(e.title)} · ${esc(new Date(e.at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }))}</button></div>`;
+  openSheet(`<h3>Glossaire — ${esc(m.name)}</h3><p class="sub">${g.terms.length} notion${g.terms.length > 1 ? 's' : ''}${g.formulas.length ? ` · ${g.formulas.length} formule${g.formulas.length > 1 ? 's' : ''}` : ''}, tirées des résumés de ${heads.length} séance${heads.length > 1 ? 's' : ''}.</p>
+    ${g.terms.length + g.formulas.length ? `<input type="search" id="glQ" placeholder="Chercher une notion" aria-label="Chercher une notion" autocomplete="off">
+    <div class="gl-list" id="glList">${g.terms.map(row).join('')}${g.formulas.length ? `<div class="f" style="margin-top:12px">Formules</div>${g.formulas.map(row).join('')}` : ''}</div>
+    <div class="stack" style="margin-top:12px"><button class="btn block" id="glCards" type="button">${ICONS.cards}Créer des fiches pour ces définitions</button><button class="btn block" id="glCopy" type="button">${ICONS.share}Copier le glossaire</button></div>`
+    : '<p class="sub">Aucune définition pour l\'instant : elles viennent de la rubrique « Définitions et formules » des résumés de cours.</p>'}`, (body) => {
+    const q = body.querySelector('#glQ');
+    if (q) q.oninput = () => { const v = norm(q.value.trim()); body.querySelectorAll('.gl-it').forEach((x) => x.classList.toggle('hidden', !!v && !x.dataset.q.includes(v))); };
+    renderMath(body);
+    body.querySelectorAll('[data-open]').forEach((b) => b.onclick = () => { closeSheet(); openNote(b.dataset.open); });
+    const cp = body.querySelector('#glCopy'); if (cp) cp.onclick = () => copyText(glossaryMd(m.name, g), 'Glossaire copié');
+    const gc = body.querySelector('#glCards'); if (gc) gc.onclick = async () => { const n = await glossaryCards(g); toast(n ? `${n} fiche${n > 1 ? 's' : ''} de définition ajoutée${n > 1 ? 's' : ''}` : 'Ces définitions sont déjà dans tes fiches'); };
+  });
+}
+async function glossaryCards(g) {
+  let added = 0; const byNote = new Map();
+  for (const e of g.terms) { if (!byNote.has(e.id)) byNote.set(e.id, []); byNote.get(e.id).push(e); }
+  for (const [id, es] of byNote) {
+    const n = await db.get(id); if (!n) continue;
+    n.cards = n.cards || []; const have = new Set(n.cards.map((c) => norm(c.q).slice(0, 80)));
+    for (const e of es) {
+      const q = `Que signifie « ${e.term} » ?`; if (have.has(norm(q).slice(0, 80))) continue;
+      n.cards.push({ id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), q, a: e.def, box: 0, due: 0, from: 'glossaire' }); added++;
+    }
+    await db.put(n); if (currentNote && currentNote.id === id) currentNote.cards = n.cards;
+  }
+  updateBadge(); return added;
+}
+// Carte mentale : le titre au centre, les rubriques du résumé, leurs points (sans les tâches ni les questions)
+function mindData(n) {
+  const secs = []; let cur = null;
+  for (const line of String(n.summary || '').split('\n')) {
+    const h = /^##\s+(.+)$/.exec(line);
+    if (h) { cur = { h: h[1].trim(), items: [] }; secs.push(cur); continue; }
+    const b = /^\s{0,3}(?:[-*•]|\d+[.)])\s+(?!\[[ xX]\])(.+)$/.exec(line);
+    if (cur && b) { const t = plainMd(b[1].replace(/\*\*|__/g, '')).replace(/\s*(?:→|->).*$/, '').trim(); if (t && !/^(aucun|rien)/i.test(t)) cur.items.push(t); }
+    else if (cur && !cur.items.length && line.trim() && !/^\s*(?:#|[-*•]\s|\d+[.)]\s)/.test(line)) { const t = plainMd(line.replace(/\*\*|__/g, '')); if (t && !/^(aucun|rien)/i.test(t)) cur.items.push(t.length > 140 ? t.slice(0, 137) + '…' : t); }
+  }
+  return { title: n.title, secs: secs.filter((s) => s.items.length && !/^(type|tags)\b/i.test(s.h)) };
+}
+function mindSvg(d, closed, css) {
+  const W = 7.2, cut = (s, k) => (s.length > k ? s.slice(0, k - 1) + '…' : s);
+  const rows = []; let y = 20;
+  d.secs.forEach((s, i) => { const items = closed.has(i) ? [] : s.items.slice(0, 8); const h = Math.max(1, items.length) * 28; rows.push({ s, i, y, items, h }); y += h + 14; });
+  const H = Math.max(y, 80), rootY = H / 2, x1 = 16, w1 = Math.min(200, cut(d.title, 26).length * W + 24), x2 = x1 + w1 + 40, w2 = 190, x3 = x2 + w2 + 34;
+  const col = (i) => `hsl(${(i * 47 + 20) % 360} 60% ${css.dark ? 62 : 38}%)`;
+  let g = `<rect x="${x1}" y="${rootY - 18}" width="${w1}" height="36" rx="12" fill="${css.accent}"/><text x="${x1 + w1 / 2}" y="${rootY + 5}" text-anchor="middle" font-weight="700" fill="${css.onAccent}">${esc(cut(d.title, 26))}</text>`;
+  let maxX = x2 + w2;
+  for (const r of rows) {
+    const sy = r.y + r.h / 2, c = col(r.i);
+    g += `<path d="M${x1 + w1} ${rootY} C${x1 + w1 + 24} ${rootY} ${x2 - 24} ${sy} ${x2} ${sy}" stroke="${c}" stroke-width="2.5" fill="none"/>`;
+    g += `<g class="mm-sec" data-i="${r.i}" role="button" tabindex="0" aria-expanded="${!closed.has(r.i)}" aria-label="${esc(r.s.h)} : ${r.s.items.length} point${r.s.items.length > 1 ? 's' : ''}"><rect x="${x2}" y="${sy - 15}" width="${w2}" height="30" rx="9" fill="${css.surface}" stroke="${c}" stroke-width="2"/><text x="${x2 + 10}" y="${sy + 5}" font-weight="700" fill="${c}">${esc(cut(r.s.h, 24))}${closed.has(r.i) ? ' +' : ''}</text></g>`;
+    r.items.forEach((t, k) => {
+      const iy = r.y + k * 28 + 14, txt = cut(t, 60);
+      g += `<path d="M${x2 + w2} ${sy} C${x2 + w2 + 16} ${sy} ${x3 - 16} ${iy} ${x3} ${iy}" stroke="${c}" stroke-width="1.5" fill="none" opacity=".7"/><text x="${x3 + 6}" y="${iy + 4}" fill="${css.ink}">${esc(txt)}</text>`;
+      maxX = Math.max(maxX, x3 + 10 + txt.length * W);
+    });
+  }
+  return { svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.ceil(maxX + 16)}" height="${Math.ceil(H)}" viewBox="0 0 ${Math.ceil(maxX + 16)} ${Math.ceil(H)}" font-family="Inter, system-ui, sans-serif" font-size="13" role="group" aria-label="Carte mentale de ${esc(d.title)}"><rect width="100%" height="100%" fill="${css.bg}"/>${g}</svg>`, w: Math.ceil(maxX + 16), h: Math.ceil(H) };
+}
+function mindSheet(n) {
+  const d = mindData(n); if (!d.secs.length) { toast('Pas encore de résumé à représenter'); return; }
+  const cs = getComputedStyle(document.documentElement), v = (k) => cs.getPropertyValue(k).trim();
+  const css = { bg: v('--surface'), surface: v('--surface'), ink: v('--ink'), accent: v('--accent-ink'), onAccent: v('--surface'), dark: matchMedia('(prefers-color-scheme: dark)').matches && !document.documentElement.dataset.theme || ['dark', 'nuit', 'prune'].includes(document.documentElement.dataset.theme) };
+  const closed = new Set();
+  openSheet(`<h3>Carte mentale</h3><p class="sub">Les rubriques du résumé et leurs points. Touche une rubrique pour la replier ; fais glisser pour parcourir.</p>
+    <div class="mm-box" id="mmBox"></div>
+    <div class="stack" style="margin-top:12px"><button class="btn block" id="mmPng" type="button">${ICONS.download}Enregistrer en image</button></div>
+    <div class="sr-only">${d.secs.map((s) => `${esc(s.h)} : ${s.items.map(esc).join(' ; ')}.`).join(' ')}</div>`, (body) => {
+    const draw = () => {
+      const r = mindSvg(d, closed, css); body.querySelector('#mmBox').innerHTML = r.svg;
+      body.querySelectorAll('.mm-sec').forEach((g) => { const t = () => { const i = +g.dataset.i; if (closed.has(i)) closed.delete(i); else closed.add(i); draw(); const again = body.querySelector(`.mm-sec[data-i="${i}"]`); if (again) again.focus(); }; g.onclick = t; g.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); t(); } }; });
+      return r;
+    };
+    draw();
+    body.querySelector('#mmPng').onclick = async () => {
+      const r = mindSvg(d, closed, css), img = new Image(), url = URL.createObjectURL(new Blob([r.svg], { type: 'image/svg+xml' }));
+      await new Promise((ok, ko) => { img.onload = ok; img.onerror = ko; img.src = url; }).catch(() => {});
+      const c = document.createElement('canvas'), k = 2; c.width = r.w * k; c.height = r.h * k;
+      const x = c.getContext('2d'); x.scale(k, k); x.drawImage(img, 0, 0); URL.revokeObjectURL(url);
+      c.toBlob((b) => { if (b) { saveBlob(b, `carte-mentale-${norm(n.title).replace(/[^a-z0-9]+/g, '-').slice(0, 40)}.png`); toast('Image enregistrée (Téléchargements)'); } }, 'image/png');
+    };
+  });
+}
+// Révision audio, mains libres : la question est lue, une pause pour réfléchir, puis la réponse (sans changer le calendrier des fiches)
+const speakMd = (s) => String(s || '').replace(/\$\$?([^$]+)\$\$?/g, (_, t) => ' ' + speakTex(t) + ' ').replace(/\*\*|__|`/g, '').replace(/\s+/g, ' ').trim();
+const rvAudio = { on: false, gen: 0 };
+function sayFr(text) {
+  return new Promise((res) => {
+    try {
+      const u = new SpeechSynthesisUtterance(text); u.lang = 'fr-FR'; const vo = frVoice(); if (vo) u.voice = vo; u.rate = tts.rate || 1;
+      u.onend = u.onerror = () => res(); speechSynthesis.speak(u);
+      setTimeout(res, 4000 + text.length * 120);   // filet de sécurité si le moteur ne prévient pas
+    } catch (e) { res(); }
+  });
+}
+const sleepMs = (ms) => new Promise((r) => setTimeout(r, ms));
+async function rvAudioLoop() {
+  if (!('speechSynthesis' in window)) { toast('Lecture à voix haute indisponible sur cet appareil'); return; }
+  const gen = ++rvAudio.gen; rvAudio.on = true; rvAudioUI(); keepAwake(true);
+  try {
+    while (rvAudio.on && gen === rvAudio.gen && rv.active && rv.i < rv.queue.length) {
+      const c = rv.queue[rv.i];
+      rv.shown = false; drawCard();
+      await sayFr('Question. ' + speakMd(c.q)); if (!rvAudio.on || gen !== rvAudio.gen) break;
+      await sleepMs(CONFIG.rvThink); if (!rvAudio.on || gen !== rvAudio.gen) break;
+      rv.shown = true; drawCard();
+      await sayFr('Réponse. ' + speakMd(c.a)); if (!rvAudio.on || gen !== rvAudio.gen) break;
+      await sleepMs(1500);
+      rv.i++; rv.shown = false;
+    }
+    if (rvAudio.on && gen === rvAudio.gen && rv.i >= rv.queue.length) { drawCard(); await sayFr('Fin des fiches.'); }
+  } finally { if (gen === rvAudio.gen) { rvAudio.on = false; rvAudioUI(); keepAwake(false); } }
+}
+function rvAudioStop() { rvAudio.on = false; rvAudio.gen++; try { speechSynthesis.cancel(); } catch (e) {} rvAudioUI(); }
+function rvAudioUI() { const b = $('rvListen'); if (!b) return; b.textContent = rvAudio.on ? 'Arrêter l\'écoute' : '🔊 Écouter'; b.setAttribute('aria-pressed', String(rvAudio.on)); }
 
 /* =================== Quiz type examen (QCM) =================== */
 /* L'IA prépare des questions à 4 choix ; le quiz est gardé (rejouable sans IA). Mode examen : chronométré, correction à la fin. */
@@ -6503,6 +6656,7 @@ async function renderCourse() {
       <button class="btn" id="cAnki" ${cards.length ? '' : 'disabled'}>${ICONS.share}Fiches vers Anki</button>
       <button class="btn" id="cQuiz" ${notes.some((n) => n.summary) ? '' : 'disabled'}>${ICONS.quiz}Quiz d'examen</button>
       <button class="btn" id="cVocab" type="button">${ICONS.book}Vocabulaire</button>
+      <button class="btn" id="cGloss" type="button" ${notes.some((n) => n.summary) ? '' : 'disabled'}>${ICONS.book}Glossaire</button>
     </div>`;
   if (synthing === m.key) h += `<div class="card synth-run"><b>Synthèse en cours…</b><div class="lin" style="margin:10px 0 6px"><i style="width:60%"></i></div><div class="enh-st" id="synStatus"></div></div>`;
   else if (synth && synth.md) h += `<details class="card synth" id="synthBox"><summary><span class="sec-ic hue" style="--h:${m.hue}">${ICONS.spark}</span><b>Synthèse de la matière</b><small>${synth.n} séance${synth.n > 1 ? 's' : ''} · ${fmtDate(synth.at)}</small></summary><div class="md">${md(synth.md, { i: 0, noEdit: true })}</div><div class="row"><button class="btn" id="cSynCopy">${ICONS.share}Copier</button></div></details>`;
@@ -6520,6 +6674,7 @@ async function renderCourse() {
   $('cRev').onclick = () => startReview(notes.filter((n) => (n.cardDue || []).length).map((n) => n.id));
   $('cPdf').onclick = () => printCourse(m.key);
   $('cVocab').onclick = () => vocabSheet(m.key);
+  $('cGloss').onclick = () => glossarySheet(m.key);
   $('cPlan').onclick = () => (examOf(m) ? planSheet(m.key) : examDateSheet(m.key));
   $('cQuiz').onclick = async () => quizMenu({ mat: { key: m.key, name: m.name }, notes: (await fullNotes((h) => !!h.summary && notes.some((n) => n.id === h.id))).sort((a, b) => a.created - b.created) });
   $('cAnki').onclick = async () => exportAnki(await fullNotes((h) => (h.cardDue || []).length && notes.some((n) => n.id === h.id)), m.name);
@@ -7556,7 +7711,7 @@ const NOTE_FIELDS = {
   photos: (v) => arr(v).map(obj).filter((x) => x && safeId(x.id)).map((x) => ({ id: x.id, t: x.t == null ? null : toNum(x.t), at: toNum(x.at), w: toNum(x.w), h: toNum(x.h),
     ...(x.text ? { text: toStr(x.text), textBy: toStr(x.textBy) } : {}), ...(x.textErr ? { textErr: toStr(x.textErr) } : {}) })),
   cards: (v) => arr(v).map(obj).filter((x) => x && safeId(x.id)).map((x) => ({ id: x.id, q: toStr(x.q), a: toStr(x.a), box: toNum(x.box), due: toNum(x.due),
-    ...(x.seen ? { seen: toNum(x.seen) } : {}), ...(x.last ? { last: toNum(x.last) } : {}), ...(x.lapses ? { lapses: toNum(x.lapses) } : {}), ...(x.own ? { own: true } : {}), ...(x.from === 'quiz' ? { from: 'quiz' } : {}) })),
+    ...(x.seen ? { seen: toNum(x.seen) } : {}), ...(x.last ? { last: toNum(x.last) } : {}), ...(x.lapses ? { lapses: toNum(x.lapses) } : {}), ...(x.own ? { own: true } : {}), ...(x.from === 'quiz' || x.from === 'glossaire' ? { from: x.from } : {}) })),
   chat: (v) => arr(v).map(obj).filter(Boolean).map((x) => ({ q: toStr(x.q), a: toStr(x.a), at: toNum(x.at), by: toStr(x.by), ...(x.err ? { err: true } : {}),
     ...(Array.isArray(x.notes) ? { notes: x.notes.filter(safeId) } : {}) })),
   course: (v) => { const c = obj(v); if (!c) return undefined;
@@ -7978,6 +8133,7 @@ $('askBtn').onclick = () => openAsk('note', 'note');
 $('stAsk').onclick = () => openAsk('note', 'note');
 $('stCards').onclick = () => { if (currentNote) cardsMenu(currentNote); };
 $('stQuiz').onclick = () => { if (currentNote) quizMenu({ note: currentNote }); };
+$('stMind').onclick = () => { if (currentNote) mindSheet(currentNote); };
 $('qzQuit').onclick = () => { if (!qz.done && qz.picks.some((p) => p != null) && !confirm('Arrêter le quiz ? Ton score ne sera pas enregistré.')) return; clearInterval(qz.tick); qz.active = false; navBack(); };
 $('askSend').onclick = sendAsk;
 $('askInput').oninput = autoGrow;
@@ -7989,7 +8145,8 @@ $('askClear').onclick = async () => {
   else lsSet(chatKey(), '[]');
   renderAsk();
 };
-$('rvQuit').onclick = () => { rv.active = false; updateBadge(); navBack(); };
+$('rvQuit').onclick = () => { rvAudioStop(); rv.active = false; updateBadge(); navBack(); };
+$('rvListen').onclick = () => (rvAudio.on ? rvAudioStop() : rvAudioLoop());
 $('plPlay').onclick = plToggle;
 $('plBack').onclick = () => plSeekBy(-10);
 $('plFwd').onclick = () => plSeekBy(30);

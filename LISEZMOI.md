@@ -113,6 +113,8 @@ Notes Plaud lit le calendrier de tes cours (Moodle / WebCampus, ADE, Google Agen
   - **Poser une question** à toute la matière (« Dans quelle séance a-t-on vu… ? ») ;
   - **Réviser les fiches** de toutes ses séances ;
   - **PDF pour NotebookLM** : une seule source avec la synthèse et toutes les séances (au choix avec ou sans les transcriptions).
+  - **Glossaire** : toutes les définitions et formules des séances, par ordre alphabétique, avec la séance d'où elles viennent. On peut y chercher une notion, le copier, ou **créer des fiches** « Que signifie… ? » en un geste.
+  - **Quiz d'examen**, **Vocabulaire** et **Planning** (date d'examen) : voir plus bas.
   - En bas : **Renommer** la matière, ou la **Masquer** (un cours que tu ne suis pas ; réversible dans Réglages → Emploi du temps).
 - **Échéances :** les devoirs à remettre présents dans le calendrier deviennent des **tâches** datées (une seule fois chacun), avec la matière en tag.
 - **Rappel avant chaque cours** (Réglages → Emploi du temps) : une notification « pense à lancer ton Plaud » 5 à 30 min avant.
@@ -179,6 +181,10 @@ Sur une note, touche l'icône **bulle ?** en haut (ou **Demander** sous le résu
 - Les échanges sont gardés avec la note (icône corbeille pour effacer). Les questions suivantes tiennent compte des précédentes.
 - Sur un très long enregistrement avec Groq, l'app n'envoie que les passages les plus pertinents pour la question (limite de l'offre gratuite) ; avec Gemini, tout l'enregistrement est lu.
 
+### Carte mentale
+
+Sous le résumé d'une note, **Carte mentale → Voir** dessine le plan du cours : le titre, les rubriques du résumé et leurs points. Touche une rubrique pour la replier, fais glisser pour parcourir. **Enregistrer en image** crée un fichier PNG (pour l'imprimer ou l'ajouter à ses fiches).
+
 ### Réviser avec des fiches
 
 - Sous le résumé d'une note, **Fiches de révision → Créer** : l'IA prépare 8 à 20 questions-réponses sur les notions importantes (définitions, formules, théorèmes, pièges signalés, points d'examen). Touche ensuite le bouton pour **réviser**, voir la **liste** ou **recréer** les fiches.
@@ -188,6 +194,7 @@ Sur une note, touche l'icône **bulle ?** en haut (ou **Demander** sous le résu
 - **Statistiques** (icône graphique sur cette carte, ou bouton sous le résumé → **Statistiques de révision**) : fiches à réviser, maîtrisées, **jours d'affilée**, taux de réussite sur 30 jours, fiches qui reviennent les 7 prochains jours, et l'avancement **par matière** (avec un bouton pour réviser une seule matière).
 - **Tes propres fiches :** dans le menu des fiches, **Écrire une fiche** en ajoute une ; **Voir et modifier les fiches** permet de corriger une question ou une réponse de l'IA (crayon). La progression est gardée.
 - **Anki / AnkiDroid :** **Exporter vers Anki** (menu des fiches d'une note), **Fiches vers Anki** (page d'une matière) ou **Exporter toutes les fiches** (statistiques) télécharge un fichier texte. Dans Anki : **Fichier → Importer** ; dans AnkiDroid : **⋮ → Importer**. Chaque matière devient un paquet « Notes Plaud::Matière », les tags suivent, les formules s'affichent. Réimporter le même fichier met les fiches à jour sans doublon.
+- **Révision audio, mains libres :** pendant une séance, **🔊 Écouter** lit chaque question, laisse quelques secondes pour réfléchir, puis lit la réponse, et passe à la suivante. Pratique en marchant ou dans les transports. Le calendrier des fiches ne change pas ; touche une note (À revoir, Je savais…) pour reprendre la main.
 - **Rappel quotidien :** Réglages → Notifications → **Rappel quotidien de révision** : une notification à l'heure choisie s'il reste des fiches à réviser (une par jour au plus).
 
 ### Préparer un examen : le planning de révision

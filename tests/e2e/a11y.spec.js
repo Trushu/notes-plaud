@@ -64,6 +64,7 @@ async function tour(page, theme, out) {
   await page.locator('#tabbar [data-v=courses]').click(); await audit(page, `${theme} cours`, out);
   await page.locator('#crsBody .mat').first().click(); await audit(page, `${theme} matière`, out);
   await page.locator('#cVocab').click(); await page.waitForTimeout(300); await audit(page, `${theme} vocabulaire`, out); await page.keyboard.press('Escape'); await page.waitForTimeout(300);
+  await page.locator('#cGloss').click(); await page.waitForTimeout(300); await audit(page, `${theme} glossaire`, out); await page.keyboard.press('Escape'); await page.waitForTimeout(300);
   await page.locator('#backBtn').click();
   await page.locator('#tabbar [data-v=home]').click();
   await page.locator('#settingsBtn').click(); await audit(page, `${theme} réglages`, out);
@@ -184,6 +185,10 @@ test.describe('Audit axe-core : autres écrans et fenêtres', () => {
     await page.evaluate(() => { qz.i = qz.items.length; drawQuiz(); });
     await auditThemes(page, 'quiz (résultat)', out);
     await page.locator('#qzEnd').click();
+    await page.locator('#stMind').click();
+    await expect(page.locator('#mmBox svg')).toBeVisible();
+    await auditThemes(page, 'carte mentale', out);
+    await page.keyboard.press('Escape');
 
     await page.locator('#phStrip [data-ph]').click();
     await expect(page.locator('#lightbox')).toBeVisible();

@@ -105,6 +105,10 @@ test.describe('Tâches qui se répètent et vue « Semaine » (O5, O6)', () => {
     await row.locator('.tck').check();
     await expect.poll(() => page.evaluate(async () => (await allTasks()).filter((t) => /Relire le cours/.test(t.text)).map((t) => [t.done, t.due]))).toEqual([
       [false, await page.evaluate((d) => toISODate(isoDay(d) + 7 * 86400000), iso)], [true, iso]]);
+    // décocher puis recocher ne crée pas de doublon
+    const done = await page.evaluate(async () => (await allTasks()).find((t) => /Relire le cours/.test(t.text) && t.done));
+    await page.evaluate(async (t) => { await updateTask(t.noteId, t.idx, (x) => ({ ...x, done: false })); await updateTask(t.noteId, t.idx, (x) => ({ ...x, done: true })); }, done);
+    expect(await page.evaluate(async () => (await allTasks()).filter((t) => /Relire le cours/.test(t.text)).length)).toBe(2);
     await page.locator('#tMode [data-mode="week"]').click();
     await expect(page.locator('#taskList .wk-day')).toHaveCount(7);
     await expect(page.locator('#taskList .wk-day').first()).toHaveText('Aujourd\'hui');

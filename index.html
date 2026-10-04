@@ -3124,7 +3124,8 @@ async function updateTask(noteId, idx, fn) {
       if (!nx.done) nx.doneAt = null;
       lines[i] = `${m[1]}[${nx.done ? 'x' : ' '}] ${buildTask(nx)}`;
       // tâche qui se répète, cochée : la suivante apparaît au-dessus (comme dans Obsidian Tasks)
-      if (nx.done && !was && REC_LBL[nx.rec]) lines.splice(i, 0, `${m[1]}[ ] ${buildTask(nextOccurrence(nx))}`);
+      // (pas de doublon si on décoche puis recoche : l'occurrence suivante est déjà juste au-dessus)
+      if (nx.done && !was && REC_LBL[nx.rec]) { const nl = `${m[1]}[ ] ${buildTask(nextOccurrence(nx))}`; if (lines[i - 1] !== nl) lines.splice(i, 0, nl); }
     }
     break;
   }

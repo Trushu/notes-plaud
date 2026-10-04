@@ -239,7 +239,7 @@ Sous le résumé d'une note, **Carte mentale → Voir** dessine le plan du cours
 - **Recherche avancée** (bouton **?** dans la barre) : les filtres se combinent librement.
   - `"tas binaire"` : l'expression exacte ;
   - `-examen` : sans ce mot ;
-  - `tag:algo`, `matière:physique`, `type:cours` (ou réunion, note) ;
+  - `tag:algo`, `matière:physique`, `type:cours` (ou réunion, note) ; une matière en plusieurs mots s'écrit entre guillemets : `matière:"droit civil"` ;
   - `après:2026-10-01`, `avant:15/11/2026` ;
   - `a:fiches`, `a:audio`, `a:tâches`, `a:photos`, `a:quiz`.
 
@@ -307,7 +307,7 @@ Touche le **titre** en haut d'une note (il a un petit crayon) pour le modifier. 
 ### Onglet Tâches
 
 - **D'où viennent les tâches :** chaque résumé liste des tâches précises (« Refaire l'exercice 3 du TD 2 »), avec leur échéance quand elle est dite ou déductible, et une priorité si c'est important. Elles arrivent toutes dans l'onglet **Tâches** (en bas de l'écran), avec les tags de leur note.
-- **Affichages :** par **échéance** (en retard, aujourd'hui, demain, cette semaine…), **Semaine** (les 7 prochains jours, jour par jour, les jours libres sont indiqués), **par tag**, ou en **calendrier**. Les tuiles du haut filtrent en un toucher ; la barre de tags aussi.
+- **Affichages :** par **échéance** (en retard, aujourd'hui, demain, cette semaine…), **Semaine** (les 7 prochains jours, jour par jour, les jours libres sont indiqués ; s'il y a beaucoup de retards, seuls les 5 plus anciens sont montrés, avec un bouton pour tous les voir), **par tag**, ou en **calendrier**. Les tuiles du haut filtrent en un toucher ; la barre de tags aussi.
 - **Cocher** une tâche, ici ou dans la note, revient au même. Les terminées sont masquées (bouton pour les revoir).
 - **Modifier** : touche une tâche pour changer son texte, son échéance, son rappel, sa priorité et ses tags, ouvrir sa note, ou la supprimer. Le bouton **+** ajoute une tâche à la main.
 - **Tâches qui se répètent** : dans la fiche d'une tâche, choisis **Répéter → Chaque jour / semaine / mois** (« Relire le cours de la semaine »). Quand tu la coches, la suivante apparaît toute seule à la bonne date (un 31 devient le dernier jour des mois plus courts).

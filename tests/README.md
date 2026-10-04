@@ -85,8 +85,10 @@ Chaque bug corrigé a son test, dans une rubrique « Bugs corrigés » : il éch
 ## Mesures de performance (`perf/`)
 
 `perf/dataset.js` génère dans la page 500 notes (69 millions de caractères), dont 100 enregistrements de 3 h
-(transcription brute et améliorée, cours rédigé, fiches). `perf/perf.spec.js` mesure l'ouverture de l'app,
-l'accueil, la recherche, l'onglet Tâches, l'ouverture d'une note de 3 h et la mémoire, avec un processeur ralenti
+(transcription brute et améliorée, cours rédigé, fiches), répartis en 8 matières avec des définitions. `perf/perf.spec.js`
+mesure l'ouverture de l'app, l'accueil, la recherche, l'onglet Tâches, l'ouverture d'une note de 3 h et la mémoire,
+puis les fonctions récentes : statistiques de révision, glossaire, recherche avancée, notes liées, planning d'examen,
+source du quiz, carte mentale, export Anki et vue Semaine des tâches. Le tout avec un processeur ralenti
 ×4 (`PERF_CPU=1` pour la vitesse réelle). Les mesures sont affichées et jointes au rapport ; des seuils larges
 font échouer le test en cas de régression nette (`PERF_LIMITS=0` pour seulement mesurer).
 

@@ -79,6 +79,18 @@ test.describe('Recherche avancée (feuille de route O1)', () => {
     assert.equal(app.queryHasOps(app.parseQuery('graphe')), false);
     assert.equal(app.queryHasOps(app.parseQuery('tag:x')), true);
   });
+  test('valeur entre guillemets après un opérateur (matière en plusieurs mots)', () => {
+    const p = app.parseQuery('matière:"Droit civil" tag:"Partiel 1" contrat');
+    assert.deepEqual(p.mat, ['droit civil']);
+    assert.deepEqual(p.tag, ['partiel 1']);
+    assert.equal(p.text, 'contrat');
+    assert.deepEqual(app.parseQuery('matière:droit_civil').mat, ['droit civil']);
+    // opérateur inconnu ou valeur vide : gardé comme texte, sans planter
+    assert.equal(app.parseQuery('note:"x"').text, 'note:x');
+    assert.deepEqual(app.parseQuery('matière:"" algo').mat, []);
+    assert.equal(app.parseQuery('matière:"" algo').text, 'algo');
+    assert.equal(app.highlightQ('matière:"Droit civil" Contrat'), 'Contrat');
+  });
   test('texte à surligner', () => {
     assert.equal(app.highlightQ('tag:algo "Tas binaire" -x'), 'Tas binaire');
     assert.equal(app.highlightQ('matière:algo Récursivité'), 'Récursivité');

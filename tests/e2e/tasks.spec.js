@@ -115,3 +115,20 @@ test.describe('Tâches qui se répètent et vue « Semaine » (O5, O6)', () => {
     await expect(page.locator('#taskList')).toContainText('1 tâche plus tard');
   });
 });
+
+test('vue Semaine : beaucoup de retards ne cachent pas la semaine', async ({ page, mocks }) => {
+  await useSettings(page, { key: 'gsk_test' });
+  await page.goto('./');
+  const late = Array.from({ length: 8 }, (_, i) => `- [ ] Retard ${i + 1} 📅 ${inDays(-1 - i)}`).join('\n');
+  await seedNotes(page, [note({ id: 'nL', title: 'Cours en retard', summary: `## Résumé\nTexte.\n## À retravailler à la maison\n${late}\n- [ ] Pour demain 📅 ${inDays(1)}` })]);
+  await page.locator('#tabbar [data-v=tasks]').click();
+  await page.locator('#tMode [data-mode="week"]').click();
+  await expect(page.locator('#taskList .wk-day')).toHaveCount(7);
+  await expect(page.locator('#taskList')).toContainText('En retard · 8');
+  await expect(page.locator('#taskList .titem', { hasText: /Retard \d/ })).toHaveCount(5);
+  await expect(page.locator('#taskList .titem', { hasText: 'Pour demain' })).toBeVisible();
+  await page.locator('#wkLate').click();
+  await expect(page.locator('#tMode [data-mode="due"]')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#tTiles .tstat.late')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#taskList .titem', { hasText: /Retard \d/ })).toHaveCount(8);
+});

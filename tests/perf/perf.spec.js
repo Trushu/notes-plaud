@@ -12,7 +12,7 @@ test.describe.configure({ mode: 'serial', timeout: 240000 });
 
 const LIMITS = process.env.PERF_LIMITS !== '0';
 
-test('500 notes dont 100 de 3 h : accueil, recherche, tâches, note, mémoire', async ({ page, mocks }, info) => {
+test('500 notes dont 100 de 3 h : accueil, recherche, tâches, note, mémoire, nouvelles fonctions', async ({ page, mocks }, info) => {
   await useSettings(page, { key: 'gsk_test' });
   await page.goto('./');
   const tSeed = Date.now();
@@ -75,6 +75,32 @@ test('500 notes dont 100 de 3 h : accueil, recherche, tâches, note, mémoire', 
   });
   r.memoire_note_3h_Mo = await mem();
 
+  // 5. nouvelles fonctions (P1) : statistiques de révision, glossaire, recherche avancée, notes liées, planning, quiz, carte mentale
+  const fx = await page.evaluate(async () => {
+    const t = (f) => async () => { const a = performance.now(); const v = await f(); return [Math.round(performance.now() - a), v]; };
+    const heads = [...(await ensureHeads()).values()], o = {};
+    let v;
+    [o.stats_revision_ms, v] = await t(async () => revStats(heads, await getRevLog()))(); o.fiches = v.total;
+    [o.glossaire_matiere_ms, v] = await t(() => glossaryOf(heads.filter((h) => h.course && h.course.key === 'm0' && h.summary)))(); o.termes_glossaire = v.terms.length;
+    [o.recherche_avancee_ms, v] = await t(() => searchNotes('matière:"Matière 3" après:2025-10-01 "est donc" -anticonstitutionnellement'))(); o.resultats_avances = v.size;
+    [o.notes_liees_ms, v] = await t(async () => relatedFor(await db.get('p0008')))(); o.notes_liees = v.length;
+    [o.planning_examen_ms, v] = await t(() => buildPlan(heads.filter((h) => h.course && h.course.key === 'm0'), Date.now() + 30 * 864e5))(); o.jours_planning = v.length;
+    const big = await db.get('p0000');
+    [o.source_quiz_ms] = await t(() => quizSource(big, 12000))();
+    [o.carte_mentale_ms] = await t(() => mindSvg(mindData(big), new Set(), { bg: '#fff', surface: '#fff', ink: '#111', accent: '#36c', onAccent: '#fff', dark: false }))();
+    const all = await fullNotes((h) => (h.cardDue || []).length);
+    [o.export_anki_ms, v] = await t(() => ankiText(all))(); o.export_anki_Ko = Math.round(v.length / 1000);
+    return o;
+  });
+  Object.assign(r, fx);
+  await page.evaluate(() => show('home'));
+  await page.locator('#tabbar [data-v=tasks]').click();
+  await page.locator('#taskList .titem').first().waitFor();
+  r.semaine_taches_ms = await since(async () => {
+    await page.locator('#tMode [data-mode="week"]').click();
+    await expect(page.locator('#taskList .wk-day')).toHaveCount(7);
+  });
+
   console.log('\nMESURES ' + JSON.stringify(r, null, 2));
   await info.attach('mesures.json', { body: JSON.stringify(r, null, 2), contentType: 'application/json' });
   if (LIMITS) {
@@ -86,5 +112,18 @@ test('500 notes dont 100 de 3 h : accueil, recherche, tâches, note, mémoire', 
     expect(r.onglet_taches_ms).toBeLessThan(1500);
     expect(r.pastille_taches_ms).toBeLessThan(500);
     expect(r.memoire_accueil_Mo).toBeLessThan(40);
+    expect(r.fiches).toBeGreaterThan(0);
+    expect(r.termes_glossaire).toBeGreaterThan(50);
+    expect(r.stats_revision_ms).toBeLessThan(300);
+    expect(r.glossaire_matiere_ms).toBeLessThan(300);
+    expect(r.recherche_avancee_ms).toBeLessThan(3000);
+    expect(r.notes_liees_ms).toBeLessThan(1500);
+    expect(r.planning_examen_ms).toBeLessThan(300);
+    expect(r.source_quiz_ms).toBeLessThan(300);
+    expect(r.carte_mentale_ms).toBeLessThan(300);
+    expect(r.export_anki_ms).toBeLessThan(500);
+    expect(r.resultats_avances).toBeGreaterThan(0);
+    expect(r.export_anki_Ko).toBeGreaterThan(100);
+    expect(r.semaine_taches_ms).toBeLessThan(1500);
   }
 });

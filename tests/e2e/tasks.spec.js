@@ -86,3 +86,28 @@ test.describe('Tâches', () => {
     await expect(page.locator('#tStats')).toContainText('2 à faire · 2 terminées');
   });
 });
+
+test.describe('Tâches qui se répètent et vue « Semaine » (O5, O6)', () => {
+  test('cocher une tâche hebdomadaire crée la suivante ; la semaine jour par jour', async ({ page, mocks }) => {
+    await useSettings(page, { key: 'gsk_test' });
+    await page.goto('./');
+    const iso = await page.evaluate(() => toISODate(Date.now() + 2 * 86400000));
+    await page.locator('#tabbar [data-v=tasks]').click();
+    // les 4 onglets d'affichage tiennent sur un téléphone étroit (pas de dézoom de la page)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(await page.evaluate(() => innerWidth));
+    await page.locator('#fab').click();
+    await page.locator('#tText').fill('Relire le cours de la semaine');
+    await page.locator('#tDue').fill(iso);
+    await page.locator('#tRec').selectOption('week');
+    await page.locator('#tSave').click();
+    const row = page.locator('.titem', { hasText: 'Relire le cours de la semaine' });
+    await expect(row).toContainText('🔁 chaque semaine');
+    await row.locator('.tck').check();
+    await expect.poll(() => page.evaluate(async () => (await allTasks()).filter((t) => /Relire le cours/.test(t.text)).map((t) => [t.done, t.due]))).toEqual([
+      [false, await page.evaluate((d) => toISODate(isoDay(d) + 7 * 86400000), iso)], [true, iso]]);
+    await page.locator('#tMode [data-mode="week"]').click();
+    await expect(page.locator('#taskList .wk-day')).toHaveCount(7);
+    await expect(page.locator('#taskList .wk-day').first()).toHaveText('Aujourd\'hui');
+    await expect(page.locator('#taskList')).toContainText('1 tâche plus tard');
+  });
+});

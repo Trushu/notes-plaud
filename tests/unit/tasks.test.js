@@ -87,3 +87,25 @@ test.describe('autoRemind et remindFor', () => {
     assert.equal(app.remindFor(null), null);
   });
 });
+
+test.describe('Tâches qui se répètent (O5)', () => {
+  test('lecture et écriture : format Obsidian Tasks et français', () => {
+    assert.equal(app.parseTask('Relire le cours 🔁 every week 📅 2026-10-05').rec, 'week');
+    assert.equal(app.parseTask('Faire du sport 🔁 chaque jour').rec, 'day');
+    assert.equal(app.parseTask('Relire le cours 🔁 every week').text, 'Relire le cours');
+    assert.equal(app.parseTask('Sans répétition').rec, undefined);
+    const s = app.buildTask({ text: 'Relire', rec: 'month', due: '2026-10-05' });
+    assert.equal(s, 'Relire 🔁 every month 📅 2026-10-05');
+    assert.deepEqual(app.parseTask(s), { text: 'Relire', due: '2026-10-05', remind: null, prio: 0, doneAt: null, tags: [], rec: 'month' });
+  });
+  test('occurrence suivante : échéance et rappel décalés, jamais dans le passé', () => {
+    const n = app.nextOccurrence({ text: 'x', rec: 'week', due: '2026-10-05', remind: '2026-10-04T18:00', done: true, doneAt: '2026-10-04' }, NOW);
+    assert.equal(n.due, '2026-10-12');
+    assert.equal(n.remind, '2026-10-11T18:00');
+    assert.equal(n.done, false);
+    assert.equal(n.doneAt, null);
+    assert.equal(app.nextOccurrence({ rec: 'day', due: '2026-09-01' }, NOW).due, '2026-10-04');   // très en retard : aujourd'hui
+    assert.equal(app.nextOccurrence({ rec: 'month', due: '2026-10-31' }, NOW).due, '2026-11-30');   // fin de mois gardée
+    assert.equal(app.nextOccurrence({ rec: 'day' }, NOW).due, '2026-10-05');
+  });
+});

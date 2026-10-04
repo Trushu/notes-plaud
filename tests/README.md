@@ -36,6 +36,7 @@ Commandes séparées :
 | `search.test.js` | recherche sans accents : `findAll`, `markHits` |
 | `audio.test.js` | découpage des longs fichiers MP3 et WAV (`splitAudio`, `mp3Sync`, `mp3Duration`) |
 | `search.test.js` (suite) | index léger : `headOf`, `wordsOf`, refus d'enregistrer une fiche à la place d'une note |
+| `revision.test.js` | statistiques de révision (`revStats`, série de jours), export Anki (`ankiField`, `ankiText`), réglage du rappel |
 | `security.test.js` | nettoyage des sauvegardes (`sanitizeNote`, `settingOk`), relais en https, options de KaTeX |
 | `relay.test.js` | relais Cloudflare : contrôle d'origine, chemins autorisés, redirections, en-têtes (chargé comme module ES) |
 
@@ -57,6 +58,7 @@ dans un téléphone émulé. **Aucun appel ne sort de la machine** : Groq, Gemin
 | `index.spec.js` | index des notes : création après mise à jour, mise à jour à chaque modification, liste par pages |
 | `audio-long.spec.js` | enregistrement WebM/Opus réel (micro simulé) découpé en morceaux WAV, horodatages continus |
 | `sw.spec.js` | service worker : installation sans les icônes facultatives, hors ligne, réseau lent, cible de partage |
+| `revision.spec.js` | révisions : fiches dues de toutes les matières depuis l'accueil, statistiques, fiches écrites ou corrigées, export Anki, rappel quotidien |
 | `a11y.spec.js` | accessibilité : audit [axe-core](https://github.com/dequelabs/axe-core) (règles WCAG 2.2 niveau AA) de tous les écrans et fenêtres dans les 8 thèmes, téléphone en mode clair et sombre ; contour des champs et cases à cocher (contraste 3:1) ; clavier et lecteur d'écran (focus, fenêtres, onglets, filtres, annonces) |
 | `bugs.spec.js`, `bugs-rec.spec.js` | un test par bug corrigé : partage reçu, file d'attente, hors connexion, délais réseau, reprise du résumé, stockage plein ou illisible, mise à jour pendant un enregistrement (micro simulé) |
 

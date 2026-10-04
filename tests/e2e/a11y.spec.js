@@ -133,10 +133,21 @@ test.describe('Audit axe-core : autres écrans et fenêtres', () => {
     await expect(page.locator('#sheet')).toBeVisible();
     await auditThemes(page, 'import Plaud', out);
     await page.keyboard.press('Escape');
+    await expect(page.locator('#homeRev')).toContainText('à réviser');
+    await page.locator('#hrStats').click();
+    await expect(page.locator('#sheet .rs-tiles')).toBeVisible();
+    await auditThemes(page, 'statistiques de révision', out);
+    await page.keyboard.press('Escape');
 
     await page.locator('#notesList .item[data-id="nA"]').click();
     await page.locator('#stCards').click();
     await auditThemes(page, 'fenêtre fiches', out);
+    await page.locator('#cmList').click();
+    await auditThemes(page, 'liste des fiches', out);
+    await page.locator('[data-ed="c1"]').click();
+    await auditThemes(page, 'modifier une fiche', out);
+    await page.keyboard.press('Escape');
+    await page.locator('#stCards').click();
     await page.locator('#cmGo').click();
     await auditThemes(page, 'révision (question)', out);
     await page.locator('#rvShow').click();

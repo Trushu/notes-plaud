@@ -46,7 +46,7 @@ Les contraintes ne changent pas : pas d'étape de build, interface en français,
 - [x] **U1. Bouton « Tester la clé ».** Pour Groq, Gemini, Cerebras et Mistral, un appel minimal affiche « Clé valide », « Clé refusée » ou « Limite atteinte » avec la marche à suivre. *Bénéfice : un premier réglage sans tâtonner.* · Effort S · **P1** — [PR #11](https://github.com/Trushu/notes-plaud/pull/11)
 - [x] **U2. Premier lancement guidé.** Un assistant en trois étapes : clé Groq testée, clé Gemini facultative, puis emploi du temps et import Plaud facultatifs. Chaque étape a un lien direct et des explications pour débutant. *Bénéfice : être prêt en deux minutes, sans lire le mode d'emploi.* · Effort M · **P1** — [PR #11](https://github.com/Trushu/notes-plaud/pull/11)
 - [x] **U3. Messages d'erreur avec action.** Chaque erreur fréquente (clé refusée, limite, fichier trop gros, format inconnu, stockage plein) affiche un bouton qui mène au bon endroit : Réglages, Réessayer plus tard… *Bénéfice : savoir quoi faire.* · Effort S · **P2** — [PR #11](https://github.com/Trushu/notes-plaud/pull/11)
-- [ ] **U4. Mode tablette et ordinateur.** Sur grand écran, la liste des notes reste à gauche et la note s'ouvre à droite, et les fiches sont plus larges. *Bénéfice : réviser confortablement sur tablette ou PC.* · Effort M · **P2**
+- [x] **U4. Mode tablette et ordinateur.** Sur grand écran, la liste des notes reste à gauche et la note s'ouvre à droite, et les fiches sont plus larges. *Bénéfice : réviser confortablement sur tablette ou PC.* · Effort M · **P2** — [PR #17](https://github.com/Trushu/notes-plaud/pull/17)
 - [ ] **U5. États vides utiles.** Accueil, tâches, cours et recherche sans résultat proposent l'action suivante : « Importer ton emploi du temps », « Essaie sans guillemets »… *Bénéfice : ne jamais rester bloqué devant un écran vide.* · Effort S · P3
 - [x] **U6. Retour haptique.** Une légère vibration accompagne « Marquer », le début et la fin d'un enregistrement et une tâche cochée. *Bénéfice : une confirmation sans regarder l'écran, en plein cours.* · Effort S · P3 — [PR #16](https://github.com/Trushu/notes-plaud/pull/16)
 
@@ -69,14 +69,14 @@ Les contraintes ne changent pas : pas d'étape de build, interface en français,
 
 ## Design
 
-- [ ] **D1. Police de lecture.** Choix entre serif et sans-serif, et interligne confortable pour les résumés et le cours rédigé. *Bénéfice : un confort de lecture adapté à chacun (dyslexie, longues sessions).* · Effort S · P3
-- [ ] **D2. Uniformisation des cartes de l'accueil.** Les cartes de rappel (sauvegarde, révision, examen) partagent le même gabarit et un ordre de priorité, et une seule s'affiche à la fois. *Bénéfice : un accueil lisible même quand tout est activé.* · Effort S · **P2**
-- [ ] **D3. Thème « Contraste élevé ».** Noir et blanc purs, contours marqués. *Bénéfice : lisibilité en plein soleil ou en cas de basse vision.* · Effort S · P3
+- [x] **D1. Police de lecture.** Choix entre serif et sans-serif, et interligne confortable pour les résumés et le cours rédigé. *Bénéfice : un confort de lecture adapté à chacun (dyslexie, longues sessions).* · Effort S · P3 — [PR #17](https://github.com/Trushu/notes-plaud/pull/17)
+- [x] **D2. Uniformisation des cartes de l'accueil.** Les cartes de rappel (sauvegarde, révision, examen) partagent le même gabarit et un ordre de priorité, et une seule s'affiche à la fois. *Bénéfice : un accueil lisible même quand tout est activé.* · Effort S · **P2** — [PR #17](https://github.com/Trushu/notes-plaud/pull/17)
+- [x] **D3. Thème « Contraste élevé ».** Noir et blanc purs, contours marqués. *Bénéfice : lisibilité en plein soleil ou en cas de basse vision.* · Effort S · P3 — [PR #17](https://github.com/Trushu/notes-plaud/pull/17)
 
 ## Accessibilité, performance, sécurité et vie privée
 
-- [ ] **A1. La taille du texte s'applique aussi aux fiches, au quiz et au glossaire.** · Effort S · **P2**
-- [ ] **A2. Vérifier les nouveaux écrans avec axe-core.** Les nouveaux écrans sont ajoutés à l'audit d'accessibilité dans les 8 thèmes. · Effort S · **P1** (fait à chaque PR)
+- [x] **A1. La taille du texte s'applique aussi aux fiches, au quiz et au glossaire.** · Effort S · **P2** — [PR #17](https://github.com/Trushu/notes-plaud/pull/17)
+- [x] **A2. Vérifier les nouveaux écrans avec axe-core.** Les nouveaux écrans sont ajoutés à l'audit d'accessibilité dans les 8 thèmes. · Effort S · **P1** (fait à chaque PR)
 - [ ] **S1. Verrouillage par code.** Un code à 4 à 8 chiffres est demandé à l'ouverture, après une durée réglable. C'est un écran de confidentialité, pas un chiffrement, et c'est expliqué. *Bénéfice : un téléphone prêté n'ouvre pas les notes.* · Effort M · P3
 - [x] **S2. « Tout effacer ».** Un bouton supprime les notes, l'audio, les réglages et le cache, avec une double confirmation. *Bénéfice : rendre ou revendre son téléphone en toute tranquillité.* · Effort S · **P2** — [PR #16](https://github.com/Trushu/notes-plaud/pull/16)
 - [x] **S3. Clés masquées dans les exports et les diagnostics.** · Effort S · P3 — [PR #16](https://github.com/Trushu/notes-plaud/pull/16)

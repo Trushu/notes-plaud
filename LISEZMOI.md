@@ -21,7 +21,7 @@ Tout est gratuit : l'hébergement sur GitHub Pages et l'API Groq. Tu n'as besoin
 
 En cas de souci, la plupart des messages d'erreur ont un bouton qui mène au bon réglage. Sinon, va voir [En cas de problème](#en-cas-de-problème).
 
-## Nouveautés (version 49, octobre 2026)
+## Nouveautés (version 50, octobre 2026)
 
 **Réviser et préparer ses examens**
 - **Fiches du jour sur l'accueil**, toutes matières confondues, et **statistiques de révision** : série de jours, taux de réussite, prévision sur 7 jours, avancement par matière. Voir [Réviser avec des fiches](#réviser-avec-des-fiches).
@@ -46,6 +46,7 @@ En cas de souci, la plupart des messages d'erreur ont un bouton qui mène au bon
 
 **Fiabilité et données**
 - **Sauvegarde envoyée vers Drive ou Gmail** en un geste, **chiffrée par mot de passe** si tu veux, avec un rappel réglable.
+- **Questions hors ligne** : une question posée sans réseau (métro, amphi) part toute seule au retour de la connexion, même si l'app a été fermée entre-temps. Voir [Poser une question](#poser-une-question-à-ses-notes).
 - **File d'attente** visible sur l'accueil (réessayer, retirer), **rapport de diagnostic** sans clés ni contenu, et **tout effacer** avant de rendre un téléphone.
 
 **Confort**
@@ -245,6 +246,7 @@ Sur une note, touche l'icône **bulle ?** en haut (ou **Demander** sous le résu
 
 - **Cette note / La matière / Toutes** : en haut de l'écran. « La matière » interroge toutes les séances du cours (si l'emploi du temps est configuré) ; « Toutes » cherche dans l'ensemble des enregistrements (les réponses indiquent de quelle note vient chaque passage). Aussi en appui long sur l'icône de l'app → **Question**.
 - Les échanges sont gardés avec la note (icône corbeille pour effacer). Les questions suivantes tiennent compte des précédentes.
+- **Sans réseau** (métro, amphi), ou pendant qu'un traitement occupe l'IA, pose quand même ta question. Elle est gardée dans le téléphone, avec la mention « partira toute seule », et elle part dès que c'est possible, même si l'app a été fermée entre-temps. Un message **Réponse prête**, ou une notification si l'app est en arrière-plan, mène à la réponse. **Annuler** sous la question la retire ; les questions en attente figurent aussi dans la **File d'attente** de l'accueil.
 - Sur un très long enregistrement avec Groq, l'app n'envoie que les passages les plus pertinents pour la question (limite de l'offre gratuite) ; avec Gemini, tout l'enregistrement est lu.
 
 ### Carte mentale

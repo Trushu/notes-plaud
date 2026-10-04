@@ -307,12 +307,13 @@ Touche le **titre** en haut d'une note (il a un petit crayon) pour le modifier. 
 ### Onglet Tâches
 
 - **D'où viennent les tâches :** chaque résumé liste des tâches précises (« Refaire l'exercice 3 du TD 2 »), avec leur échéance quand elle est dite ou déductible, et une priorité si c'est important. Elles arrivent toutes dans l'onglet **Tâches** (en bas de l'écran), avec les tags de leur note.
-- **Affichages :** par **échéance** (en retard, aujourd'hui, demain, cette semaine…), **par tag**, ou en **calendrier**. Les tuiles du haut filtrent en un toucher ; la barre de tags aussi.
+- **Affichages :** par **échéance** (en retard, aujourd'hui, demain, cette semaine…), **Semaine** (les 7 prochains jours, jour par jour, les jours libres sont indiqués), **par tag**, ou en **calendrier**. Les tuiles du haut filtrent en un toucher ; la barre de tags aussi.
 - **Cocher** une tâche, ici ou dans la note, revient au même. Les terminées sont masquées (bouton pour les revoir).
 - **Modifier** : touche une tâche pour changer son texte, son échéance, son rappel, sa priorité et ses tags, ouvrir sa note, ou la supprimer. Le bouton **+** ajoute une tâche à la main.
+- **Tâches qui se répètent** : dans la fiche d'une tâche, choisis **Répéter → Chaque jour / semaine / mois** (« Relire le cours de la semaine »). Quand tu la coches, la suivante apparaît toute seule à la bonne date (un 31 devient le dernier jour des mois plus courts).
 - **Rappels** : un rappel automatique est placé la veille à 18 h des échéances (réglable dans Réglages → Notifications). Ils s'affichent quand l'app est ouverte ou peu après ; pour un rappel garanti même téléphone éteint, touche **Google Agenda** dans la fiche de la tâche.
 - **⋯ en haut** : partager la liste en texte, ou exporter les tâches datées vers un agenda (.ics).
-- Dans l'export .md, les tâches suivent le format du plugin Obsidian Tasks (📅 échéance, ⏰ rappel, ⏫ priorité).
+- Dans l'export .md, les tâches suivent le format du plugin Obsidian Tasks (📅 échéance, ⏰ rappel, ⏫ priorité, 🔁 répétition).
 
 ### Temps de traitement (à peu près)
 

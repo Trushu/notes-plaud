@@ -547,11 +547,13 @@
   .tedit:active { background: var(--surface-2); }
   .donebtn { display: block; margin: 16px auto 0; }
   .group .tag { text-transform: none; letter-spacing: 0; vertical-align: middle; }
-  #tMode button { padding: 0 10px; white-space: nowrap; }
+  #tMode { min-width: 0; overflow-x: auto; scrollbar-width: none; }
+  #tMode::-webkit-scrollbar { display: none; }
+  #tMode button { flex: none; padding: 0 8px; font-size: 13.5px; white-space: nowrap; }
   .seg2 button { white-space: nowrap; }
   .tsheet label.f { margin-top: 14px; }
   .tsheet textarea { min-height: 64px; font-size: 16px; }
-  .tsheet input[type=date], .tsheet input[type=datetime-local] { width: 100%; min-height: 48px; padding: 10px 13px; border-radius: 12px; border: 1px solid var(--ctl); background: var(--bg); font-size: 16px; }
+  .tsheet input[type=date], .tsheet input[type=datetime-local], .tsheet select { width: 100%; min-height: 48px; padding: 10px 13px; border-radius: 12px; border: 1px solid var(--ctl); background: var(--bg); font-size: 16px; }
   .tsheet .quick { margin: 8px 0 0; }
   .tsheet .tag.lock { opacity: .75; cursor: default; }
   .tsheet .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
@@ -861,6 +863,8 @@
   .brief b { color: var(--accent-ink); margin-right: 6px; text-transform: uppercase; font-size: 12px; letter-spacing: .06em; }
   .links { margin-bottom: 12px; } .links .sec-ic { background: var(--teal-soft); color: var(--teal); flex: none; }
   .lk-list { margin: 8px 0 0; padding-left: 20px; } .lk-list li { margin: 5px 0; } .lk-list .linkbtn { font-weight: 500; }
+  .wk-day.today { color: var(--accent-ink); }
+  .wk-free { font-size: 13.5px; color: var(--muted); padding: 2px 4px 6px; }
   .home-rev { display: flex; align-items: center; gap: 12px; padding: 14px 14px 14px 16px; margin-bottom: 14px; }
   .home-rev .sec-ic { background: var(--violet-soft); color: var(--violet); flex: none; }
   .home-rev .grow { flex: 1; min-width: 0; }
@@ -1405,6 +1409,7 @@
     <div class="toolbar">
       <div class="seg2" id="tMode" role="tablist" aria-label="Affichage des tâches">
         <button data-mode="due" role="tab" aria-selected="true">Échéance</button>
+        <button data-mode="week" role="tab" aria-selected="false">Semaine</button>
         <button data-mode="tag" role="tab" aria-selected="false">Par tag</button>
         <button data-mode="cal" role="tab" aria-selected="false">Calendrier</button>
       </div>
@@ -1729,7 +1734,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = '47 · 4 oct. 2026';
+const APP_VERSION = '48 · 4 oct. 2026';
 /* =================== Réglages et constantes =================== */
 const API = 'https://api.groq.com/openai/v1';
 // Modifiable pour les tests
@@ -3059,20 +3064,33 @@ const TASK_RE = /^(\s*[-*•]\s+)\[( |x|X)\]\s+(.*)$/;
 const toISODate = (t) => { const d = new Date(t), p = (x) => String(x).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
 const isoDay = (iso) => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d).getTime(); };
 function parseTask(raw) {
-  let t = String(raw), due = null, remind = null, prio = 0, doneAt = null;
+  let t = String(raw), due = null, remind = null, prio = 0, doneAt = null, rec = null;
   const tags = [];
+  // répétition (format Obsidian Tasks « 🔁 every week », ou en français)
+  t = t.replace(/🔁\s*(?:every\s+(day|week|month)|chaque\s+(jour|semaine|mois))/giu, (_, en, fr) => { rec = en ? en.toLowerCase() : { jour: 'day', semaine: 'week', mois: 'month' }[fr.toLowerCase()]; return ' '; });
   t = t.replace(/📅\s*(\d{4}-\d{2}-\d{2})/gu, (_, d) => { due = d; return ' '; });
   t = t.replace(/⏰\s*(\d{4}-\d{2}-\d{2})(?:[ T](\d{1,2}:\d{2}))?/gu, (_, d, h) => { remind = d + 'T' + (h ? h.padStart(5, '0') : '09:00'); return ' '; });
   t = t.replace(/✅\s*(\d{4}-\d{2}-\d{2})/gu, (_, d) => { doneAt = d; return ' '; });
   if (/⏫|🔺/u.test(t)) prio = 2; else if (/🔼/u.test(t)) prio = 1; else if (/🔽/u.test(t)) prio = -1;
   t = t.replace(/⏫|🔺|🔼|🔽/gu, ' ');
   t = t.replace(/(^|\s)#(\p{L}[\p{L}\p{N}_-]*)/gu, (_, sp, tag) => { tags.push(tag.toLowerCase().replace(/-/g, ' ')); return sp; });
-  return { text: t.replace(/\s+/g, ' ').trim(), due, remind, prio, doneAt, tags };
+  return { text: t.replace(/\s+/g, ' ').trim(), due, remind, prio, doneAt, tags, ...(rec ? { rec } : {}) };
 }
+// Prochaine échéance d'une tâche qui se répète (à partir de son échéance, ou d'aujourd'hui si elle n'en a pas)
+function nextOccurrence(o, today = Date.now()) {
+  const step = (iso, k) => { const d = new Date(isoDay(iso)); if (o.rec === 'day') d.setDate(d.getDate() + k); else if (o.rec === 'week') d.setDate(d.getDate() + 7 * k); else { const day = d.getDate(); d.setDate(1); d.setMonth(d.getMonth() + k); d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate())); } return toISODate(d.getTime()); };
+  let due = step(o.due || toISODate(today), 1);
+  while (isoDay(due) < dayStart(today)) due = step(due, 1);   // en retard depuis plusieurs périodes : la prochaine à venir
+  let remind = null;
+  if (o.remind && o.due) { const shift = isoDay(due) - isoDay(o.due), r0 = new Date(o.remind.replace(' ', 'T')).getTime(); remind = toLocalInput(r0 + shift); }
+  return { ...o, due, remind, done: false, doneAt: null };
+}
+const REC_LBL = { day: 'chaque jour', week: 'chaque semaine', month: 'chaque mois' };
 function buildTask(o) {
   let s = String(o.text || '').replace(/\s+/g, ' ').trim();
   for (const t of o.tags || []) s += ' #' + String(t).trim().replace(/\s+/g, '-');
   if (o.prio === 2) s += ' ⏫'; else if (o.prio === 1) s += ' 🔼'; else if (o.prio === -1) s += ' 🔽';
+  if (REC_LBL[o.rec]) s += ' 🔁 every ' + o.rec;
   if (o.remind) s += ' ⏰ ' + o.remind.replace('T', ' ');
   if (o.due) s += ' 📅 ' + o.due;
   if (o.doneAt) s += ' ✅ ' + o.doneAt;
@@ -3099,12 +3117,15 @@ async function updateTask(noteId, idx, fn) {
   for (let i = 0; i < lines.length; i++) {
     const m = TASK_RE.exec(lines[i]); if (!m) continue;
     if (++k !== idx) continue;
-    const nx = fn({ ...parseTask(m[3]), done: m[2] !== ' ' });
+    const was = m[2] !== ' ', nx = fn({ ...parseTask(m[3]), done: was });
     if (nx === null) lines.splice(i, 1);
     else {
       if (nx.done && !nx.doneAt) nx.doneAt = toISODate(Date.now());
       if (!nx.done) nx.doneAt = null;
       lines[i] = `${m[1]}[${nx.done ? 'x' : ' '}] ${buildTask(nx)}`;
+      // tâche qui se répète, cochée : la suivante apparaît au-dessus (comme dans Obsidian Tasks)
+      // (pas de doublon si on décoche puis recoche : l'occurrence suivante est déjà juste au-dessus)
+      if (nx.done && !was && REC_LBL[nx.rec]) { const nl = `${m[1]}[ ] ${buildTask(nextOccurrence(nx))}`; if (lines[i - 1] !== nl) lines.splice(i, 0, nl); }
     }
     break;
   }
@@ -4793,6 +4814,7 @@ function taskMeta(p, done, extra = '') {
     out.push(`<span class="tm due${!done && diff < 0 ? ' late' : !done && diff === 0 ? ' today' : ''}">${ICONS.cal}${dueLabel(p.due)}${!done && diff < 0 ? ' · en retard' : ''}</span>`);
   }
   if (p.remind && !done) out.push(`<span class="tm">${ICONS.bell}${remindLabel(p.remind)}</span>`);
+  if (REC_LBL[p.rec]) out.push(`<span class="tm">🔁 ${REC_LBL[p.rec]}</span>`);
   for (const t of p.showTags || p.tags || []) out.push(`<span class="tm tagm" style="--h:${tagHue(t)}">${esc(t)}</span>`);
   if (extra) out.push(extra);
   return out.length ? `<span class="tmeta">${out.join('')}</span>` : '';
@@ -4874,6 +4896,15 @@ async function renderTasks() {
   else if (tui.mode === 'due') {
     const groups = new Map(); for (const t of list) { const g = dueGroup(t); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(t); }
     for (const g of DUE_ORDER) if (groups.has(g) && left > 0) html += `<div class="group" role="heading" aria-level="2">${g} · ${groups.get(g).length}</div>` + items(groups.get(g));
+  } else if (tui.mode === 'week') {
+    const today = dayStart(Date.now()), late = list.filter((t) => !t.done && t.due && isoDay(t.due) < today);
+    if (late.length) html += `<div class="group" role="heading" aria-level="2">En retard · ${late.length}</div>` + items(late);
+    for (let k = 0; k < 7 && left > 0; k++) {
+      const d = today + k * DAY, ts = list.filter((t) => t.due && isoDay(t.due) === d);
+      html += `<div class="group wk-day${k === 0 ? ' today' : ''}" role="heading" aria-level="2">${k === 0 ? 'Aujourd\'hui' : k === 1 ? 'Demain' : new Date(d).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'short' })}${ts.length ? ' · ' + ts.length : ''}</div>` + (ts.length ? items(ts) : '<div class="wk-free">Rien de prévu</div>');
+    }
+    const nod = list.filter((t) => !t.due).length, later = list.filter((t) => t.due && isoDay(t.due) >= today + 7 * DAY).length;
+    if (nod || later) html += `<p class="f-help">${[later ? `${later} tâche${later > 1 ? 's' : ''} plus tard` : '', nod ? `${nod} sans échéance` : ''].filter(Boolean).join(' · ')} : vue « Échéance ».</p>`;
   } else if (tui.mode === 'tag') {
     const groups = new Map(); for (const t of list) { const g = tui.tag || t.allTags[0] || 'Sans tag'; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(t); }
     const keys = [...groups.keys()].sort((a, b) => (a === 'Sans tag') - (b === 'Sans tag') || groups.get(b).length - groups.get(a).length || a.localeCompare(b));
@@ -4955,6 +4986,8 @@ async function taskSheet(t) {
     <label class="f" for="tRem">Rappel</label>
     <input type="datetime-local" id="tRem" value="${st.remind || ''}">
     <div class="quick" id="qRem"></div>
+    <label class="f" for="tRec">Répéter</label>
+    <select id="tRec"><option value="">Jamais</option><option value="day"${t.rec === 'day' ? ' selected' : ''}>Chaque jour</option><option value="week"${t.rec === 'week' ? ' selected' : ''}>Chaque semaine</option><option value="month"${t.rec === 'month' ? ' selected' : ''}>Chaque mois</option></select>
     <div class="f" id="tPrioLbl">Priorité</div>
     <div class="seg2" id="tPrio" role="radiogroup" aria-labelledby="tPrioLbl"><button role="radio" data-p="-1">Basse</button><button role="radio" data-p="0">Normale</button><button role="radio" data-p="2">Haute</button></div>
     <div class="f" id="tTagsLbl">Tags</div>
@@ -5000,7 +5033,7 @@ async function taskSheet(t) {
     drawTags();
     const addTag = () => { const g = cleanTag(q('#tNewTag').value); if (g && !st.tags.includes(g) && !noteTags.includes(g)) st.tags.push(g); q('#tNewTag').value = ''; drawTags(); };
     q('#tAddTag').onclick = addTag; q('#tNewTag').onkeydown = (e) => { if (e.key === 'Enter') addTag(); };
-    const values = () => ({ text: q('#tText').value.replace(/\s+/g, ' ').trim(), due: q('#tDue').value || null, remind: q('#tRem').value || null, prio: st.prio, tags: st.tags });
+    const values = () => ({ text: q('#tText').value.replace(/\s+/g, ' ').trim(), due: q('#tDue').value || null, remind: q('#tRem').value || null, prio: st.prio, tags: st.tags, rec: q('#tRec').value || undefined });
     q('#tSave').onclick = async () => {
       const v = values();
       if (!v.text) { toast('Écris la tâche'); q('#tText').focus(); return; }

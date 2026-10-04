@@ -10,7 +10,7 @@
 // - installation : seuls les fichiers indispensables doivent être présents (avant, une icône de raccourci manquante
 //   sur le site empêchait toute l'installation, donc le partage depuis Plaud).
 
-const CACHE = 'notes-plaud-v47';
+const CACHE = 'notes-plaud-v48';
 const KATEX_CACHE = 'katex-v2';   // KaTeX en version figée (0.16.47), vérifiée par empreinte dans la page
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 const OPTIONAL = ['./sc-rec.png', './sc-cours.png', './sc-ask.png', './sc-tasks.png'];   // icônes des raccourcis
@@ -166,6 +166,7 @@ function parseTask(raw) {
   t = t.replace(/📅\s*(\d{4}-\d{2}-\d{2})/gu, (_, d) => { due = d; return ' '; });
   t = t.replace(/⏰\s*(\d{4}-\d{2}-\d{2})(?:[ T](\d{1,2}:\d{2}))?/gu, (_, d, h) => { remind = d + 'T' + (h ? h.padStart(5, '0') : '09:00'); return ' '; });
   t = t.replace(/✅\s*(\d{4}-\d{2}-\d{2})/gu, ' ');
+  t = t.replace(/🔁\s*(?:every\s+(?:day|week|month)|chaque\s+(?:jour|semaine|mois))/giu, ' ');
   t = t.replace(/⏫|🔺|🔼|🔽/gu, ' ');
   t = t.replace(/(^|\s)#(\p{L}[\p{L}\p{N}_-]*)/gu, (_, sp) => sp);
   return { text: t.replace(/\s+/g, ' ').trim(), remind, due };

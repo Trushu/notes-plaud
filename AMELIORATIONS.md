@@ -56,8 +56,8 @@ Les contraintes ne changent pas : pas d'étape de build, interface en français,
 - [x] **O2. Chercher aussi dans les fiches et les questions posées.** *Bénéfice : une seule barre pour tout.* · Effort S · **P2** — [PR #12](https://github.com/Trushu/notes-plaud/pull/12)
 - [x] **O3. Archiver une note.** La note est masquée de l'accueil sans être supprimée : elle reste dans la recherche, la matière et les fiches. Un filtre « Archivées » permet de la retrouver. *Bénéfice : un accueil centré sur le semestre en cours.* · Effort S · **P2** — [PR #15](https://github.com/Trushu/notes-plaud/pull/15)
 - [x] **O4. Vue semestre d'une matière.** Toutes les séances du semestre, enregistrées ou manquées, les heures d'audio, les fiches maîtrisées et la date de l'examen. *Bénéfice : voir d'un coup d'œil les trous à combler.* · Effort M · **P2** — [PR #15](https://github.com/Trushu/notes-plaud/pull/15)
-- [ ] **O5. Tâches récurrentes.** Une tâche peut revenir chaque semaine ou chaque jour (« Relire le cours de la semaine »). *Bénéfice : les routines d'étude dans l'app.* · Effort M · P3
-- [ ] **O6. Vue « Cette semaine » des tâches.** Les tâches de la semaine sont regroupées par jour, avec glisser pour cocher. *Bénéfice : planifier sa semaine d'étude.* · Effort S · P3
+- [x] **O5. Tâches récurrentes.** Une tâche peut revenir chaque semaine ou chaque jour (« Relire le cours de la semaine »). *Bénéfice : les routines d'étude dans l'app.* · Effort M · P3 — [PR #19](https://github.com/Trushu/notes-plaud/pull/19)
+- [x] **O6. Vue « Cette semaine » des tâches.** Les tâches de la semaine sont regroupées par jour, avec glisser pour cocher. *Bénéfice : planifier sa semaine d'étude.* · Effort S · P3 — [PR #19](https://github.com/Trushu/notes-plaud/pull/19)
 
 ## Fiabilité
 

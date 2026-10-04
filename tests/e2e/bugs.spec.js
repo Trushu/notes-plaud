@@ -42,6 +42,7 @@ test.describe('Fichier partagé depuis une autre app', () => {
     const old = vcal(vevent('old', 'Algorithmique', now - 30 * 24 * H, now - 30 * 24 * H + 2 * H));
     await page.evaluate((t) => saveAgendaText(t, 'url'), old);   // historique déjà dans l'app
     const fresh = vcal(vevent('new', 'Algorithmique', now + 24 * H, now + 26 * H));
+    page.once('dialog', (d) => d.accept());   // « Importer … comme emploi du temps ? » (chantier 3)
     await shareFile(page, { name: 'calendrier.ics', type: 'text/calendar', bytes: Buffer.from(fresh) });
     await expect(page.locator('#toast')).toContainText('Emploi du temps importé');
     const uids = await page.evaluate(() => AG.events.map((e) => e.uid));

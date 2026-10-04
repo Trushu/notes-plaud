@@ -2,8 +2,8 @@
 // - reçoit les fichiers partagés depuis Android (cible de partage)
 // - garde l'application en cache pour qu'elle s'ouvre même avec un mauvais réseau
 
-const CACHE = 'notes-plaud-v32';
-const KATEX_CACHE = 'katex-v1';
+const CACHE = 'notes-plaud-v33';
+const KATEX_CACHE = 'katex-v2';   // KaTeX en version figée (0.16.47), vérifiée par empreinte dans la page
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './sc-rec.png', './sc-cours.png', './sc-ask.png', './sc-tasks.png'];
 
 // --- IndexedDB minimal (même base que la page) ---
